@@ -1,0 +1,4 @@
+valgrind --tool=memcheck --leak-check=full --show-reachable=yes  --track-origins=yes ./Server.out 4096
+
+valgrind --tool=memcheck  --trace-children=yes --vex-iropt-register-updates=allregs-at-mem-access --workaround-gcc296-bugs=yes --leak-check=full --leak-check=full --show-reachable=yes  --track-origins=yes ./Server_Threads_Example.out
+
