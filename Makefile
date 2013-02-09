@@ -16,7 +16,7 @@ LFLAGS = -fbounds-check -fstack-check -g
 #
 main: $(OBJS)
 
-	gcc -g -o Server_Main.out Server_Main.c  -L$(PATHL)  -lm3l -Wl,-rpath=$(PATHL) -lpthread
+	gcc -g -o Server_Main.out  $(OBJS) -L$(PATHL)  -lm3l -Wl,-rpath=$(PATHL) -lpthread
 
 -include $(OBJS:.o=.d)
 
@@ -28,5 +28,6 @@ main: $(OBJS)
 	@sed -e 's/.*://' -e 's/\\$$//' < $*.d.tmp | fmt -1 | \
 	  sed -e 's/^ *//' -e 's/$$/:/' >> $*.d
 	@rm -f $*.d.tmp
+
 clean:
 	rm -f Server_Main.out *.o *.d
