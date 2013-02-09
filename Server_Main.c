@@ -21,6 +21,10 @@ lmint_t main (int argc, char **argv){
 	
 	node_t *Gnode = NULL;
 	
+	lmsize_t i;
+	find_t *SFounds;
+	node_t *LocNode;
+	
 	char opt_s='\0';
 	
 	portnum = -1;
@@ -111,6 +115,32 @@ lmint_t main (int argc, char **argv){
 		Error("Server: m3l_Fread");
 	}
 	free(Filename);
+	
+	
+	
+// //===========================================================
+// 	
+// 	if( (SFounds = m3l_Detach_List(&Gnode, "/COMM_DEF/Data_Sets/Data_Set", "/*/*/*", (lmchar_t *)NULL)) != NULL){
+// 		for(i=0; i < m3l_get_Found_number(SFounds); i++){
+// 			
+// 			LocNode = m3l_get_Found_node(SFounds, i);
+// 			
+// 			if(m3l_Cat(LocNode, "--all", "-P", "-L", "*", (lmchar_t *)NULL) != 0)
+// 				Error("m3l_Cat");
+// 			
+// 			if(m3l_Umount(&LocNode) != 1)
+// 				Error("m3l_Umount");	
+// 		}
+// 		m3l_DestroyFound(&SFounds);
+// 	}
+// 	
+// 	if(m3l_Cat(Gnode, "--all", "-P", "-L", "*", (lmchar_t *)NULL) != 0)
+// 				Error("m3l_Cat");
+// 	if(m3l_Umount(&Gnode) != 1)
+// 		Error("m3l_Umount");	
+// 	exit(0);
+// //===========================================================
+
 
 /*
  * if specified, write the file on screen

@@ -52,12 +52,12 @@ lmint_t Data_Fork(node_t *Gnode){
 		
 		printf("\n\nFork: \n");
 		if(m3l_Cat(Gnode, "--all", "-P", "-L", "*", (lmchar_t *)NULL) != 0)
-			Error("CatData");
+			Warning("CatData");
 		
 		printf("\n\nLocNode: \n");
 
 		if(m3l_Cat(LocNode, "--all", "-P", "-L", "*", (lmchar_t *)NULL) != 0)
-			Error("CatData");
+			Warning("CatData");
 /*
  * spawn a child by forking
  */	
@@ -69,11 +69,8 @@ lmint_t Data_Fork(node_t *Gnode){
 /*
  * child, free unused data
  */	
-			printf(" chld: umounting Gnode  %p\n", Gnode);
 			if(m3l_Umount(&Gnode) != 1)
-				Error("m3l_Umount");
-			printf(" chld: after umounting Gnode  %p\n", Gnode);
-
+				Warning("m3l_Umount");
 			m3l_DestroyFound(&SFounds);
 /* 
  * cat LocNode
@@ -82,29 +79,22 @@ lmint_t Data_Fork(node_t *Gnode){
 // 			Error("CatData");
 		
 			if(m3l_Umount(&LocNode) != 1)
-				Error("m3l_Umount");
+				Warning("m3l_Umount");
 			
 			exit(0);
 		}
 		else
 		{
-			
-			printf(" parent process - pid is %d \n",  getpid());
-
 /*
  * parent
  */	
+			printf(" parent process - pid is %d \n",  getpid());
 			if(m3l_Umount(&LocNode) != 1)
 				Error("m3l_Umount");
 		}
 	}
 		
 	m3l_DestroyFound(&SFounds);
-	
-	printf(" \n\n GNODE \n");
-	
-	if(m3l_Cat(Gnode, "--all", "-P", "-L", "*", (lmchar_t *)NULL) != 0)
-		Error("CatData");
 	
 	sleep(2);
 }
