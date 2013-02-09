@@ -24,15 +24,6 @@ lmint_t Data_Fork(node_t *Gnode){
 			Error("Server: did not find any Data_set");
 			m3l_DestroyFound(&SFounds);
 		}
-		
-// 			for(i=0; i < n_forks; i++){
-// 				Tmp = m3l_get_Found_node(SFounds, i);
-// 				printf(" \n\n\nFound name is %s  %p   %s\n", Tmp->name, Tmp, Tmp->type);
-// 				
-// 				 if(m3l_Cat(SFounds->Found_Nodes[i]->List, "--all", "-P", "-L", "*", (lmchar_t *)NULL) != 0)
-// 					Error("CatData");
-// 			}
-// 		m3l_DestroyFound(&SFounds);
 	}
 	else
 	{
@@ -55,14 +46,16 @@ lmint_t Data_Fork(node_t *Gnode){
 		if(  (LocNode = m3l_Mklist("Local_Fork_Data", "DIR", 0, 0, (node_t **)NULL, (const char *)NULL, (const char *)NULL, (char *)NULL)) == 0)
 			Perror("m3l_Mklist");
 		Tmp = m3l_get_Found_node(SFounds, i);
-				
 		m3l_Mv(&Tmp, "./Data_Set", "./*", &LocNode, "/Local_Fork_Data", "/*", (lmchar_t *)NULL);   /* move node */
 		
-// 		if(m3l_Cat(LocNode, "--all", "-P", "-L", "*", (lmchar_t *)NULL) != 0)
-// 					Error("CatData");
-
 // 		LocNode = m3l_get_Found_node(SFounds, i);
+		
 		printf("\n\nFork: \n");
+		if(m3l_Cat(Gnode, "--all", "-P", "-L", "*", (lmchar_t *)NULL) != 0)
+			Error("CatData");
+		
+		printf("\n\nLocNode: \n");
+
 		if(m3l_Cat(LocNode, "--all", "-P", "-L", "*", (lmchar_t *)NULL) != 0)
 			Error("CatData");
 /*
@@ -76,10 +69,10 @@ lmint_t Data_Fork(node_t *Gnode){
 /*
  * child, free unused data
  */	
-			printf(" chld: umounting Gnode");
+			printf(" chld: umounting Gnode  %p\n", Gnode);
 			if(m3l_Umount(&Gnode) != 1)
 				Error("m3l_Umount");
-			printf(" chld: umounting Gnode");
+			printf(" chld: after umounting Gnode  %p\n", Gnode);
 
 			m3l_DestroyFound(&SFounds);
 /* 
