@@ -27,9 +27,22 @@ void *worker(void *arg)
 
 void *worker2(void *arg)
 {
+	int *number;
+	
 	thread_args_t *c = (thread_args_t *)arg;
+	
 	counter_wait_threshold(c, 6);
 	printf("counter in thread %d has reached 6!\n", c->var);
+	
+	if ( (number = (int *)malloc(sizeof(int))) == NULL)
+		perror("malloc number");
+
+	
+	number[0] = c->var;
+// 	
+	printf(" Number of malloced number in thread %d is %d\n",  c->var, *number);
+	free(number);
+	
 	sleep(2);
 	
 // 	printf("counter in thread has reached 6  - WAITING!\n");
