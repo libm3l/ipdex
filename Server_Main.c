@@ -1,8 +1,12 @@
-#include "Header.h"
 #include "libm3l.h"
-#include <pthread.h>
+#include "Server_Header.h"
+
+
+
 #include "SignalC.h"
 #include "Data_Fork.h"
+#include "Data_Thread.h"
+
 
 // extern lmint_t optind;
 // static lmint_t verbose_flag;
@@ -20,6 +24,7 @@ lmint_t main (int argc, char **argv){
 	lmchar_t *Filename=NULL;
 	
 	node_t *Gnode = NULL;
+	data_thread_str_t *Data_Threads;
 	
 	lmsize_t i;
 	find_t *SFounds;
@@ -160,14 +165,21 @@ lmint_t main (int argc, char **argv){
  * SIGCHLD signal handler
  */    
 	signal(SIGCHLD,sig_chld); 
-
-	Data_Fork(Gnode);
+// 	Data_Fork(Gnode);
+	
+	Data_Threads = Data_Thread(Gnode);
 /* 
  * bind, listen socket
  */
 
 
+	for(i=0; i< Data_Threads->n_data_threads; i++){
+		pthread_join(Data_Threads->data_threads[i], NULL);
+ 		printf("thread %ld is finished\n", i);
+	}
 	
+	free(Data_Threads->data_threads);
+	free(Data_Threads);
 	
 	
 /*
