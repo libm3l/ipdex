@@ -160,9 +160,6 @@ lmint_t main (int argc, char **argv){
  * SIGCHLD signal handler
  */    
 	signal(SIGCHLD,sig_chld); 
-	
-	
-	printf(" Main process - pid is %d \n", getpid());
 
 	Data_Fork(Gnode);
 /* 
@@ -176,16 +173,11 @@ lmint_t main (int argc, char **argv){
 /*
  * free borrowed memory
  */
-	printf("Pointer is %p\n", Gnode);
 	if( (c = m3l_Umount(&Gnode)) != 1)
-		Perror("m3l_Umount");		
-		
-	printf("Final umount is %d\n", c);
-	printf("Pointer is %p\n", Gnode);
+		Perror("m3l_Umount");
 
 	
 	printf(" ------------------------------   Waiting for childres \n");
-	
 	wait(&status);
 	printf(" ------------------------------   DONE \n");
 
