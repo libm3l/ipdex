@@ -179,6 +179,7 @@ lmint_t main (int argc, char **argv){
 	}
 	
 	free(Data_Threads->data_threads);
+	free(Data_Threads->Data_Glob_Args);
 	free(Data_Threads);
 	
 	
