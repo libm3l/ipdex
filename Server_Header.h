@@ -5,7 +5,7 @@
 
 #include <pthread.h>
 #include <semaphore.h>
-
+#include <sys/types.h>
 
 // typedef struct thread_args{
 // 	lmint_t count, *pcount;
@@ -20,6 +20,7 @@
 typedef struct data_thread_args{
 	pthread_mutex_t   lock, *plock;	  /* mutex */
 	pthread_barrier_t barr, *pbarr;   /* barrier */
+ 	pthread_cond_t    cond, *pcond;   /* condition variable */
 	node_t *Node;                     /* libm3l node_t structure pointer */
 }data_thread_args_t;
 

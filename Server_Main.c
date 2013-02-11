@@ -177,7 +177,10 @@ lmint_t main (int argc, char **argv){
 		pthread_join(Data_Threads->data_threads[i], NULL);
  		printf("thread %ld is finished\n", i);
 	}
-	
+	if (pthread_mutex_destroy(&Data_Threads->Data_Glob_Args->lock) != 0)
+		Perror("Data_Thread: pthread_mutex_destroy()"); 	
+	if( pthread_barrier_destroy(&Data_Threads->Data_Glob_Args->barr) != 0)
+		Perror("Data_Thread: pthread_barrier_destroy()");
 	free(Data_Threads->data_threads);
 	free(Data_Threads->Data_Glob_Args);
 	free(Data_Threads);

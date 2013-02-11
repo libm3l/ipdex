@@ -16,6 +16,7 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 	data_thread_args_t *DataArgs;   //, *Data_Glob_Args;	
 
 	
+	
 	if(Gnode == NULL){
 		Warning("Data_Thread: NULL Gnode");
 		return NULL;
@@ -63,6 +64,9 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
  */
 	if( pthread_barrier_init(&Data_Thread->Data_Glob_Args->barr,  NULL, Data_Thread->n_data_threads + 1) != 0)
 		Perror("Data_Thread: pthread_barrier_init()");
+/*
+	if( pthread_cond_init(&Data_Thread->Data_Glob_Args->cond, NULL); != 0)
+		Perror("Data_Thread: pthread_cond_init()");*/
 	
 	for(i=0; i < Data_Thread->n_data_threads; i++){
 		if( (DataArgs = (data_thread_args_t *)malloc(sizeof(data_thread_args_t))) == NULL)
@@ -71,6 +75,7 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 		DataArgs->Node = m3l_get_Found_node(SFounds, i);
 		DataArgs->plock = &Data_Thread->Data_Glob_Args->lock;	
 		DataArgs->pbarr = &Data_Thread->Data_Glob_Args->barr;	
+// 		DataArgs->pcond = &Data_Thread->Data_Glob_Args->cond;	
 /*
  * create thread
  */
@@ -80,10 +85,16 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 // 		else
 			Perror("pthread_create()");
 		}
+		printf(" Created thread ID is %lu\n", Data_Thread->data_threads[i]);
+
 /*
  * create a node
  */
 	}
+	
+	
+	printf(" Waiting on barrier\n");
+
 	rcbarr = pthread_barrier_wait(&Data_Thread->Data_Glob_Args->barr);	
 	if(rcbarr != 0 && rcbarr != PTHREAD_BARRIER_SERIAL_THREAD){
 		Error("Data_Threads: pthread_barrier_wait()\n");
@@ -97,12 +108,13 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 		
 	m3l_DestroyFound(&SFounds);
 
-	if (pthread_mutex_destroy(&Data_Thread->Data_Glob_Args->lock) != 0)
-		Perror("Data_Thread: pthread_mutex_destroy()");
+// 	if (pthread_mutex_destroy(&Data_Thread->Data_Glob_Args->lock) != 0)
+// 		Perror("Data_Thread: pthread_mutex_destroy()");
+// 	
+// 	if( pthread_barrier_destroy(&Data_Thread->Data_Glob_Args->barr) != 0)
+// 		Perror("Data_Thread: pthread_barrier_destroy()");
+//	
 	
-	printf(" Waiting on barrier\n");
-	if( pthread_barrier_destroy(&Data_Thread->Data_Glob_Args->barr) != 0)
-		Perror("Data_Thread: pthread_barrier_destroy()");
 	printf(" Waiting on barrier over\n");
 
 	
