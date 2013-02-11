@@ -23,7 +23,8 @@ typedef struct data_thread_str{
 }data_thread_str_t;
 
 typedef struct data_thread_args{
-	pthread_mutex_t   lock, *plock;
+	pthread_mutex_t   lock, *plock;	
+	pthread_barrier_t barr, *pbarr;
 	node_t *Node;
 }data_thread_args_t;
 

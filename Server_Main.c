@@ -189,10 +189,11 @@ lmint_t main (int argc, char **argv){
 		Perror("m3l_Umount");
 
 	
-	printf(" ------------------------------   Waiting for childres \n");
-	wait(&status);
-	printf(" ------------------------------   DONE \n");
+// 	printf(" ------------------------------   Waiting for children \n");
+// 	wait(&status);
+// 	printf(" ------------------------------   DONE \n");
 
+	printf(" ------------------------------   Exiting main function () \n");
 
 	exit(EXIT_SUCCESS);
 	
