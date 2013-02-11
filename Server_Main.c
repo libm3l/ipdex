@@ -22,6 +22,7 @@ lmint_t main (int argc, char **argv){
 	lmint_t c, portnum, status;
 	lmint_t digit_optind = 0;
 	lmchar_t *Filename=NULL;
+	lmint_t rcbarr;
 	
 	node_t *Gnode = NULL;
 	data_thread_str_t *Data_Threads;
@@ -151,36 +152,68 @@ lmint_t main (int argc, char **argv){
  * if specified, write the file on screen
  */	
 	if(opt_s == 'y'){
-	
 		if(m3l_Cat(Gnode, "--all", "-L", "-P", "*",   (lmchar_t *)NULL) != 0)
- 	                   Error("CatData");
-		
+			Warning("CatData");
 	}
 /*
  * Ctrl C signal handler
  */
-	signal(SIGINT, catch_int);
-	
+// 	signal(SIGINT, catch_int);
 /*
  * SIGCHLD signal handler
  */    
-	signal(SIGCHLD,sig_chld); 
+// 	signal(SIGCHLD,sig_chld); 
 // 	Data_Fork(Gnode);
 	
 	Data_Threads = Data_Thread(Gnode);
+/*
+ * loop over and send variable
+ */
+// 	if( pthread_barrier_init(&Data_Threads->Data_Glob_Args->barrC,  NULL, Data_Threads->n_data_threads + 1) != 0)
+// 		Perror("Data_Thread: pthread_barrier_init()");
+// 
+// 	for(i=0; i< Data_Threads->n_data_threads; i++){
+// 		
+// 		printf(" Main thread seting counter %d, looking for thread %lu\n", i, Data_Threads->data_threads[i]);
+// 		
+// 		Data_Threads->Data_Glob_Args->VARIABLE  = Data_Threads->data_threads[i];
+// 		Data_Threads->Data_Glob_Args->condition = 0;
+// 		
+// 		pthread_mutex_lock(&Data_Threads->Data_Glob_Args->lock);
+// 		Data_Threads->Data_Glob_Args->condition = 1;
+// 		pthread_cond_broadcast(&Data_Threads->Data_Glob_Args->cond);
+// 		printf(" Main thread BROADCASTING \n");
+// 
+// 		pthread_mutex_unlock(&Data_Threads->Data_Glob_Args->lock);
+// 		
+// 		
+// 		printf(" Main thread waiting on barrier\n");
+// 		rcbarr = pthread_barrier_wait(&Data_Threads->Data_Glob_Args->barrC);
+// 		if(rcbarr != 0 && rcbarr != PTHREAD_BARRIER_SERIAL_THREAD){
+// 			Error("Data_Threads: pthread_barrier_wait()\n");
+// 			exit(-1);
+// 		}
+// 		
+// 		printf(" Main thread after barrier\n\n\n");
+// 
+// 	}
 /* 
  * bind, listen socket
  */
 
 
+/*
+ * join threads and release memmory
+ */
 	for(i=0; i< Data_Threads->n_data_threads; i++){
 		pthread_join(Data_Threads->data_threads[i], NULL);
  		printf("thread %ld is finished\n", i);
 	}
-	if (pthread_mutex_destroy(&Data_Threads->Data_Glob_Args->lock) != 0)
-		Perror("Data_Thread: pthread_mutex_destroy()"); 	
-	if( pthread_barrier_destroy(&Data_Threads->Data_Glob_Args->barr) != 0)
-		Perror("Data_Thread: pthread_barrier_destroy()");
+	
+	Pthread_mutex_destroy(&Data_Threads->Data_Glob_Args->lock);
+	Pthread_barrier_destroy(&Data_Threads->Data_Glob_Args->barr);
+	Pthread_cond_destroy(&Data_Threads->Data_Glob_Args->cond);
+	
 	free(Data_Threads->data_threads);
 	free(Data_Threads->Data_Glob_Args);
 	free(Data_Threads);

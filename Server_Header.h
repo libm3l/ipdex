@@ -19,9 +19,13 @@
 
 typedef struct data_thread_args{
 	pthread_mutex_t   lock, *plock;	  /* mutex */
+	pthread_mutex_t   lockC, *plockC;	  /* mutex */
 	pthread_barrier_t barr, *pbarr;   /* barrier */
- 	pthread_cond_t    cond, *pcond;   /* condition variable */
+	pthread_barrier_t barrC, *pbarrC;   /* barrier */
+	pthread_cond_t    cond, *pcond;   /* condition variable */
+	lmint_t condition, *pcondition;   /* condition for pthread_cond_t */
 	node_t *Node;                     /* libm3l node_t structure pointer */
+	pthread_t  VARIABLE, *PVARIABLE;
 }data_thread_args_t;
 
 

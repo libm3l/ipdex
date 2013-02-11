@@ -55,27 +55,29 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 		Perror("Data_Thread: Data_Glob_Args malloc");
 	
 /*
- * malloc mutex
+ * initialize mutex, barrier and condition variable
  */
-	if (pthread_mutex_init(&Data_Thread->Data_Glob_Args->lock, NULL) != 0)
-		Perror("Data_Thread: pthread_mutex_init()");
+
+	Pthread_mutex_init(&Data_Thread->Data_Glob_Args->lock);
+	Pthread_barrier_init(&Data_Thread->Data_Glob_Args->barr,  Data_Thread->n_data_threads + 1);
+	Pthread_cond_init(&Data_Thread->Data_Glob_Args->cond);
+// 	if( pthread_cond_init(&Data_Thread->Data_Glob_Args->cond, NULL) != 0)
+// 		Perror("Data_Thread: pthread_cond_init()");
 /*
- * initiate barrier, thread will wait until all data_threads are spawned
- */
-	if( pthread_barrier_init(&Data_Thread->Data_Glob_Args->barr,  NULL, Data_Thread->n_data_threads + 1) != 0)
-		Perror("Data_Thread: pthread_barrier_init()");
-/*
-	if( pthread_cond_init(&Data_Thread->Data_Glob_Args->cond, NULL); != 0)
-		Perror("Data_Thread: pthread_cond_init()");*/
-	
+ * spawn threads
+ */	
 	for(i=0; i < Data_Thread->n_data_threads; i++){
 		if( (DataArgs = (data_thread_args_t *)malloc(sizeof(data_thread_args_t))) == NULL)
 			Perror("Data_Thread: DataArgs malloc");	
 		
 		DataArgs->Node = m3l_get_Found_node(SFounds, i);
 		DataArgs->plock = &Data_Thread->Data_Glob_Args->lock;	
+// 		DataArgs->plockC = &Data_Thread->Data_Glob_Args->lockC;	
 		DataArgs->pbarr = &Data_Thread->Data_Glob_Args->barr;	
-// 		DataArgs->pcond = &Data_Thread->Data_Glob_Args->cond;	
+		DataArgs->pbarrC = &Data_Thread->Data_Glob_Args->barrC;	
+		DataArgs->pcond = &Data_Thread->Data_Glob_Args->cond;	
+		DataArgs->pcondition = &Data_Thread->Data_Glob_Args->condition;	
+		DataArgs->PVARIABLE = &Data_Thread->Data_Glob_Args->VARIABLE;	
 /*
  * create thread
  */
@@ -94,18 +96,7 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 	
 	
 	printf(" Waiting on barrier\n");
-
-	rcbarr = pthread_barrier_wait(&Data_Thread->Data_Glob_Args->barr);	
-	if(rcbarr != 0 && rcbarr != PTHREAD_BARRIER_SERIAL_THREAD){
-		Error("Data_Threads: pthread_barrier_wait()\n");
-		exit(-1);
-	}
-	
-// 	if ( (rcbarr = pthread_barrier_wait(&Data_Glob_Args->barr))  != (0 && PTHREAD_BARRIER_SERIAL_THREAD)){
-// 		Error("Data_Threads: pthread_barrier_wait()\n");
-// 		exit(-1);
-// 	}
-		
+	Pthread_barrier_wait(&Data_Thread->Data_Glob_Args->barr);
 	m3l_DestroyFound(&SFounds);
 
 // 	if (pthread_mutex_destroy(&Data_Thread->Data_Glob_Args->lock) != 0)
