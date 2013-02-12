@@ -58,7 +58,7 @@ void *Data_Threads(void *arg)
 		
 		(*c->prcounter)--;   /* decrement counter of thread  which will check condition*/
 		
-			printf("%lu: Decrementing prcoutner %ld \n", pthread_self(), *c->prcounter);
+			printf("%lu: Decrementing prcoutner %lu %ld \n", pthread_self(), *c->PVARIABLE, *c->prcounter);
 
 
 		Pthread_mutex_unlock(c->plock);
@@ -66,23 +66,24 @@ void *Data_Threads(void *arg)
  * signal main thread you're done
  */
 
-		printf("%lu: Waiting on last pcond %ld\n", pthread_self(), *c->prcounter);
+		printf("%lu: Waiting %lu on last pcond %ld\n", pthread_self(), *c->PVARIABLE, *c->prcounter);
 		
 		pthread_mutex_lock(c->pdlock);
-		printf("%lu: after locking pdlock %ld\n", pthread_self(), *c->prcounter);
+		printf("%lu: after %lu locking pdlock %ld\n", pthread_self(), *c->PVARIABLE, *c->prcounter);
 
-		while (*c->prcounter != 0)
-			Pthread_cond_wait(c->pdcond, c->pdlock);
+		while (*c->prcounter != 0){
+			printf("%lu: IN BROADCAST WHILE  %lu %ld\n", pthread_self(), *c->PVARIABLE, *c->prcounter);
+			Pthread_cond_wait(c->pdcond, c->pdlock);}
 		
-		printf("%lu: before broadcasting\n", pthread_self());
+		printf("%lu: before broadcasting %lu  %ld\n", pthread_self(), *c->PVARIABLE, *c->prcounter);
 
 		pthread_cond_broadcast(c->pdcond);
 		
-		printf("%lu: after broadcasting\n", pthread_self());
+		printf("%lu: after broadcasting %lu  %ld\n", pthread_self(), *c->PVARIABLE, *c->prcounter);
 
 		Pthread_mutex_unlock(c->pdlock);
 		
-		printf("%lu: after unlocking pdlock\n", pthread_self());
+		printf("%lu: after unlocking pdlock %lu  %ld\n", pthread_self(), *c->PVARIABLE, *c->prcounter);
 
 		
 	}while(received != 1);
