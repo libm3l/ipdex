@@ -45,21 +45,23 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 /* 
  * malloc strucutre
  */
-	
 	if( (Data_Thread->data_threads = (pthread_t *)malloc(sizeof(pthread_t) * Data_Thread->n_data_threads)) == NULL)
 		Perror("Data_Thread: Data_Thread->data_threads malloc");	
 	if( (Data_Thread->Data_Glob_Args = (data_thread_args_t *)malloc(sizeof(data_thread_args_t))) == NULL)
 		Perror("Data_Thread: Data_Glob_Args malloc");
 	if( (Data_Thread->data_threads_status_counter = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
 		Perror("Data_Thread: Data_Thread->data_threads_status_counter");
+	if( (Data_Thread->data_threads_remain_counter = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
+		Perror("Data_Thread: Data_Thread->data_threads_remain_counter");	
 	*Data_Thread->data_threads_status_counter = 0;
+	*Data_Thread->data_threads_remain_counter = 0;
 	
 // 	printf("%p  %d\n", Data_Thread->data_threads_status_counter, *Data_Thread->data_threads_status_counter);
 /*
  * initialize mutex, barrier and condition variable
  */
-
 	Pthread_mutex_init(&Data_Thread->Data_Glob_Args->lock);
+	Pthread_mutex_init(&Data_Thread->Data_Glob_Args->dlock);
 	Pthread_barrier_init(&Data_Thread->Data_Glob_Args->barr,  Data_Thread->n_data_threads + 1);
 	Pthread_cond_init(&Data_Thread->Data_Glob_Args->cond);
 	Pthread_cond_init(&Data_Thread->Data_Glob_Args->dcond);
@@ -72,15 +74,14 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 		
 		DataArgs->Node  	= m3l_get_Found_node(SFounds, i);
 		DataArgs->plock 	= &Data_Thread->Data_Glob_Args->lock;	
+		DataArgs->pdlock 	= &Data_Thread->Data_Glob_Args->dlock;	
 		DataArgs->pbarr 	= &Data_Thread->Data_Glob_Args->barr;	
 		DataArgs->pcond 	= &Data_Thread->Data_Glob_Args->cond;	
 		DataArgs->pdcond 	= &Data_Thread->Data_Glob_Args->dcond;	
 		DataArgs->PVARIABLE  	= &Data_Thread->Data_Glob_Args->VARIABLE;	
 		DataArgs->psocket    	= &Data_Thread->Data_Glob_Args->socket;	
 		DataArgs->pcounter    	=  Data_Thread->data_threads_status_counter;
-		
-// 		printf("------    %p  %d\n", DataArgs->pcounter, *DataArgs->pcounter);
-
+		DataArgs->prcounter    	=  Data_Thread->data_threads_remain_counter;
 /*
  * create thread
  */
@@ -101,15 +102,7 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 	printf(" Waiting on barrier\n");
 	Pthread_barrier_wait(&Data_Thread->Data_Glob_Args->barr);
 	m3l_DestroyFound(&SFounds);
-
-// 	if (pthread_mutex_destroy(&Data_Thread->Data_Glob_Args->lock) != 0)
-// 		Perror("Data_Thread: pthread_mutex_destroy()");
-// 	
-// 	if( pthread_barrier_destroy(&Data_Thread->Data_Glob_Args->barr) != 0)
-// 		Perror("Data_Thread: pthread_barrier_destroy()");
-//	
-	
-	printf(" Waiting on barrier over\n");
+	printf(" Waiting on barrier over\n\n\n");
 
 	
 	return Data_Thread;

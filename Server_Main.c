@@ -165,34 +165,51 @@ lmint_t main (int argc, char **argv){
 // 	signal(SIGCHLD,sig_chld); 
 // 	Data_Fork(Gnode);
 	
-	Data_Threads = Data_Thread(Gnode);
+	Data_Threads = Data_Thread(Gnode);	
+	printf(" MAIN - The MAIN process after barrier - starting loop \n\n\n");
+	
 /*
  * loop over and send variable
  */
-	*Data_Threads->data_threads_status_counter = 2;   //Data_Threads->n_data_threads;
+	*Data_Threads->data_threads_status_counter = Data_Threads->n_data_threads;
+// 	*Data_Threads->data_threads_remain_counter=*Data_Threads->data_threads_status_counter;
+	
+	Pthread_mutex_lock(&Data_Threads->Data_Glob_Args->lock);
+	
+	printf(" Main thread before BARRIER\n");
 
-// 	for(i=0; i< Data_Threads->n_data_threads; i++){
-	for(i=0; i< 1; i++){
+	Pthread_barrier_wait(&Data_Threads->Data_Glob_Args->barr);
+
+	printf(" Main thread before LOOP\n");
+
+	for(i=0; i< Data_Threads->n_data_threads; i++){		
 		
 		printf(" Main thread seting counter %ld, looking for thread %lu counter is %ld\n", i, Data_Threads->data_threads[i], *Data_Threads->data_threads_status_counter);
 /*
  * count number of free threads
  */
-		Pthread_mutex_lock(&Data_Threads->Data_Glob_Args->lock);
-			Data_Threads->Data_Glob_Args->VARIABLE  = Data_Threads->data_threads[i];
-			printf(" main seting value of VARIABLE %lu \n", Data_Threads->Data_Glob_Args->VARIABLE);
-		Pthread_mutex_unlock(&Data_Threads->Data_Glob_Args->lock);
-				
-// 		Pthread_cond_signal(&Data_Threads->Data_Glob_Args->cond);
+		Data_Threads->Data_Glob_Args->VARIABLE  = Data_Threads->data_threads[i];
+		*Data_Threads->data_threads_remain_counter=*Data_Threads->data_threads_status_counter;
+
 		Pthread_cond_broadcast(&Data_Threads->Data_Glob_Args->cond);
 			printf(" Main thread SEND \n");
+				
+		Pthread_mutex_unlock(&Data_Threads->Data_Glob_Args->lock);
 		
-// 			if (sync_count < counter)
-// 				Pthread_cond_wait(&sync_cond, &sync_lock);
+		Pthread_mutex_lock(&Data_Threads->Data_Glob_Args->dlock);
+
+		while (*Data_Threads->data_threads_remain_counter != 0)
+			Pthread_cond_wait(&Data_Threads->Data_Glob_Args->dcond, &Data_Threads->Data_Glob_Args->dlock);
+		
+		Pthread_mutex_lock(&Data_Threads->Data_Glob_Args->lock);
 			
-// 		printf(" MAIN: socket accepted \n");
+		Pthread_mutex_unlock(&Data_Threads->Data_Glob_Args->dlock);			
+			
+ 		printf(" MAIN: socket accepted %d\n", *Data_Threads->data_threads_status_counter);
 	}
-	printf(" MAIN: after sending socket\n");
+	printf(" MAIN: after sending socket   %d \n", *Data_Threads->data_threads_status_counter);
+	
+	Pthread_mutex_unlock(&Data_Threads->Data_Glob_Args->lock);
 /* 
  * bind, listen socket
  */
@@ -208,13 +225,17 @@ lmint_t main (int argc, char **argv){
 	
 	printf("Destroying data sets \n"); 
 	
+	printf("destroying lock \n");
 	Pthread_mutex_destroy(&Data_Threads->Data_Glob_Args->lock);
+	printf("destroying dlock \n");
+	Pthread_mutex_destroy(&Data_Threads->Data_Glob_Args->dlock);
 	Pthread_barrier_destroy(&Data_Threads->Data_Glob_Args->barr);
 	Pthread_cond_destroy(&Data_Threads->Data_Glob_Args->cond);
-// 	Pthread_cond_destroy(&Data_Threads->Data_Glob_Args->dcond);
+ 	Pthread_cond_destroy(&Data_Threads->Data_Glob_Args->dcond);
 	
 	free(Data_Threads->data_threads);
 	free(Data_Threads->data_threads_status_counter);
+	free(Data_Threads->data_threads_remain_counter);
 	free(Data_Threads->Data_Glob_Args);
 	free(Data_Threads);
 	
