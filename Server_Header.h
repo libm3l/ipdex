@@ -19,19 +19,21 @@
 
 typedef struct data_thread_args{
 	pthread_mutex_t   lock, *plock;	  /* mutex */
-	pthread_mutex_t   lockC, *plockC;	  /* mutex */
 	pthread_barrier_t barr, *pbarr;   /* barrier */
-	pthread_barrier_t barrC, *pbarrC;   /* barrier */
 	pthread_cond_t    cond, *pcond;   /* condition variable */
-	lmint_t condition, *pcondition;   /* condition for pthread_cond_t */
+	pthread_cond_t    dcond, *pdcond;   /* condition variable */
+// 	lmint_t condition, *pcondition;   /* condition for pthread_cond_t */
 	node_t *Node;                     /* libm3l node_t structure pointer */
-	pthread_t  VARIABLE, *PVARIABLE;
+	pthread_t  VARIABLE, *PVARIABLE;  /* thread number sent for identification */
+ 	lmint_t   socket, *psocket; /* socket ID passed to data_Thread, message upon receiving it */
+ 	lmsize_t *pcounter;
 }data_thread_args_t;
 
 
 
 typedef struct data_thread_str{
 	lmsize_t n_data_threads;              /* number of thread in group data_threads */
+ 	lmsize_t *data_threads_status_counter; /* number of free threads, ie. not associated with  */
 	pthread_t *data_threads;              /* thread ID of all threads in group data_threads */
 	data_thread_args_t *Data_Glob_Args;   /* pointer to heap for this group of data_threads */
 }data_thread_str_t;
