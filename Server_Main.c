@@ -19,7 +19,7 @@ lmint_t main (int argc, char **argv){
  * spawns a child for each data set.
  */
 
-	lmint_t c, portnum, status;
+	lmint_t c, portnum, status, j;
 	lmint_t digit_optind = 0;
 	lmchar_t *Filename=NULL;
 	lmint_t rcbarr;
@@ -116,11 +116,17 @@ lmint_t main (int argc, char **argv){
 /*
  * open definition file
  */
+
+
+	for(j=0; j<10; j++){
+
+printf("   \n\n  CYCLE       %ld\n\n ", j);
+
 	if( (Gnode = m3l_Fread(Filename, (lmchar_t *)NULL))  == NULL){
 		free(Filename);
 		Error("Server: m3l_Fread");
 	}
-	free(Filename);
+// 	free(Filename);
 	
 	
 	
@@ -152,8 +158,8 @@ lmint_t main (int argc, char **argv){
  * if specified, write the file on screen
  */	
 	if(opt_s == 'y'){
-		if(m3l_Cat(Gnode, "--all", "-L", "-P", "*",   (lmchar_t *)NULL) != 0)
-			Warning("CatData");
+// 		if(m3l_Cat(Gnode, "--all", "-L", "-P", "*",   (lmchar_t *)NULL) != 0)
+// 			Warning("CatData");
 	}
 /*
  * Ctrl C signal handler
@@ -171,20 +177,34 @@ lmint_t main (int argc, char **argv){
 /*
  * loop over and send variable
  */
-	*Data_Threads->data_threads_status_counter = Data_Threads->n_data_threads;
-// 	*Data_Threads->data_threads_remain_counter=*Data_Threads->data_threads_status_counter;
-	
-	Pthread_mutex_lock(&Data_Threads->Data_Glob_Args->lock);
+	 Pthread_mutex_lock(&Data_Threads->Data_Glob_Args->lock);
+		*Data_Threads->data_threads_status_counter = Data_Threads->n_data_threads;
+ 		*Data_Threads->data_threads_remain_counter=*Data_Threads->data_threads_status_counter;
+	 	Data_Threads->Data_Glob_Args->VARIABLE  = Data_Threads->data_threads[0];
+
 	
 	printf(" Main thread before BARRIER\n");
+// 	sleep(2);
+// 	printf(" Main thread before sleep(2)  BARRIER\n");
 
 	Pthread_barrier_wait(&Data_Threads->Data_Glob_Args->barr);
 
+// 	sleep(2);
+	printf(" Main thread after BARRIER\n");
+
+	Pthread_cond_broadcast(&Data_Threads->Data_Glob_Args->cond);
+			printf(" Main thread SEND from HERE \n");
+
 	printf(" Main thread before LOOP\n");
 
-	for(i=0; i< Data_Threads->n_data_threads; i++){		
+	for(i=0; i< Data_Threads->n_data_threads; i++){
+
+// sleep(1);
 		
 		printf(" Main thread seting counter %ld, looking for thread %lu counter is %ld\n", i, Data_Threads->data_threads[i], *Data_Threads->data_threads_status_counter);
+
+		if(i > 0) {Pthread_mutex_lock(&Data_Threads->Data_Glob_Args->lock);
+			printf(" Main thread locked mutex before SEND \n");
 /*
  * count number of free threads
  */
@@ -193,23 +213,29 @@ lmint_t main (int argc, char **argv){
 
 		Pthread_cond_broadcast(&Data_Threads->Data_Glob_Args->cond);
 			printf(" Main thread SEND \n");
+		}
 				
-		Pthread_mutex_unlock(&Data_Threads->Data_Glob_Args->lock);
+// 		Pthread_mutex_unlock(&Data_Threads->Data_Glob_Args->lock);
 		
-		Pthread_mutex_lock(&Data_Threads->Data_Glob_Args->dlock);
+// 		Pthread_mutex_lock(&Data_Threads->Data_Glob_Args->dlock);
 
-		while (*Data_Threads->data_threads_remain_counter != 0)
-			Pthread_cond_wait(&Data_Threads->Data_Glob_Args->dcond, &Data_Threads->Data_Glob_Args->dlock);
+// 		Pthread_mutex_lock(&Data_Threads->Data_Glob_Args->dlock);
+			while (*Data_Threads->data_threads_remain_counter != 0)
+				Pthread_cond_wait(&Data_Threads->Data_Glob_Args->dcond, &Data_Threads->Data_Glob_Args->lock);
+// 		Pthread_mutex_unlock(&Data_Threads->Data_Glob_Args->dlock);
+
 		
-		Pthread_mutex_lock(&Data_Threads->Data_Glob_Args->lock);
+/*		Pthread_mutex_lock(&Data_Threads->Data_Glob_Args->lock);*/
+ 		
+		printf(" MAIN: before unlocking mutex %d\n", *Data_Threads->data_threads_status_counter);
 			
-		Pthread_mutex_unlock(&Data_Threads->Data_Glob_Args->dlock);			
+		Pthread_mutex_unlock(&Data_Threads->Data_Glob_Args->lock);
 			
  		printf(" MAIN: socket accepted %d\n", *Data_Threads->data_threads_status_counter);
 	}
 	printf(" MAIN: after sending socket   %d \n", *Data_Threads->data_threads_status_counter);
 	
-	Pthread_mutex_unlock(&Data_Threads->Data_Glob_Args->lock);
+// 	Pthread_mutex_unlock(&Data_Threads->Data_Glob_Args->lock);
 /* 
  * bind, listen socket
  */
@@ -245,6 +271,9 @@ lmint_t main (int argc, char **argv){
  */
 	if( (c = m3l_Umount(&Gnode)) != 1)
 		Perror("m3l_Umount");
+
+
+	}
 
 	
 // 	printf(" ------------------------------   Waiting for children \n");
