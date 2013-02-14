@@ -10,13 +10,15 @@ void *Data_Threads(void *arg)
 	lmint_t rcbarr;
 	lmint_t received, start, thread_finished;
 	
-	unsigned long int  MyThreadID;
-	
+	pthread_t  MyThreadID;
+/*
+ * get my thread ID
+ */
 	MyThreadID = pthread_self();
 	
-	received = 0;
-	start = 0;
-	thread_finished = 0;
+// 	received = 0;
+// 	start = 0;
+// 	thread_finished = 0;
 	
 // 	Pthread_mutex_lock(c->plock);
 // 	
@@ -43,6 +45,9 @@ void *Data_Threads(void *arg)
  * if already went through do loop, wait here at sync point until all threads are here
  */
 		thread_finished = 0;
+		received = 0;
+		start = 0;
+		
 		Pthread_mutex_lock(c->plock);
 /*
  * wait for data sent by main thread
@@ -56,7 +61,9 @@ void *Data_Threads(void *arg)
 			(*c->pcounter)--;   /* decrement counter of available thread */
 			received = 1;        /* indicate thread received connection */
 		}
-			
+/*
+ * synchronized all threads at the end, the last thread will broadcast
+ */	
 		if(*c->prcounter == 0){
 /* 
  * the last thread, broadcast

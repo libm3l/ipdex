@@ -2,7 +2,7 @@ COMM_DEF  DIR 2
 	Process_Specifications DIR 1
 		Name_of_Case  C 1 10 
 			`Test Case`
-	Data_Sets  DIR 5
+	Data_Sets  DIR 7
 		Data_Set  DIR 3
 			Name_of_Data_Set C 1 9
 				`Pressure`
@@ -24,6 +24,26 @@ COMM_DEF  DIR 2
 		Data_Set  DIR 3
 			Name_of_Data_Set C 1 10
 				`Heat_Flux`
+			Sending_Process C 1 5
+				`Edge`
+			Receiving_Processes DIR 2
+				Receiving_Process C 1 4
+				`CSM`
+				Receiving_Process C 1 9
+				`Ablation`
+		Data_Set  DIR 3
+			Name_of_Data_Set C 1 10
+				`Heat_Xlux`
+			Sending_Process C 1 5
+				`Edge`
+			Receiving_Processes DIR 2
+				Receiving_Process C 1 4
+				`CSM`
+				Receiving_Process C 1 9
+				`Ablation`
+		Data_Set  DIR 3
+			Name_of_Data_Set C 1 10
+				`Heat_Xlux`
 			Sending_Process C 1 5
 				`Edge`
 			Receiving_Processes DIR 2
