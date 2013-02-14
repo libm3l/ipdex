@@ -91,7 +91,6 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 // 		else
 			Perror("pthread_create()");
 		}
-		printf(" Created thread ID is %lu\n", Data_Thread->data_threads[i]);
 
 /*
  * create a node
@@ -99,11 +98,8 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 	}
 	
 	
-	printf(" Waiting on barrier\n");
 	Pthread_barrier_wait(&Data_Thread->Data_Glob_Args->barr);
 	m3l_DestroyFound(&SFounds);
-	printf(" Waiting on barrier over\n\n\n");
-
 	
 	return Data_Thread;
 }

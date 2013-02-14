@@ -118,7 +118,7 @@ lmint_t main (int argc, char **argv){
  */
 
 
-	for(j=0; j<10; j++){
+	for(j=0; j<100; j++){
 
 printf("   \n\n  CYCLE       %d\n\n ", j);
 
@@ -158,8 +158,8 @@ printf("   \n\n  CYCLE       %d\n\n ", j);
  * if specified, write the file on screen
  */	
 	if(opt_s == 'y'){
-// 		if(m3l_Cat(Gnode, "--all", "-L", "-P", "*",   (lmchar_t *)NULL) != 0)
-// 			Warning("CatData");
+ 		if(m3l_Cat(Gnode, "--all", "-L", "-P", "*",   (lmchar_t *)NULL) != 0)
+ 			Warning("CatData");
 	}
 /*
  * Ctrl C signal handler
@@ -171,9 +171,7 @@ printf("   \n\n  CYCLE       %d\n\n ", j);
 // 	signal(SIGCHLD,sig_chld); 
 // 	Data_Fork(Gnode);
 	
-	Data_Threads = Data_Thread(Gnode);	
-	printf(" MAIN - The MAIN process after barrier - starting loop \n\n\n");
-	
+	Data_Threads = Data_Thread(Gnode);		
 /*
  * loop over and send variable
  */
@@ -182,70 +180,28 @@ printf("   \n\n  CYCLE       %d\n\n ", j);
  		*Data_Threads->data_threads_remain_counter=*Data_Threads->data_threads_status_counter;
 	 	Data_Threads->Data_Glob_Args->VARIABLE  = Data_Threads->data_threads[0];
 
-	
-	printf(" Main thread before BARRIER\n");
-// 	sleep(2);
-// 	printf(" Main thread before sleep(2)  BARRIER\n");
-
 	Pthread_barrier_wait(&Data_Threads->Data_Glob_Args->barr);
 
-// 	sleep(2);
-	printf(" Main thread after BARRIER\n");
-
 	Pthread_cond_broadcast(&Data_Threads->Data_Glob_Args->cond);
-			printf(" Main thread SEND from HERE \n");
 
-	printf(" Main thread before LOOP\n");
 
 	for(i=0; i< Data_Threads->n_data_threads; i++){
-
-// sleep(1);
 		
-		printf(" Main thread seting counter %ld, looking for thread %lu counter is %ld\n", i, Data_Threads->data_threads[i], *Data_Threads->data_threads_status_counter);
-
-		if(i > 0) {Pthread_mutex_lock(&Data_Threads->Data_Glob_Args->lock);
-			printf(" Main thread locked mutex before SEND \n");
+		if(i > 0) {
+			Pthread_mutex_lock(&Data_Threads->Data_Glob_Args->lock);
 /*
  * count number of free threads
  */
-		Data_Threads->Data_Glob_Args->VARIABLE  = Data_Threads->data_threads[i];
-		*Data_Threads->data_threads_remain_counter=*Data_Threads->data_threads_status_counter;
+			Data_Threads->Data_Glob_Args->VARIABLE  = Data_Threads->data_threads[i];
+			*Data_Threads->data_threads_remain_counter=*Data_Threads->data_threads_status_counter;
 
-		Pthread_cond_broadcast(&Data_Threads->Data_Glob_Args->cond);
-			printf(" Main thread SEND \n");
+			Pthread_cond_broadcast(&Data_Threads->Data_Glob_Args->cond);
 		}
-				
-// 		Pthread_mutex_unlock(&Data_Threads->Data_Glob_Args->lock);
-		
-// 		Pthread_mutex_lock(&Data_Threads->Data_Glob_Args->dlock);
-
-// 		Pthread_mutex_lock(&Data_Threads->Data_Glob_Args->dlock);
-
-
-// 			while (*Data_Threads->data_threads_remain_counter != 0)
-// 				Pthread_cond_wait(&Data_Threads->Data_Glob_Args->dcond, &Data_Threads->Data_Glob_Args->lock);
-			
-// 		Sem_wait(&Data_Threads->Data_Glob_Args->sem);
-// 		Pthread_mutex_unlock(&Data_Threads->Data_Glob_Args->dlock);
-
-		
-/*		Pthread_mutex_lock(&Data_Threads->Data_Glob_Args->lock);*/
- 		
-		printf(" MAIN: before unlocking mutex %ld\n", *Data_Threads->data_threads_status_counter);
 			
 		Pthread_mutex_unlock(&Data_Threads->Data_Glob_Args->lock);
+		Sem_wait(&Data_Threads->Data_Glob_Args->sem);		
 		
-		printf(" MAIN: WAITING ON SEM_WAIT%ld\n", i+1);
-
-		Sem_wait(&Data_Threads->Data_Glob_Args->sem);
-
-			
- 		printf(" MAIN: socket number %ld accepted %ld\n\n\n\n\n", i+1, *Data_Threads->data_threads_status_counter);
-		
-		
-// 		sleep(100);
 	}
-	printf(" MAIN: after sending socket   %ld \n", *Data_Threads->data_threads_status_counter);
 	
 // 	Pthread_mutex_unlock(&Data_Threads->Data_Glob_Args->lock);
 /* 
@@ -258,14 +214,11 @@ printf("   \n\n  CYCLE       %d\n\n ", j);
  */
 	for(i=0; i< Data_Threads->n_data_threads; i++){
 		pthread_join(Data_Threads->data_threads[i], NULL);
- 		printf("thread %ld is finished\n", i);
+//  		printf("thread %ld is finished\n", i);
 	}
 	
-	printf("Destroying data sets \n"); 
 	
-	printf("destroying lock \n");
 	Pthread_mutex_destroy(&Data_Threads->Data_Glob_Args->lock);
-	printf("destroying dlock \n");
 // 	Pthread_mutex_destroy(&Data_Threads->Data_Glob_Args->dlock);
 	Pthread_barrier_destroy(&Data_Threads->Data_Glob_Args->barr);
 	Pthread_cond_destroy(&Data_Threads->Data_Glob_Args->cond);
