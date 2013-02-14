@@ -243,7 +243,7 @@ printf("   \n\n  CYCLE       %d\n\n ", j);
  		printf(" MAIN: socket number %ld accepted %ld\n\n\n\n\n", i+1, *Data_Threads->data_threads_status_counter);
 		
 		
-		sleep(100);
+// 		sleep(100);
 	}
 	printf(" MAIN: after sending socket   %ld \n", *Data_Threads->data_threads_status_counter);
 	
