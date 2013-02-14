@@ -16,7 +16,7 @@ void *Data_Threads(void *arg)
 	
 	Pthread_mutex_lock(c->plock);
 	
-// 	printf("In thread %lu \n", pthread_self());	
+ 	printf("\n\n\nIn thread %lu \n", pthread_self());	
 	
 	if(m3l_Cat(c->Node, "--all", "-P", "-L", "*", (lmchar_t *)NULL) != 0)
 		Error("CatData");
@@ -33,114 +33,115 @@ void *Data_Threads(void *arg)
 /*
  * wait for condition variable 
  */
-	do
+	while(1)
 	{
-
-		if(start == 1){
-
+/*
+ * if already went through do loop, wait here at sync point until all threads are here
+ */
+		thread_finished = 0;
+		
 		Pthread_mutex_lock(c->plock);
+				
+		if(start == 1){
+			
+			printf("%lu: SECOND Do %lu   %ld %ld THREAD - %d, START %d \n", pthread_self(), *c->PVARIABLE, *c->pcounter, *c->prcounter, thread_finished, start);
+			
+// 			Pthread_mutex_lock(c->plock);
 			if(*c->prcounter == 0){
-				printf("%lu:before FINAL broadcasting  ONE  %lu   %ld %ld \n", pthread_self(), *c->PVARIABLE, *c->pcounter, *c->prcounter);
+/* 
+ * the last thread, broadcast
+ * indicate this is the last thread
+ */
+				thread_finished = 1;
+				printf("%lu:before FINAL broadcasting  ONE  %lu   %ld %ld THRE - %d\n", pthread_self(), *c->PVARIABLE, *c->pcounter, *c->prcounter, thread_finished);
 				pthread_cond_broadcast(c->pdcond);
-				counter_finished++;
-
 			}
 			else{
+/*
+ * still some threads working, wait for them
+ * indicate this is waiting thread
+ */
+				thread_finished = 0;
 				while (*c->prcounter != 0)
 					Pthread_cond_wait(c->pdcond, c->plock);
+					printf("%lu:after WAIT %lu   %ld %ld THRE - %d\n", pthread_self(), *c->PVARIABLE, *c->pcounter, *c->prcounter, thread_finished);
 			}
-
-
-		Pthread_mutex_unlock(c->plock);
-
-// 		if(counterF == number of processes) set semaphore;		
-
+// 			Pthread_mutex_unlock(c->plock);
+/*
+ * if last thread, release semaphore so that main can make another loop
+ */
+			if( thread_finished == 1){
+				printf("%lu:   SEM_POST OPERATION   %lu  \n", pthread_self());
+				Sem_post(c->psem);
+				thread_finished = 0;
+			}
+// 			Pthread_mutex_unlock(c->plock);
 		}
-		start = 1;
+/*
+ * wait for data sent by main thread
+ */
 
-
-
-
-
-// 		printf("%lu: before do loop\n", pthread_self());
-
-		Pthread_mutex_lock(c->plock);
-
-// 		printf("%lu: after locking plock\n", pthread_self());
-
-		while (*c->pcounter == 0 || *c->prcounter == 0)
-// 		while (*c->pcounter == 0)
+// 		Pthread_mutex_lock(c->plock);
+		printf("%lu: Before Cond  %lu  %ld %ld \n", pthread_self(), *c->PVARIABLE, *c->pcounter, *c->prcounter);
+		
+// 		while (*c->pcounter == 0 || *c->prcounter == 0)
+		while (*c->prcounter == 0)
 			Pthread_cond_wait(c->pcond, c->plock);
 
-
+		(*c->prcounter)--;   /* decrement counter of thread  which will check condition*/
 		
 		printf("%lu: After Cond  %lu  %ld %ld \n", pthread_self(), *c->PVARIABLE, *c->pcounter, *c->prcounter);
 		
 		if(*c->PVARIABLE == pthread_self()){
-			printf("%lu: ----------------------   SUCCESS -- Thread received sockeet, variable is %lu   %ld %ld \n", pthread_self(), *c->PVARIABLE, *c->pcounter, *c->prcounter);
 			(*c->pcounter)--;   /* decrement counter of available thread */
 			received = 1;        /* indicate thread received connection */
-// 			printf("%lu: ----------------------   SUCCESS1111 -- Thread received sockeet, variable is %lu   %ld %ld \n", pthread_self(), *c->PVARIABLE ,*c->pcounter, *c->prcounter);
-// 			sleep(3);
-// 			printf("%lu: ----------------------   SUCCESS2222 -- Thread received sockeet, variable is %lu   %ld %ld \n", pthread_self(), *c->PVARIABLE, *c->pcounter, *c->prcounter);
-
-// 			(*c->prcounter)--;   /* decrement counter of thread  which will check condition*/
+			printf("%lu: ----------------------   SUCCESS -- Thread received sockeet, variable is %lu   %ld %ld \n", pthread_self(), *c->PVARIABLE, *c->pcounter, *c->prcounter);
+			Pthread_mutex_unlock(c->plock);
+			printf("%lu: after unlocking pdlock   %lu   %ld %ld \n", pthread_self(), *c->PVARIABLE, *c->pcounter, *c->prcounter);
+			break;
 		}
-
-// 		}
-// 		else
-// 			printf("%lu: Received number does not correspond   VAR is %lu \n", pthread_self(),  *c->PVARIABLE);
 		
-		(*c->prcounter)--;   /* decrement counter of thread  which will check condition*/
-		
-// 			printf("%lu: Decrementing prcoutner %ld \n", pthread_self(), *c->prcounter);
-
-
-// 		Pthread_mutex_unlock(c->plock);
-/*
- * signal main thread you're done
- */
-
-// 		printf("%lu: Waiting on last pcond %ld\n", pthread_self(), *c->prcounter);
-		
-// 		pthread_mutex_lock(c->pdlock);
-// 		printf("%lu: after locking pdlock %ld\n", pthread_self(), *c->prcounter);
-
-
-// 		if(*c->prcounter == 0){
-// 			printf("%lu:before broadcasting   %lu   %ld %ld \n", pthread_self(), *c->PVARIABLE, *c->pcounter, *c->prcounter);
-// 			pthread_cond_broadcast(c->pdcond);
-// 		}
-// 		else{
-// 			while (*c->prcounter != 0)
-// 				Pthread_cond_wait(c->pdcond, c->plock);
-// 		}
-		
-// 		printf("%lu: before broadcasting\n", pthread_self());
-
-		
-// 		printf("%lu: after broadcasting\n", pthread_self());
- 		printf("%lu: before  unlocking pdlock   %lu   %ld %ld \n", pthread_self(), *c->PVARIABLE, *c->pcounter, *c->prcounter);
-
+//  		printf("%lu: before  unlocking pdlock   %lu   %ld %ld \n", pthread_self(), *c->PVARIABLE, *c->pcounter, *c->prcounter);
 		Pthread_mutex_unlock(c->plock);
-		
  		printf("%lu: after unlocking pdlock   %lu   %ld %ld \n", pthread_self(), *c->PVARIABLE, *c->pcounter, *c->prcounter);
 
 		
-	}while(received != 1);
+		if(start == 0)
+			start = 1;
+		else 
+			start = 0;
+		
+		
+	} //while(received != 1);
+	
+	
+	printf(" -------------------------------------------------   Thread %lu received its SOCKET\n", pthread_self() );
 
 		Pthread_mutex_lock(c->plock);
+		
+			printf(" -------------------------------------------------   Thread %lu SYNCING\n", pthread_self() );
+
 			if(*c->prcounter == 0){
 				printf("%lu:before FINAL   - REC broadcasting   %lu   %ld %ld \n", pthread_self(), *c->PVARIABLE, *c->pcounter, *c->prcounter);
 				pthread_cond_broadcast(c->pdcond);
+				thread_finished = 1;
 			}
 			else{
 				while (*c->prcounter != 0)
 					Pthread_cond_wait(c->pdcond, c->plock);
+				thread_finished = 0;
 			}
-		Pthread_mutex_unlock(c->plock);
 
-	printf(" -------------------------------------------------   Thread %lu received its SOCKET\n", pthread_self() );
+		if( thread_finished == 1){
+			printf("%lu:   ACCEPTED SEM_POST OPERATION   %lu  \n", pthread_self());
+			Sem_post(c->psem);
+			thread_finished = 0;
+		}	
+		Pthread_mutex_unlock(c->plock);
+		
+
+
+	printf(" -------------------------------------------------   Thread %lu EXITS\n", pthread_self() );
 /*
  * release borrowed memory, malloced before starting thread in Data_Thread()
  */

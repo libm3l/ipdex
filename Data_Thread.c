@@ -61,10 +61,10 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
  * initialize mutex, barrier and condition variable
  */
 	Pthread_mutex_init(&Data_Thread->Data_Glob_Args->lock);
-	Pthread_mutex_init(&Data_Thread->Data_Glob_Args->dlock);
 	Pthread_barrier_init(&Data_Thread->Data_Glob_Args->barr,  Data_Thread->n_data_threads + 1);
 	Pthread_cond_init(&Data_Thread->Data_Glob_Args->cond);
 	Pthread_cond_init(&Data_Thread->Data_Glob_Args->dcond);
+	Sem_init(&Data_Thread->Data_Glob_Args->sem, 0);
 /*
  * spawn threads
  */	
@@ -74,7 +74,7 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 		
 		DataArgs->Node  	= m3l_get_Found_node(SFounds, i);
 		DataArgs->plock 	= &Data_Thread->Data_Glob_Args->lock;	
-		DataArgs->pdlock 	= &Data_Thread->Data_Glob_Args->dlock;	
+		DataArgs->psem 		= &Data_Thread->Data_Glob_Args->sem;	
 		DataArgs->pbarr 	= &Data_Thread->Data_Glob_Args->barr;	
 		DataArgs->pcond 	= &Data_Thread->Data_Glob_Args->cond;	
 		DataArgs->pdcond 	= &Data_Thread->Data_Glob_Args->dcond;	

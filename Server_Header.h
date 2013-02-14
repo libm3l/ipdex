@@ -19,10 +19,10 @@
 
 typedef struct data_thread_args{
 	pthread_mutex_t   lock, *plock;	 	/* mutex */
-	pthread_mutex_t   dlock, *pdlock;	 /* mutex */
 	pthread_barrier_t barr, *pbarr;  	/* barrier */
 	pthread_cond_t    cond, *pcond;   	/* condition variable */
 	pthread_cond_t    dcond, *pdcond;   	/* condition variable */
+	sem_t 		  sem, *psem;		/* semaphore */
 	node_t *Node;                     	/* libm3l node_t structure pointer */
 	pthread_t  VARIABLE, *PVARIABLE;  	/* thread number sent for identification */
  	lmint_t   socket, *psocket; 		/* socket ID passed to data_Thread, message upon receiving it */

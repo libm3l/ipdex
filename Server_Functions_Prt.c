@@ -1,3 +1,4 @@
+
 #include "libm3l.h"
 #include "Server_Header.h"
 #include "Server_Functions_Prt.h"
@@ -74,6 +75,37 @@ void Pthread_mutex_unlock(pthread_mutex_t *lock){
 	if( pthread_mutex_unlock(lock) != 0)
 		Perror("pthread_mutex_unlock()");
 }
+
+
+
+
+void Sem_init(sem_t *sem, lmuint_t val){
+	if(sem_init(sem, 0, val) < 0)
+		Perror("sem_init()");
+}
+
+void Sem_wait(sem_t *sem){
+	if( sem_wait(sem) < 0)
+		Perror("sem_init()");
+}
+
+void Sem_post(sem_t *sem){
+	if( sem_post(sem) < 0)
+		Perror("sem_post()");
+}
+
+void Sem_destroy(sem_t *sem){
+	if( sem_destroy(sem) < 0)
+		Perror("sem_destroy()");
+}
+
+lmint_t Sem_getvalue(sem_t *sem){
+	lmint_t val;
+	if( sem_getvalue(sem, &val) < 0)
+		Perror("sem_getvalue()");
+	return val;
+}
+
 
 
 // void Sync(lmint_t SYNC_MAX_COUNT)
