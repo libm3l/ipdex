@@ -9,7 +9,7 @@
 data_thread_str_t *Data_Thread(node_t *Gnode){
 
 	lmsize_t i;
-	lmint_t rcbarr;
+	lmint_t rcbarr, pth_err;
 	find_t *SFounds;
 	node_t  *Tmp = NULL, *LocNode;
 	data_thread_str_t *Data_Thread;
@@ -85,12 +85,16 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 /*
  * create thread
  */
-		if ( pthread_create(&Data_Thread->data_threads[i], NULL, &Data_Threads,  DataArgs) != 0){
-// 			if(errno = EAGAIN) /* If Interrupted system call, restart - back to while ()  UNP V1 p124  */
-// 				continue;
-// 		else
-			Perror("pthread_create()");
-		}
+//         if ( pthread_create(&Data_Thread->data_threads[i], NULL, &Data_Threads,  DataArgs) != 0 ){
+//             if(errno == EAGAIN) /* If Interrupted system call, restart - back to while ()  UNP V1 p124  */
+//                 continue;
+//         else
+//             Perror("pthread_create()");
+//         }
+
+		while ( ( pth_err = pthread_create(&Data_Thread->data_threads[i], NULL, &Data_Threads,  DataArgs)) != 0 && errno == EAGAIN);
+		if(pth_err != 0)
+		Perror("pthread_create()"); 
 
 /*
  * create a node
