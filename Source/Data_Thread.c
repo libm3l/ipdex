@@ -13,7 +13,7 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 	find_t *SFounds;
 	node_t  *Tmp = NULL, *LocNode;
 	data_thread_str_t *Data_Thread;
-	data_thread_args_t *DataArgs;   //, *Data_Glob_Args;
+	data_thread_args_t *DataArgs;   //, *Data_Glob_Args;lmchar
 	
 	if(Gnode == NULL){
 		Warning("Data_Thread: NULL Gnode");

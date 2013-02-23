@@ -24,6 +24,7 @@ extern void Sem_post(sem_t *);
 extern void Sem_destroy(sem_t *);
 extern lmint_t Sem_getvalue(sem_t *);
 
+extern node_t *sender_identification(lmchar_t *, lmchar_t *, lmchar_t);
 
 // extern void Sync(lmint_t);
 

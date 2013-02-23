@@ -14,7 +14,11 @@ LFLAGS = -fbounds-check -fstack-check -g
 #
 # link
 #
-main: $(OBJS)
+main:
+	ln -sf ../../LinkedList/Source/libm3l.* .
+
+
+prog: $(OBJS)
 
 	gcc -g -o Server_Main.out  $(OBJS) -L$(PATHL)  -lm3l -Wl,-rpath=$(PATHL) -lpthread
 
