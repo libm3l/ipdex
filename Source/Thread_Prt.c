@@ -15,19 +15,6 @@ void *Data_Threads(void *arg)
  * get my thread ID
  */
 	MyThreadID = pthread_self();
-	
-// 	received = 0;
-// 	start = 0;
-// 	thread_finished = 0;
-	
-// 	Pthread_mutex_lock(c->plock);
-// 	
-//  	printf("\n\n\nIn thread %lu \n", MyThreadID);	
-// 	
-// 	if(m3l_Cat(c->Node, "--all", "-P", "-L", "*", (lmchar_t *)NULL) != 0)
-// 		Error("CatData");
-// 	
-// 	Pthread_mutex_unlock(c->plock);
 /*
  * wait on this barrier until all threads are started
  */	
@@ -44,7 +31,7 @@ void *Data_Threads(void *arg)
 /*
  * if already went through do loop, wait here at sync point until all threads are here
  */
-		thread_finished = 0;
+// 		thread_finished = 0;
 		received = 0;
 		start = 0;
 		
@@ -69,8 +56,9 @@ void *Data_Threads(void *arg)
  * the last thread, broadcast
  * indicate this is the last thread
  */
-			thread_finished = 1;
+// 			thread_finished = 1;
 			pthread_cond_broadcast(c->pdcond);
+			Sem_post(c->psem);
 		}
 		else{
 /*
@@ -83,8 +71,8 @@ void *Data_Threads(void *arg)
 /*
  * if last thread, release semaphore so that main can make another loop
  */
-		if( thread_finished == 1)
-			Sem_post(c->psem);
+// 		if( thread_finished == 1)
+// 			Sem_post(c->psem);
 			
  		Pthread_mutex_unlock(c->plock);	
 		

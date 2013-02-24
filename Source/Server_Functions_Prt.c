@@ -113,7 +113,6 @@ lmint_t Sem_getvalue(sem_t *sem){
 node_t *sender_identification(lmchar_t *Sender_Name, lmchar_t *Sender_data_set, lmchar_t RWmode)
 {
 	node_t *Gnode, *TmpNode;
-	char *answer="ACKN";
 	size_t *dim;
 	
 	if(  (Gnode = m3l_Mklist("Sender_Ident", "DIR", 0, 0, (node_t **)NULL, (const char *)NULL, (const char *)NULL, (char *)NULL)) == 0)
@@ -146,8 +145,6 @@ node_t *sender_identification(lmchar_t *Sender_Name, lmchar_t *Sender_data_set, 
  	return Gnode;
 	
 }
-
-
 
 // void Sync(lmint_t SYNC_MAX_COUNT)
 // {

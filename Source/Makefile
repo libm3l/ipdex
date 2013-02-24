@@ -16,7 +16,7 @@ LFLAGS = -fbounds-check -fstack-check -g
 #
 main:
 	ln -sf ../../LinkedList/Source/libm3l.* .
-
+	make prog
 
 prog: $(OBJS)
 
