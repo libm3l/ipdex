@@ -8,7 +8,7 @@ void *Data_Threads(void *arg)
 {
 	data_thread_args_t *c = (data_thread_args_t *)arg;
 	lmint_t rcbarr;
-	lmint_t received, start, thread_finished;
+	lmint_t received;
 	
 	pthread_t  MyThreadID;
 /*
@@ -31,10 +31,7 @@ void *Data_Threads(void *arg)
 /*
  * if already went through do loop, wait here at sync point until all threads are here
  */
-// 		thread_finished = 0;
-		received = 0;
-		start = 0;
-		
+		received = 0;		
 		Pthread_mutex_lock(c->plock);
 /*
  * wait for data sent by main thread
@@ -56,7 +53,6 @@ void *Data_Threads(void *arg)
  * the last thread, broadcast
  * indicate this is the last thread
  */
-// 			thread_finished = 1;
 			pthread_cond_broadcast(c->pdcond);
 			Sem_post(c->psem);
 		}
@@ -68,11 +64,6 @@ void *Data_Threads(void *arg)
 // 			while (*c->prcounter != 0)
 				Pthread_cond_wait(c->pdcond, c->plock);
 		}
-/*
- * if last thread, release semaphore so that main can make another loop
- */
-// 		if( thread_finished == 1)
-// 			Sem_post(c->psem);
 			
  		Pthread_mutex_unlock(c->plock);	
 		
