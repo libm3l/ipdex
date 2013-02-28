@@ -127,33 +127,6 @@ printf("   \n\n  CYCLE       %d\n\n ", j);
 		Error("Server: m3l_Fread");
 	}
 // 	free(Filename);
-	
-	
-	
-// //===========================================================
-// 	
-// 	if( (SFounds = m3l_Detach_List(&Gnode, "/COMM_DEF/Data_Sets/Data_Set", "/*/*/*", (lmchar_t *)NULL)) != NULL){
-// 		for(i=0; i < m3l_get_Found_number(SFounds); i++){
-// 			
-// 			LocNode = m3l_get_Found_node(SFounds, i);
-// 			
-// 			if(m3l_Cat(LocNode, "--all", "-P", "-L", "*", (lmchar_t *)NULL) != 0)
-// 				Error("m3l_Cat");
-// 			
-// 			if(m3l_Umount(&LocNode) != 1)
-// 				Error("m3l_Umount");	
-// 		}
-// 		m3l_DestroyFound(&SFounds);
-// 	}
-// 	
-// 	if(m3l_Cat(Gnode, "--all", "-P", "-L", "*", (lmchar_t *)NULL) != 0)
-// 				Error("m3l_Cat");
-// 	if(m3l_Umount(&Gnode) != 1)
-// 		Error("m3l_Umount");	
-// 	exit(0);
-// //===========================================================
-
-
 /*
  * if specified, write the file on screen
  */	
@@ -176,12 +149,21 @@ printf("   \n\n  CYCLE       %d\n\n ", j);
  * loop over and send variable
  */
 	 Pthread_mutex_lock(&Data_Threads->Data_Glob_Args->lock);
-		*Data_Threads->data_threads_status_counter = Data_Threads->n_data_threads;
- 		*Data_Threads->data_threads_remain_counter=*Data_Threads->data_threads_status_counter;
-	 	Data_Threads->Data_Glob_Args->VARIABLE  = Data_Threads->data_threads[0];
-
+		*Data_Threads->data_threads_status_counter  =  Data_Threads->n_data_threads;
+ 		*Data_Threads->data_threads_remain_counter  = *Data_Threads->data_threads_status_counter;
+	 	 Data_Threads->Data_Glob_Args->VARIABLE     =  Data_Threads->data_threads[0];
+/*
+ * wait for barrier, indicating all threads in Data_Thread were created
+ * the _wait on this barrier is the second_wait call in Data_Thread for each thread and this is the last one
+ * makes sure we do not start Data_Thread before some of the data which are needed are filled abd mutex is locked - see 
+ * fours lines above
+ */
 	Pthread_barrier_wait(&Data_Threads->Data_Glob_Args->barr);
-
+/*
+ * give condition signal to Data_Thread that they can start - see part of code in Data_Thread
+ *              -   while (*c->prcounter == 0)
+ *		- 	Pthread_cond_wait(c->pcond, c->plock);
+ */
 	Pthread_cond_broadcast(&Data_Threads->Data_Glob_Args->cond);
 
 
@@ -192,34 +174,28 @@ printf("   \n\n  CYCLE       %d\n\n ", j);
 /*
  * count number of free threads
  */
-			Data_Threads->Data_Glob_Args->VARIABLE  = Data_Threads->data_threads[i];
-			*Data_Threads->data_threads_remain_counter=*Data_Threads->data_threads_status_counter;
+			 Data_Threads->Data_Glob_Args->VARIABLE    =  Data_Threads->data_threads[i];
+			*Data_Threads->data_threads_remain_counter = *Data_Threads->data_threads_status_counter;
 
 			Pthread_cond_broadcast(&Data_Threads->Data_Glob_Args->cond);
 		}
 			
 		Pthread_mutex_unlock(&Data_Threads->Data_Glob_Args->lock);
+/* 
+ * when all Data_Thread are finished, - the identification part, the threads are waiting on each other. 
+ * the last thread unlock the semaphore so that the next loop can start
+ */
 		Sem_wait(&Data_Threads->Data_Glob_Args->sem);		
 		
 	}
-	
-// 	Pthread_mutex_unlock(&Data_Threads->Data_Glob_Args->lock);
-/* 
- * bind, listen socket
- */
-
-
 /*
  * join threads and release memmory
  */
-	for(i=0; i< Data_Threads->n_data_threads; i++){
+	for(i=0; i< Data_Threads->n_data_threads; i++)
 		pthread_join(Data_Threads->data_threads[i], NULL);
-//  		printf("thread %ld is finished\n", i);
-	}
 	
 	
 	Pthread_mutex_destroy(&Data_Threads->Data_Glob_Args->lock);
-// 	Pthread_mutex_destroy(&Data_Threads->Data_Glob_Args->dlock);
 	Pthread_barrier_destroy(&Data_Threads->Data_Glob_Args->barr);
 	Pthread_cond_destroy(&Data_Threads->Data_Glob_Args->cond);
  	Pthread_cond_destroy(&Data_Threads->Data_Glob_Args->dcond);

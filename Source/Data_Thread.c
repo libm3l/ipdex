@@ -43,7 +43,7 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 		exit(0);
 	}
 /* 
- * malloc strucutre
+ * malloca data in heap
  */
 	if( (Data_Thread->data_threads = (pthread_t *)malloc(sizeof(pthread_t) * Data_Thread->n_data_threads)) == NULL)
 		Perror("Data_Thread: Data_Thread->data_threads malloc");	
@@ -55,8 +55,6 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 		Perror("Data_Thread: Data_Thread->data_threads_remain_counter");	
 	*Data_Thread->data_threads_status_counter = 0;
 	*Data_Thread->data_threads_remain_counter = 0;
-	
-// 	printf("%p  %d\n", Data_Thread->data_threads_status_counter, *Data_Thread->data_threads_status_counter);
 /*
  * initialize mutex, barrier and condition variable
  */
@@ -100,8 +98,10 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
  * create a node
  */
 	}
-	
-	
+/*
+ * wait on this barrier until all threads are created - the barriers are _waited on in Data_Threads and this is the last one
+ * makes sure we leave the function after all threads are created
+ */
 	Pthread_barrier_wait(&Data_Thread->Data_Glob_Args->barr);
 	m3l_DestroyFound(&SFounds);
 	

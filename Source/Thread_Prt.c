@@ -17,10 +17,13 @@ void *Data_Threads(void *arg)
 	MyThreadID = pthread_self();
 /*
  * wait on this barrier until all threads are started
+ * the barrier is called n-times (n=number of Data_Threads + 1) where the last call is made
+ * from Data_Thread which spawns this thread
  */	
 	Pthread_barrier_wait(c->pbarr);
 /*
  * wait on this barrier until main thread sets value of counter and lock c->plock
+ * the last call to _wait() is done in the main function after returning back from Data_Threads = Data_Thread(Gnode)
  */
 	Pthread_barrier_wait(c->pbarr);
 /*
@@ -54,6 +57,9 @@ void *Data_Threads(void *arg)
  * indicate this is the last thread
  */
 			pthread_cond_broadcast(c->pdcond);
+/* 
+ * unlock semaphore in the main program so that another loop can starte
+ */
 			Sem_post(c->psem);
 		}
 		else{
