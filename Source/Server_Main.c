@@ -149,9 +149,21 @@ printf("   \n\n  CYCLE       %d\n\n ", j);
  * loop over and send variable
  */
 	 Pthread_mutex_lock(&Data_Threads->Data_Glob_Args->lock);
+/*
+ * set the counter to number of available threads
+ */
 		*Data_Threads->data_threads_status_counter  =  Data_Threads->n_data_threads;
- 		*Data_Threads->data_threads_remain_counter  = *Data_Threads->data_threads_status_counter;
-	 	 Data_Threads->Data_Glob_Args->VARIABLE     =  Data_Threads->data_threads[0];
+ /*
+  * at the beginning the coutner of remainign threads is equal to 
+  * number of available threads
+  * this coutner is used to synchronize all threads at the end when they went on each other
+  * it is reset every iterational step
+  */
+		*Data_Threads->data_threads_remain_counter  = *Data_Threads->data_threads_status_counter;
+/* 
+ * this is identification iof the thread
+ */
+		Data_Threads->Data_Glob_Args->VARIABLE     =  Data_Threads->data_threads[0];
 /*
  * wait for barrier, indicating all threads in Data_Thread were created
  * the _wait on this barrier is the second_wait call in Data_Thread for each thread and this is the last one
@@ -171,12 +183,19 @@ printf("   \n\n  CYCLE       %d\n\n ", j);
 		
 		if(i > 0) {
 			Pthread_mutex_lock(&Data_Threads->Data_Glob_Args->lock);
+/* 
+ * this is identification iof the thread
+ */			 Data_Threads->Data_Glob_Args->VARIABLE    =  Data_Threads->data_threads[i];
 /*
- * count number of free threads
- */
-			 Data_Threads->Data_Glob_Args->VARIABLE    =  Data_Threads->data_threads[i];
+  * at the beginning the coutner of remainign threads is equal to 
+  * number of available threads
+  * this coutner is used to synchronize all threads at the end when they went on each other
+  * it is reset every iterational step
+  */
 			*Data_Threads->data_threads_remain_counter = *Data_Threads->data_threads_status_counter;
-
+/*
+ * once all necessary data are set, send signal to all threads to start
+ */
 			Pthread_cond_broadcast(&Data_Threads->Data_Glob_Args->cond);
 		}
 			

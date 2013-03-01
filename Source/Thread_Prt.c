@@ -45,7 +45,7 @@ void *Data_Threads(void *arg)
 		(*c->prcounter)--;   /* decrement counter of thread  which will check condition*/
 				
 		if(*c->PVARIABLE == MyThreadID){
-			(*c->pcounter)--;   /* decrement counter of available thread */
+			(*c->pcounter)--;   /* if the thread is positively identified, decrement counter of available thread for next round of identification */
 			received = 1;        /* indicate thread received connection */
 		}
 /*
