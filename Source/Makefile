@@ -8,14 +8,14 @@ CFLAGS = -fbounds-check -fstack-check -g
 LFLAGS = -fbounds-check -fstack-check -g 
 #CFLAGS =
 #LFLAGS =
-
+#
 #Autodependencies with GNU make
 #Scott McPeak, November 2001 
 #
 # link
 #
 main:
-	ln -sf ../../LinkedList/Source/libm3l.* .
+	ln -sf ../../libm3l/Source/libm3l.* .
 	make prog
 
 prog: $(OBJS)

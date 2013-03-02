@@ -1,6 +1,7 @@
 
 #include "libm3l.h"
 #include "Server_Header.h"
+#include "Server_Functions_Prt.h"
 
 #include "Thread_Prt.h"
 
@@ -15,6 +16,13 @@ void *Data_Threads(void *arg)
  * get my thread ID
  */
 	MyThreadID = pthread_self();
+	
+	Pthread_mutex_lock(c->plock);
+		printf("\n\n In THREAD %lu\n\n", MyThreadID);
+		if(m3l_Cat(c->Node, "--all", "-L", "-P", "*",   (lmchar_t *)NULL) != 0)
+			Warning("CatData");
+	Pthread_mutex_unlock(c->plock);
+	
 /*
  * wait on this barrier until all threads are started
  * the barrier is called n-times (n=number of Data_Threads + 1) where the last call is made

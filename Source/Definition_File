@@ -43,7 +43,7 @@ COMM_DEF  DIR 2
 				`Ablation`
 		Data_Set  DIR 3
 			Name_of_Data_Set C 1 10
-				`Heat_Xlux`
+				`Heat_Ylux`
 			Sending_Process C 1 5
 				`Edge`
 			Receiving_Processes DIR 2
@@ -53,7 +53,7 @@ COMM_DEF  DIR 2
 				`Ablation`
 		Data_Set  DIR 3
 			Name_of_Data_Set C 1 10
-				`Heat_Xlux`
+				`Heat_Zlux`
 			Sending_Process C 1 5
 				`Edge`
 			Receiving_Processes DIR 2
@@ -63,7 +63,7 @@ COMM_DEF  DIR 2
 				`Ablation`
 		Data_Set  DIR 3
 			Name_of_Data_Set C 1 10
-				`Heat_Xlux`
+				`Heat_Wlux`
 			Sending_Process C 1 5
 				`Edge`
 			Receiving_Processes DIR 2
