@@ -2,72 +2,34 @@ COMM_DEF  DIR 2
 	Process_Specifications DIR 1
 		Name_of_Case  C 1 10 
 			`Test Case`
-	Data_Sets  DIR 7
+	Data_Sets  DIR 3
 		Data_Set  DIR 3
 			Name_of_Data_Set C 1 9
 				`Pressure`
-			Sending_Process C 1 5
-				`Edge`
-			Receiving_Processes DIR 1
-				Receiving_Process C 1 4
-				`CSM`
+			Sending_Process I 1 1
+				1
+			Receiving_Processes I 1 1
+				1
 		Data_Set  DIR 3
-			Name_of_Data_Set C 1 5
-				`Temp`
-			Sending_Process C 1 5
-				`Edge`
-			Receiving_Processes DIR 2
-				Receiving_Process C 1 4
-				`CSM`
-				Receiving_Process C 1 9
-				`Ablation`
+			Name_of_Data_Set C 1 8
+				`Density`
+			Sending_Process I 1 1
+				1
+			Receiving_Processes I 1 1
+				2
 		Data_Set  DIR 3
-			Name_of_Data_Set C 1 10
-				`Heat_Flux`
-			Sending_Process C 1 5
-				`Edge`
-			Receiving_Processes DIR 2
-				Receiving_Process C 1 4
-				`CSM`
-				Receiving_Process C 1 9
-				`Ablation`
-		Data_Set  DIR 3
-			Name_of_Data_Set C 1 10
-				`Heat_Xlux`
-			Sending_Process C 1 5
-				`Edge`
-			Receiving_Processes DIR 2
-				Receiving_Process C 1 4
-				`CSM`
-				Receiving_Process C 1 9
-				`Ablation`
-		Data_Set  DIR 3
-			Name_of_Data_Set C 1 10
-				`Heat_Ylux`
-			Sending_Process C 1 5
-				`Edge`
-			Receiving_Processes DIR 2
-				Receiving_Process C 1 4
-				`CSM`
-				Receiving_Process C 1 9
-				`Ablation`
-		Data_Set  DIR 3
-			Name_of_Data_Set C 1 10
-				`Heat_Zlux`
-			Sending_Process C 1 5
-				`Edge`
-			Receiving_Processes DIR 2
-				Receiving_Process C 1 4
-				`CSM`
-				Receiving_Process C 1 9
-				`Ablation`
-		Data_Set  DIR 3
-			Name_of_Data_Set C 1 10
-				`Heat_Wlux`
-			Sending_Process C 1 5
-				`Edge`
-			Receiving_Processes DIR 2
-				Receiving_Process C 1 4
-				`CSM`
-				Receiving_Process C 1 9
-				`Ablation`
+			Name_of_Data_Set C 1 12
+				`Temperature`
+			Sending_Process I 1 1
+				1
+			Receiving_Processes I 1 1
+				2 
+				
+				
+				
+				-EOMF-
+
+
+
+
+

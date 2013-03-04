@@ -30,9 +30,8 @@ lmint_t Server_Body(node_t *Gnode){
 		clilen = sizeof(cli_addr);
 
 		if ( (newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen)) < 0){
-			if(errno = EINTR){ /* If Interrupted system call, restart - back to while ()  UNP V1 p124  */
-				Perror("accept()");
-				continue;}
+			if(errno == EINTR) /* If Interrupted system call, restart - back to while ()  UNP V1 p124  */
+				continue;
 			else
 				Perror("accept()");
 		}
@@ -40,6 +39,10 @@ lmint_t Server_Body(node_t *Gnode){
  * loop over and send variable
  */
 		Pthread_mutex_lock(&Data_Threads->Data_Glob_Args->lock);
+/*
+ * save socket descriptor
+ */
+		Data_Threads->Data_Glob_Args->socket =  newsockfd;
 /*
  * set the counter to number of available threads
  */

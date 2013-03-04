@@ -118,7 +118,7 @@ printf("   \n\n  CYCLE       %d\n\n ", j);
 		free(Filename);
 		Error("Server: m3l_Fread");
 	}
-// 	free(Filename);
+	// 	free(Filename);
 /*
  * if specified, write the file on screen
  */	
@@ -126,6 +126,9 @@ printf("   \n\n  CYCLE       %d\n\n ", j);
  		if(m3l_Cat(Gnode, "--all", "-L", "-P", "*",   (lmchar_t *)NULL) != 0)
  			Warning("CatData");
 	}
+	
+// 		exit(0);
+
 /*
  * Ctrl C signal handler
  */
