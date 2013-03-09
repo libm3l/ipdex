@@ -110,7 +110,7 @@ lmint_t Sem_getvalue(sem_t *sem){
 
 
 
-node_t *sender_identification(lmchar_t *Sender_Name, lmchar_t *Sender_data_set, lmchar_t RWmode)
+node_t *sender_identification(lmchar_t *Sender_data_set, lmchar_t RWmode)
 {
 	node_t *Gnode, *TmpNode;
 	size_t *dim;
@@ -120,19 +120,12 @@ node_t *sender_identification(lmchar_t *Sender_Name, lmchar_t *Sender_data_set, 
 	
 	dim = (size_t *) malloc( 1* sizeof(size_t));
 /*
- * add sender name
- */
-	dim[0] = strlen(Sender_Name)+1;
-	if(  (TmpNode = m3l_Mklist("Sender_Name", "C", 1, dim, &Gnode, "/Sender_Ident", "./", "--no_malloc", (char *)NULL)) == 0)
-		Error("m3l_Mklist");
-	TmpNode->data.c = Sender_Name;
-/*
  * add data set name
  */
 	dim[0] = strlen(Sender_data_set)+1;
 	if(  (TmpNode = m3l_Mklist("Data_Set", "C", 1, dim, &Gnode, "/Sender_Ident", "./", "--no_malloc", (char *)NULL)) == 0)
 		Error("m3l_Mklist");
-	TmpNode->data.c = Sender_data_set;	
+	TmpNode->data.c = Sender_data_set;
 	free(dim);
 /*
  * add if reader or sender

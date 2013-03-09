@@ -33,7 +33,7 @@ typedef struct data_thread_args{
 
 typedef struct data_thread_str{
 	lmsize_t n_data_threads;              					/* number of thread in group data_threads */
- 	lmsize_t *data_threads_status_counter, *data_threads_remain_counter; 	/* number of free threads, ie. not associated with  */
+ 	lmsize_t *data_threads_availth_counter, *data_threads_remainth_counter; 	/* number of available and free threads  */
 	pthread_t *data_threads;              					/* thread ID of all threads in group data_threads */
 	data_thread_args_t *Data_Glob_Args;   					/* pointer to heap for this group of data_threads */
 }data_thread_str_t;

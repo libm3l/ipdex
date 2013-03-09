@@ -46,14 +46,14 @@ lmint_t Server_Body(node_t *Gnode){
 /*
  * set the counter to number of available threads
  */
-		*Data_Threads->data_threads_status_counter  =  Data_Threads->n_data_threads;
+		*Data_Threads->data_threads_availth_counter  =  Data_Threads->n_data_threads;
  /*
   * at the beginning the coutner of remainign threads is equal to 
   * number of available threads
   * this coutner is used to synchronize all threads at the end when they went on each other
   * it is reset every iterational step
   */
-		*Data_Threads->data_threads_remain_counter  = *Data_Threads->data_threads_status_counter;
+		*Data_Threads->data_threads_remainth_counter  = *Data_Threads->data_threads_availth_counter;
 /* 
  * this is identification iof the thread
  */
@@ -86,7 +86,7 @@ lmint_t Server_Body(node_t *Gnode){
   * this coutner is used to synchronize all threads at the end when they went on each other
   * it is reset every iterational step
   */
-				*Data_Threads->data_threads_remain_counter = *Data_Threads->data_threads_status_counter;
+				*Data_Threads->data_threads_remainth_counter = *Data_Threads->data_threads_availth_counter;
 /*
  * once all necessary data are set, send signal to all threads to start
  */
@@ -116,8 +116,8 @@ lmint_t Server_Body(node_t *Gnode){
 		Sem_destroy(&Data_Threads->Data_Glob_Args->sem);
 		
 		free(Data_Threads->data_threads);
-		free(Data_Threads->data_threads_status_counter);
-		free(Data_Threads->data_threads_remain_counter);
+		free(Data_Threads->data_threads_availth_counter);
+		free(Data_Threads->data_threads_remainth_counter);
 		free(Data_Threads->Data_Glob_Args);
 		free(Data_Threads);
 

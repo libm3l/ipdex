@@ -50,12 +50,12 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 		Perror("Data_Thread: Data_Thread->data_threads malloc");	
 	if( (Data_Thread->Data_Glob_Args = (data_thread_args_t *)malloc(sizeof(data_thread_args_t))) == NULL)
 		Perror("Data_Thread: Data_Glob_Args malloc");
-	if( (Data_Thread->data_threads_status_counter = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
-		Perror("Data_Thread: Data_Thread->data_threads_status_counter");
-	if( (Data_Thread->data_threads_remain_counter = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
-		Perror("Data_Thread: Data_Thread->data_threads_remain_counter");	
-	*Data_Thread->data_threads_status_counter = 0;
-	*Data_Thread->data_threads_remain_counter = 0;
+	if( (Data_Thread->data_threads_availth_counter = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
+		Perror("Data_Thread: Data_Thread->data_threads_availth_counter");
+	if( (Data_Thread->data_threads_remainth_counter = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
+		Perror("Data_Thread: Data_Thread->data_threads_remainth_counter");	
+	*Data_Thread->data_threads_availth_counter = 0;
+	*Data_Thread->data_threads_remainth_counter = 0;
 /*
  * initialize mutex, barrier and condition variable
  */
@@ -79,8 +79,8 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 		DataArgs->pdcond 	= &Data_Thread->Data_Glob_Args->dcond;	
 		DataArgs->PVARIABLE  	= &Data_Thread->Data_Glob_Args->VARIABLE;	
 		DataArgs->psocket    	= &Data_Thread->Data_Glob_Args->socket;	
-		DataArgs->pcounter    	=  Data_Thread->data_threads_status_counter;
-		DataArgs->prcounter    	=  Data_Thread->data_threads_remain_counter;
+		DataArgs->pcounter    	=  Data_Thread->data_threads_availth_counter;
+		DataArgs->prcounter    	=  Data_Thread->data_threads_remainth_counter;
 /*
  * create thread
  */
