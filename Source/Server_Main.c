@@ -157,6 +157,8 @@ printf("   \n\n  CYCLE       %d\n\n ", j);
 
 	printf(" ------------------------------   Exiting main function () \n");
 
+	free(Filename);
+	
 	exit(EXIT_SUCCESS);
 	
 }

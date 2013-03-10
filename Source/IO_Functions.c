@@ -155,8 +155,11 @@ lmint_t Send_Data(node_t *Gnode, const lmchar_t *hostname, lmint_t portnumber, l
  */	
 	Popts = &opts;
 	
-	ACKN = m3l_send_receive_tcpipsocket(HEADER .... )
-	ACKN = m3l_send_to_tcpipsocket(Gnode .... )
+// 	m3l_send_to_tcpipsocket(HEADER .... )
+// 	
+// 	get -EOMB- (receive socket)
+// 	
+// 	m3l_send_to_tcpipsocket(Gnode .... )
 	
 	free(search_term);
 	
