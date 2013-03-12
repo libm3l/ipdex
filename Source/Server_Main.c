@@ -110,7 +110,7 @@ lmint_t main (int argc, char **argv){
  */
 
 
-	for(j=0; j<10; j++){
+	for(j=0; j<1; j++){
 
 printf("   \n\n  CYCLE       %d\n\n ", j);
 

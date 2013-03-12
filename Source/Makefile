@@ -21,6 +21,7 @@ main:
 prog: $(OBJS)
 
 	gcc -g -o Server_Main.out  $(OBJS) -L$(PATHL)  -lm3l -Wl,-rpath=$(PATHL) -lpthread
+# 	gcc -g -o Server_Main.out  $(OBJS) libm3l.a   -lpthread
 
 -include $(OBJS:.o=.d)
 

@@ -38,7 +38,8 @@ lmint_t Server_Body(node_t *Gnode){
 /*
  * loop over and send variable
  */
-		Identify_Data_Thread(&Data_Threads);
+		if( Identify_Data_Thread(&Data_Threads) != 0)
+			Perror("Identify_Data_Thread problem");
 /*
  * join threads and release memmory
  */

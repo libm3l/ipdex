@@ -8,21 +8,21 @@ COMM_DEF  DIR 2
 				`Pressure`
 			Sending_Process I 1 1
 				1
-			Receiving_Processes I 1 1
+			Receiving_Processes ST 1 1
 				1
 		Data_Set  DIR 3
 			Name_of_Data_Set C 1 8
 				`Density`
 			Sending_Process I 1 1
 				1
-			Receiving_Processes I 1 1
+			Receiving_Processes ST 1 1
 				2
 		Data_Set  DIR 3
 			Name_of_Data_Set C 1 12
 				`Temperature`
 			Sending_Process I 1 1
 				1
-			Receiving_Processes I 1 1
+			Receiving_Processes ST 1 1
 				2 
 				
 				
