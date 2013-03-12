@@ -81,12 +81,12 @@ void *Data_Threads(void *arg)
 		}
 		
 		printf(" Name of thread is %s, length is %ld, nrec is %d\n", data_set_name, len, n_rec_proc);
+		
+	Pthread_mutex_unlock(c->plock);
 /*
  * set number of available local thread equal to number of readers + 1 writing
  */
 		n_avail_loc_theads = n_rec_proc;
-		
-	Pthread_mutex_unlock(c->plock);
 	
 /*
  * wait on this barrier until all threads are started
