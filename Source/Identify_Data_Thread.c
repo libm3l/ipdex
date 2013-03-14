@@ -25,9 +25,9 @@ lmint_t Identify_Data_Thread(data_thread_str_t **Data_Threads){
   */
 	*(*Data_Threads)->data_threads_remainth_counter  = *(*Data_Threads)->data_threads_availth_counter;
 /* 
- * this is identification iof the thread
+ * this is identification of the thread
  */
-	(*Data_Threads)->Data_Glob_Args->VARIABLE     =  (*Data_Threads)->data_threads[0];
+// 	(*Data_Threads)->Data_Glob_Args->VARIABLE     =  (*Data_Threads)->data_threads[0];
 /*
  * wait for barrier, indicating all threads in Data_Thread were created
  * the _wait on this barrier is the second_wait call in Data_Thread for each thread and this is the last one
@@ -50,7 +50,7 @@ lmint_t Identify_Data_Thread(data_thread_str_t **Data_Threads){
 /* 
  * this is identification iof the thread
  */	
-			(*Data_Threads)->Data_Glob_Args->VARIABLE    =  (*Data_Threads)->data_threads[i];
+// 			(*Data_Threads)->Data_Glob_Args->VARIABLE    =  (*Data_Threads)->data_threads[i];
 /*
   * at the beginning the coutner of remainign threads is equal to 
   * number of available threads

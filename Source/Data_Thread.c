@@ -44,7 +44,8 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 		exit(0);
 	}
 /* 
- * malloca data in heap
+ * malloca data in heap, will be used to share data between threads
+ * the data is then freed in Thread_Prt.c function
  */
 	if( (Data_Thread->data_threads = (pthread_t *)malloc(sizeof(pthread_t) * Data_Thread->n_data_threads)) == NULL)
 		Perror("Data_Thread: Data_Thread->data_threads malloc");	
@@ -53,7 +54,11 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 	if( (Data_Thread->data_threads_availth_counter = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
 		Perror("Data_Thread: Data_Thread->data_threads_availth_counter");
 	if( (Data_Thread->data_threads_remainth_counter = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
-		Perror("Data_Thread: Data_Thread->data_threads_remainth_counter");	
+		Perror("Data_Thread: Data_Thread->data_threads_remainth_counter");
+	if( (Data_Thread->socket = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
+		Perror("Data_Thread: Data_Thread->socket");
+	if ( (Data_Thread->name_of_data_set  = (lmchar_t *)malloc(MAX_NAME_LENGTH* sizeof(lmchar_t))) == NULL)
+		Perror("Data_Thread: Data_Thread->name_of_data_set");	
 	*Data_Thread->data_threads_availth_counter = 0;
 	*Data_Thread->data_threads_remainth_counter = 0;
 /*
@@ -71,16 +76,17 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 		if( (DataArgs = (data_thread_args_t *)malloc(sizeof(data_thread_args_t))) == NULL)
 			Perror("Data_Thread: DataArgs malloc");	
 		
-		DataArgs->Node  	= m3l_get_Found_node(SFounds, i);
-		DataArgs->plock 	= &Data_Thread->Data_Glob_Args->lock;	
-		DataArgs->psem 		= &Data_Thread->Data_Glob_Args->sem;	
-		DataArgs->pbarr 	= &Data_Thread->Data_Glob_Args->barr;	
-		DataArgs->pcond 	= &Data_Thread->Data_Glob_Args->cond;	
-		DataArgs->pdcond 	= &Data_Thread->Data_Glob_Args->dcond;	
-		DataArgs->PVARIABLE  	= &Data_Thread->Data_Glob_Args->VARIABLE;	
-		DataArgs->psocket    	= &Data_Thread->Data_Glob_Args->socket;	
-		DataArgs->pcounter    	=  Data_Thread->data_threads_availth_counter;
-		DataArgs->prcounter    	=  Data_Thread->data_threads_remainth_counter;
+		DataArgs->Node  		= m3l_get_Found_node(SFounds, i);
+		DataArgs->plock 		= &Data_Thread->Data_Glob_Args->lock;	
+		DataArgs->psem 			= &Data_Thread->Data_Glob_Args->sem;	
+		DataArgs->pbarr 		= &Data_Thread->Data_Glob_Args->barr;	
+		DataArgs->pcond 		= &Data_Thread->Data_Glob_Args->cond;	
+		DataArgs->pdcond 		= &Data_Thread->Data_Glob_Args->dcond;	
+// 		DataArgs->PVARIABLE  		= &Data_Thread->Data_Glob_Args->VARIABLE;	
+		DataArgs->psocket    		=  Data_Thread->socket;	
+		DataArgs->pcounter    		=  Data_Thread->data_threads_availth_counter;
+		DataArgs->prcounter    		=  Data_Thread->data_threads_remainth_counter;
+		DataArgs->pname_of_data_set    	=  Data_Thread->name_of_data_set;
 /*
  * create thread
  */

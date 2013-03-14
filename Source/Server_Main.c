@@ -140,7 +140,7 @@ printf("   \n\n  CYCLE       %d\n\n ", j);
 // 	Data_Fork(Gnode);
 	
 	
-	Server_Body(Gnode);
+	Server_Body(Gnode, portnum);
 /*
  * free borrowed memory
  */

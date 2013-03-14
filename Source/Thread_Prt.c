@@ -8,13 +8,13 @@
 void *Data_Threads(void *arg)
 {
 	data_thread_args_t *c = (data_thread_args_t *)arg;
-	lmint_t rcbarr;
+	lmint_t local_socket;
 	lmint_t received;
 	node_t *List;
 	
 	lmsize_t len, *data_rec_proc, n_rec_proc, n_avail_loc_theads;
 	
-	lmchar_t *data_set_name;
+	lmchar_t *data_set_name, local_set_name[MAX_NAME_LENGTH];
 	find_t *SFounds;
 	
 	pthread_t  MyThreadID;
@@ -44,7 +44,9 @@ void *Data_Threads(void *arg)
 			
 				data_set_name = m3l_get_data_pointer(List);
 				len = m3l_get_List_totdim(List)-1;
-
+				if( snprintf(local_set_name, MAX_NAME_LENGTH,"%s",data_set_name) < 0)
+					Perror("snprintf");
+				local_set_name[len] ='\0';
 /* 
  * free memory allocated in m3l_Locate
  */
@@ -87,6 +89,9 @@ void *Data_Threads(void *arg)
  * set number of available local thread equal to number of readers + 1 writing
  */
 		n_avail_loc_theads = n_rec_proc;
+/*
+ * NOTE imlement R_W data thread startup
+ */
 	
 /*
  * wait on this barrier until all threads are started
@@ -99,66 +104,111 @@ void *Data_Threads(void *arg)
  * the last call to _wait() is done in the main function after returning back from Data_Threads = Data_Thread(Gnode)
  */
 	Pthread_barrier_wait(c->pbarr);
-
 	
 	
+	
+			printf(" THREAD:  after  barrier number of counter is %d\n", *c->prcounter );
+	
+	
+	
+	while(1){
 /*
  * start identifying threads once identified, leave do loop
  */
-	do
-	{
+	do{
+		
+			printf(" THREAD:  in do   \n");
+
 /*
  * if already went through do loop, wait here at sync point until all threads are here
  */
-		received = 0;		
-		Pthread_mutex_lock(c->plock);
+			received = 0;		
+			Pthread_mutex_lock(c->plock);
 /*
  * wait for data sent by main thread
  */
-		while (*c->prcounter == 0)
-			Pthread_cond_wait(c->pcond, c->plock);
+			while (*c->prcounter == 0)
+				Pthread_cond_wait(c->pcond, c->plock);
 
-		(*c->prcounter)--;   /* decrement counter of thread  which will check condition*/
+			(*c->prcounter)--;   /* decrement counter of thread  which will check condition*/
+					
+// 			if(*c->PVARIABLE == MyThreadID){
+	
+	
+			printf(" THREAD:  loking for %s  %s  %d \n", c->pname_of_data_set, local_set_name, len);
+
+			if(strncmp(c->pname_of_data_set,local_set_name, len) == 0){ 
 				
-		if(*c->PVARIABLE == MyThreadID){
-			(*c->pcounter)--;   /* if the thread is positively identified, decrement counter of available thread for next round of identification */
-			received = 1;        /* indicate thread received connection */
-		}
+				local_socket = *c->psocket;
+				
+				printf(" thread FOUND %d\n\n", local_socket);
+/*
+ * NOTE: implement taking thread
+ */
+
+// 				(*c->pcounter)--;   /* if the thread is positively identified, decrement counter of available thread for next round of identification */
+/* 
+ * when the thread is positively identified, decrement counter of available thread for next round of identification, 
+ * omce n_avail_loc_theads == 0 decrement (*c->pcounter)--
+ */
+				n_avail_loc_theads--;
+				received = 1;        /* indicate thread received connection */
+			}
 /*
  * synchronized all threads at the end, the last thread will broadcast
  */	
-		if(*c->prcounter == 0){
-/* 
+			if(*c->prcounter == 0){
+/* 	
  * the last thread, broadcast
  * indicate this is the last thread
  */
-			pthread_cond_broadcast(c->pdcond);
+				pthread_cond_broadcast(c->pdcond);
 /* 
  * unlock semaphore in the main program so that another loop can start
  */
 // 			Sem_post(c->psem);
-		}
-		else{
+			}
+			else{
 /*
  * still some threads working, wait for them
  * indicate this is waiting thread
  */
 // 			while (*c->prcounter != 0)
 				Pthread_cond_wait(c->pdcond, c->plock);
-		}
+			}
 			
- 		Pthread_mutex_unlock(c->plock);	
+			Pthread_mutex_unlock(c->plock);	
 		
-	}while(received != 1);
-	
-	
-	
+		}while(received != 1);
+
+		printf(" -------------------------------------------------   Thread %lu received its SOCKET\n", MyThreadID );
+/*
+ * once all R-W threads are taken decrement counter of data_threads ie. Data_Thread->data_threads_availth_counter
+ */
+		if (n_avail_loc_theads == 0){
+			Pthread_mutex_lock(c->plock);	
+			(*c->pcounter)--;
+			Pthread_mutex_unlock(c->plock);
+		}
 /* 
  * unlock semaphore in the main program so that another loop can start
  */
 		Sem_post(c->psem);
+		
+		
+		
+		
+/*
+ * NOTE implement R-W thread sharing data
+ */
 
-	printf(" -------------------------------------------------   Thread %lu received its SOCKET\n", MyThreadID );
+/*
+ * once the data transfer is finished increase increment of available data_threads
+ */
+		Pthread_mutex_lock(c->plock);	
+		(*c->pcounter)--;
+		Pthread_mutex_unlock(c->plock);	
+	}
 /*
  * release borrowed memory, malloced before starting thread in Data_Thread()
  */
