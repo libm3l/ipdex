@@ -31,6 +31,8 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * set the counter to number of available threads
  */
 	*Data_Threads->data_threads_availth_counter  =  Data_Threads->n_data_threads;
+	
+printf(" TOTAL NUMBER OF THREADS IS %ld\n", *Data_Threads->data_threads_availth_counter);
 /*
  * at the beginning the coutner of remainign threads is equal to 
  * number of available threads
@@ -52,6 +54,8 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 		Perror("Open_Bind_Listen");
 	
 	while(1){
+		
+		printf(" Before --  ACCEPT\n");
 
 		clilen = sizeof(cli_addr);
 
@@ -70,7 +74,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 		if(m3l_Cat(RecNode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
 			Error("CatData");
 		
- 		if( m3l_Send_to_tcpipsocket(RecNode, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754", "--SEOB",  (char *)NULL) < 1)
+ 		if( m3l_Send_to_tcpipsocket(NULL, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754", "--SEOB",  (char *)NULL) < 1)
  					Error("Error during reading data from socket");
 /* 
  * find Name_of_Data_Set
@@ -117,8 +121,8 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			
 		Pthread_mutex_unlock(&Data_Threads->Data_Glob_Args->lock);
 		
-		if( m3l_Umount(&Gnode) != 1)
-				Perror("m3l_Umount");
+		if( m3l_Umount(&RecNode) != 1)
+			Perror("m3l_Umount");
 /* 
  * when all Data_Thread are finished, - the identification part, the threads are waiting on each other. 
  * the last thread unlock the semaphore so that the next loop can start

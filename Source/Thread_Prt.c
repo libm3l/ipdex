@@ -88,7 +88,7 @@ void *Data_Threads(void *arg)
 /*
  * set number of available local thread equal to number of readers + 1 writing
  */
-		n_avail_loc_theads = n_rec_proc;
+		n_avail_loc_theads = n_rec_proc + 1;
 /*
  * NOTE imlement R_W data thread startup
  */
@@ -107,7 +107,7 @@ void *Data_Threads(void *arg)
 	
 	
 	
-			printf(" THREAD:  after  barrier number of counter is %d\n", *c->prcounter );
+// 			printf(" THREAD:  after  barrier number of counter is %d\n", *c->prcounter );
 	
 	
 	
@@ -133,15 +133,13 @@ void *Data_Threads(void *arg)
 			(*c->prcounter)--;   /* decrement counter of thread  which will check condition*/
 					
 // 			if(*c->PVARIABLE == MyThreadID){
-	
-	
-			printf(" THREAD:  loking for %s  %s  %d \n", c->pname_of_data_set, local_set_name, len);
+// 			printf(" THREAD:  loking for %s  %s  %d \n", c->pname_of_data_set, local_set_name, len);
 
 			if(strncmp(c->pname_of_data_set,local_set_name, len) == 0){ 
 				
 				local_socket = *c->psocket;
 				
-				printf(" thread FOUND %d\n\n", local_socket);
+				printf(" thread FOUND %s\n\n", local_set_name);
 /*
  * NOTE: implement taking thread
  */
@@ -188,6 +186,8 @@ void *Data_Threads(void *arg)
 		if (n_avail_loc_theads == 0){
 			Pthread_mutex_lock(c->plock);	
 			(*c->pcounter)--;
+			printf(" COUUNTER OF AVAILABLE THREADS IS UUUU  %d    %d  %s\n", (*c->pcounter), n_avail_loc_theads, local_set_name);
+
 			Pthread_mutex_unlock(c->plock);
 		}
 /* 
@@ -205,10 +205,24 @@ void *Data_Threads(void *arg)
 /*
  * once the data transfer is finished increase increment of available data_threads
  */
-		Pthread_mutex_lock(c->plock);	
-		(*c->pcounter)--;
-		Pthread_mutex_unlock(c->plock);	
+		if (n_avail_loc_theads == 0){
+			
+			
+			
+			
+			
+			n_avail_loc_theads = n_rec_proc;
+			Pthread_mutex_lock(c->plock);	
+				(*c->pcounter)++;
+			printf(" COUUNTER OF AVAILABLE THREADS IS %d    %d   %s\n", (*c->pcounter), n_avail_loc_theads, local_set_name);
+			Pthread_mutex_unlock(c->plock);	
+		}
+		
+		
 	}
+	
+	
+	printf(" Leaving WHILE \n");
 /*
  * release borrowed memory, malloced before starting thread in Data_Thread()
  */
