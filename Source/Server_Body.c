@@ -2,7 +2,6 @@
 #include "Server_Header.h"
 #include "Data_Thread.h"
 #include "Server_Functions_Prt.h"
-// #include "Identify_Data_Thread.h"
 #include "Server_Body.h"
 
 
@@ -22,7 +21,8 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 /*
  * spawn all threads
  */
-	Data_Threads = Data_Thread(Gnode);
+	if(  (Data_Threads = Data_Thread(Gnode)) == NULL)
+		Perror("Server_Body: Data_Threads error");
 /*
  * fill the initial data to data_thread_str before threads start
  */	
@@ -169,7 +169,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 		free(Data_Threads->SR_mode);
 		free(Data_Threads->data_threads_availth_counter);
 		free(Data_Threads->data_threads_remainth_counter);
-		free(Data_Threads->Data_Glob_Args);
 		free(Data_Threads->socket);
 		free(Data_Threads);
 

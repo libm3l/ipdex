@@ -6,15 +6,13 @@
 #include "Thread_Prt.h"
 #include "Server_Functions_Prt.h"
 
-
 data_thread_str_t *Data_Thread(node_t *Gnode){
 
 	lmsize_t i;
-	lmint_t rcbarr, pth_err;
+	lmint_t pth_err;
 	find_t *SFounds;
-	node_t  *Tmp = NULL, *LocNode;
 	data_thread_str_t *Data_Thread;
-	data_thread_args_t *DataArgs;   //, *Data_Glob_Args;lmchar
+	data_thread_args_t *DataArgs;
 	
 	if(Gnode == NULL){
 		Warning("Data_Thread: NULL Gnode");
@@ -49,8 +47,6 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
  */
 	if( (Data_Thread->data_threads = (pthread_t *)malloc(sizeof(pthread_t) * Data_Thread->n_data_threads)) == NULL)
 		Perror("Data_Thread: Data_Thread->data_threads malloc");	
-	if( (Data_Thread->Data_Glob_Args = (data_thread_args_t *)malloc(sizeof(data_thread_args_t))) == NULL)
-		Perror("Data_Thread: Data_Glob_Args malloc");
 	if( (Data_Thread->data_threads_availth_counter = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
 		Perror("Data_Thread: Data_Thread->data_threads_availth_counter");
 	if( (Data_Thread->data_threads_remainth_counter = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
@@ -85,7 +81,6 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 		DataArgs->pbarr 		= &Data_Thread->barr;	
 		DataArgs->pcond 		= &Data_Thread->cond;	
 		DataArgs->pdcond 		= &Data_Thread->dcond;	
-// 		DataArgs->PVARIABLE  		= &Data_Thread->Data_Glob_Args->VARIABLE;	
 		DataArgs->psocket    		=  Data_Thread->socket;	
 		DataArgs->pcounter    		=  Data_Thread->data_threads_availth_counter;
 		DataArgs->prcounter    		=  Data_Thread->data_threads_remainth_counter;

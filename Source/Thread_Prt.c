@@ -18,6 +18,8 @@ void *Data_Threads(void *arg)
 	find_t *SFounds;
 	
 	pthread_t  MyThreadID;
+	
+	SR_thread_str_t *SR_Threads;
 /*
  * get my thread ID
  */
@@ -86,11 +88,15 @@ void *Data_Threads(void *arg)
 /*
  * set number of available local thread equal to number of readers + 1 writing
  */
-		n_avail_loc_theads = n_rec_proc + 1;
+	n_avail_loc_theads = n_rec_proc + 1;
 /*
  * NOTE imlement R_W data thread startup
+ * wait for barrier, indicating all threads in Start_SR_Threads were created
  */
-	
+// 	if(  (SR_Threads = Start_SR_Threads(n_avail_loc_theads)) == NULL)
+// 		Perror("Thread_Prt: Start_SR_Threads error");
+// 	Pthread_barrier_wait(&SR_Threads->barr);
+
 /*
  * wait on this barrier until all threads are started
  * the barrier is called n-times (n=number of Data_Threads + 1) where the last call is made
@@ -153,7 +159,6 @@ void *Data_Threads(void *arg)
 /* 
  * unlock semaphore in the main program so that another loop can start
  */
-// 			Sem_post(c->psem);
 			}
 			else{
 /*
