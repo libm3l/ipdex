@@ -26,7 +26,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 /*
  * fill the initial data to data_thread_str before threads start
  */	
-	Pthread_mutex_lock(&Data_Threads->Data_Glob_Args->lock);
+	Pthread_mutex_lock(&Data_Threads->lock);
 /*
  * set the counter to number of available threads
  */
@@ -46,7 +46,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * makes sure we do not start Data_Thread before some of the data which are needed are filled abd mutex is locked - see 
  * fours lines above
  */
-	Pthread_barrier_wait(&Data_Threads->Data_Glob_Args->barr);
+	Pthread_barrier_wait(&Data_Threads->barr);
 /*
  * create, bind and listen socket
  */
@@ -120,7 +120,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * loop over and send variable
  */
 		if(cycle > 0)
-			Pthread_mutex_lock(&Data_Threads->Data_Glob_Args->lock);
+			Pthread_mutex_lock(&Data_Threads->lock);
 /*
  * set number of tested threads to number of available threads
  * save name of data set from header, SM_Mode of the process and socket number to thread data structure
@@ -136,9 +136,9 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * once all necessary data are set, send signal to all threads to start unloc mutex
  * and release borrowed memory
  */			
-		Pthread_cond_broadcast(&Data_Threads->Data_Glob_Args->cond);
+		Pthread_cond_broadcast(&Data_Threads->cond);
 			
-		Pthread_mutex_unlock(&Data_Threads->Data_Glob_Args->lock);
+		Pthread_mutex_unlock(&Data_Threads->lock);
 		
 		if( m3l_Umount(&RecNode) != 1)
 			Perror("m3l_Umount");
@@ -146,7 +146,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * when all Data_Thread are finished, - the identification part, the threads are waiting on each other. 
  * the last thread unlock the semaphore so that the next loop can start
  */		
-		Sem_wait(&Data_Threads->Data_Glob_Args->sem);
+		Sem_wait(&Data_Threads->sem);
 		
 		cycle = 1;
 
@@ -158,11 +158,11 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			if( pthread_join(Data_Threads->data_threads[i], NULL) != 0)
 				Error(" Joining thread failed");
 				
-		Pthread_mutex_destroy(&Data_Threads->Data_Glob_Args->lock);
-		Pthread_barrier_destroy(&Data_Threads->Data_Glob_Args->barr);
-		Pthread_cond_destroy(&Data_Threads->Data_Glob_Args->cond);
-		Pthread_cond_destroy(&Data_Threads->Data_Glob_Args->dcond);
-		Sem_destroy(&Data_Threads->Data_Glob_Args->sem);
+		Pthread_mutex_destroy(&Data_Threads->lock);
+		Pthread_barrier_destroy(&Data_Threads->barr);
+		Pthread_cond_destroy(&Data_Threads->cond);
+		Pthread_cond_destroy(&Data_Threads->dcond);
+		Sem_destroy(&Data_Threads->sem);
 		
 		free(Data_Threads->data_threads);
 		free(Data_Threads->name_of_data_set);

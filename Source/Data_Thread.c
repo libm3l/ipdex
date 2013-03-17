@@ -67,11 +67,11 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 /*
  * initialize mutex, barrier and condition variable
  */
-	Pthread_mutex_init(&Data_Thread->Data_Glob_Args->lock);
-	Pthread_barrier_init(&Data_Thread->Data_Glob_Args->barr,  Data_Thread->n_data_threads + 1);
-	Pthread_cond_init(&Data_Thread->Data_Glob_Args->cond);
-	Pthread_cond_init(&Data_Thread->Data_Glob_Args->dcond);
-	Sem_init(&Data_Thread->Data_Glob_Args->sem, 0);
+	Pthread_mutex_init(&Data_Thread->lock);
+	Pthread_barrier_init(&Data_Thread->barr,  Data_Thread->n_data_threads + 1);
+	Pthread_cond_init(&Data_Thread->cond);
+	Pthread_cond_init(&Data_Thread->dcond);
+	Sem_init(&Data_Thread->sem, 0);
 /*
  * spawn threads
  */	
@@ -80,11 +80,11 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 			Perror("Data_Thread: DataArgs malloc");	
 		
 		DataArgs->Node  		= m3l_get_Found_node(SFounds, i);
-		DataArgs->plock 		= &Data_Thread->Data_Glob_Args->lock;	
-		DataArgs->psem 			= &Data_Thread->Data_Glob_Args->sem;	
-		DataArgs->pbarr 		= &Data_Thread->Data_Glob_Args->barr;	
-		DataArgs->pcond 		= &Data_Thread->Data_Glob_Args->cond;	
-		DataArgs->pdcond 		= &Data_Thread->Data_Glob_Args->dcond;	
+		DataArgs->plock 		= &Data_Thread->lock;	
+		DataArgs->psem 			= &Data_Thread->sem;	
+		DataArgs->pbarr 		= &Data_Thread->barr;	
+		DataArgs->pcond 		= &Data_Thread->cond;	
+		DataArgs->pdcond 		= &Data_Thread->dcond;	
 // 		DataArgs->PVARIABLE  		= &Data_Thread->Data_Glob_Args->VARIABLE;	
 		DataArgs->psocket    		=  Data_Thread->socket;	
 		DataArgs->pcounter    		=  Data_Thread->data_threads_availth_counter;
@@ -113,7 +113,7 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
  * wait on this barrier until all threads are created - the barriers are _waited on in Data_Threads and this is the last one
  * makes sure we leave the function after all threads are created
  */
-	Pthread_barrier_wait(&Data_Thread->Data_Glob_Args->barr);
+	Pthread_barrier_wait(&Data_Thread->barr);
 	m3l_DestroyFound(&SFounds);
 	
 	return Data_Thread;
