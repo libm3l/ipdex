@@ -59,6 +59,9 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 		Perror("Data_Thread: Data_Thread->socket");
 	if ( (Data_Thread->name_of_data_set  = (lmchar_t *)malloc(MAX_NAME_LENGTH* sizeof(lmchar_t))) == NULL)
 		Perror("Data_Thread: Data_Thread->name_of_data_set");	
+	if ( (Data_Thread->SR_mode  = (lmchar_t *)malloc(sizeof(lmchar_t))) == NULL)
+		Perror("Data_Thread: Data_Thread->SR_mode");	
+	
 	*Data_Thread->data_threads_availth_counter = 0;
 	*Data_Thread->data_threads_remainth_counter = 0;
 /*
@@ -87,6 +90,7 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 		DataArgs->pcounter    		=  Data_Thread->data_threads_availth_counter;
 		DataArgs->prcounter    		=  Data_Thread->data_threads_remainth_counter;
 		DataArgs->pname_of_data_set    	=  Data_Thread->name_of_data_set;
+		DataArgs->pSR_mode	    	=  Data_Thread->SR_mode;
 /*
  * create thread
  */

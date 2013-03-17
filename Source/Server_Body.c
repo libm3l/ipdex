@@ -12,7 +12,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	lmint_t sockfd, newsockfd, cycle;
 	struct sockaddr_in cli_addr;
 	data_thread_str_t *Data_Threads;
-	lmchar_t *name_of_required_data_set;
+	lmchar_t *name_of_required_data_set, *SR_mode;
 	
 	socklen_t clilen;
 	find_t *SFounds;
@@ -32,7 +32,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  */
 	*Data_Threads->data_threads_availth_counter  =  Data_Threads->n_data_threads;
 	
-printf(" TOTAL NUMBER OF THREADS IS %ld\n", *Data_Threads->data_threads_availth_counter);
+// printf(" TOTAL NUMBER OF THREADS IS %ld\n", *Data_Threads->data_threads_availth_counter);
 /*
  * at the beginning the coutner of remainign threads is equal to 
  * number of available threads
@@ -54,8 +54,6 @@ printf(" TOTAL NUMBER OF THREADS IS %ld\n", *Data_Threads->data_threads_availth_
 		Perror("Open_Bind_Listen");
 	
 	while(1){
-		
-		printf(" Before --  ACCEPT\n");
 
 		clilen = sizeof(cli_addr);
 
@@ -85,8 +83,6 @@ printf(" TOTAL NUMBER OF THREADS IS %ld\n", *Data_Threads->data_threads_availth_
 			if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
 				Error("Server_Body: NULL Name_of_Data_Set");
 			name_of_required_data_set = m3l_get_data_pointer(List);
-			
-			printf("Name of reqired data set is %s\n", name_of_required_data_set);
 /* 
  * free memory allocated in m3l_Locate
  */
@@ -97,22 +93,45 @@ printf(" TOTAL NUMBER OF THREADS IS %ld\n", *Data_Threads->data_threads_availth_
 			Error("Server_Body: Name_of_Data_Set not found\n");
 		}
 /*
+ * find type of process SR_Mode  S-sender, R-receiver
+ */
+		if( (SFounds = m3l_Locate(RecNode, "/Header/SR_mode", "./*/*",  (lmchar_t *)NULL)) != NULL){
+			
+			if( m3l_get_Found_number(SFounds) != 1)
+				Error("Server_Body: Only one SR_mode per Data_Set allowed");
+/* 
+ * pointer to list of found nodes
+ */
+				if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
+					Error("NULThread_Prt: Missing S_mode");
+			
+				SR_mode = (lmchar_t *)m3l_get_data_pointer(List);
+/* 
+ * free memory allocated in m3l_Locate
+ */
+			m3l_DestroyFound(&SFounds);
+		}
+		else
+		{
+			printf("Server_Body: Receiving_Processes not found\n");
+		}
+		
+/*
  * loop over and send variable
  */
-
 		if(cycle > 0)
 			Pthread_mutex_lock(&Data_Threads->Data_Glob_Args->lock);
-	
 /*
  * set number of tested threads to number of available threads
- * save name of data set from header, socket number to thread data structure
+ * save name of data set from header, SM_Mode of the process and socket number to thread data structure
  */		
 		*Data_Threads->data_threads_remainth_counter = *Data_Threads->data_threads_availth_counter;	
 		if( snprintf(Data_Threads->name_of_data_set, MAX_NAME_LENGTH,"%s",name_of_required_data_set) < 0)
 			Perror("snprintf");
+		*Data_Threads->SR_mode = *SR_mode;
 		*Data_Threads->socket = newsockfd;
 			
-		printf(" Before Broadcasting SOCKET number is %d\n", *Data_Threads->socket);
+// 		printf(" Before Broadcasting SOCKET number is %d\n", *Data_Threads->socket);
 /*
  * once all necessary data are set, send signal to all threads to start unloc mutex
  * and release borrowed memory
@@ -131,7 +150,6 @@ printf(" TOTAL NUMBER OF THREADS IS %ld\n", *Data_Threads->data_threads_availth_
 		
 		cycle = 1;
 
-		
 	}      /* end of while(1) */
 /*
  * join threads and release memmory
@@ -148,6 +166,7 @@ printf(" TOTAL NUMBER OF THREADS IS %ld\n", *Data_Threads->data_threads_availth_
 		
 		free(Data_Threads->data_threads);
 		free(Data_Threads->name_of_data_set);
+		free(Data_Threads->SR_mode);
 		free(Data_Threads->data_threads_availth_counter);
 		free(Data_Threads->data_threads_remainth_counter);
 		free(Data_Threads->Data_Glob_Args);

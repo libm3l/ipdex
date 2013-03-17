@@ -5,17 +5,6 @@
 
 #include <pthread.h>
 #include <semaphore.h>
-#include <sys/types.h>
-
-// typedef struct thread_args{
-// 	lmint_t count, *pcount;
-// 	lmint_t var;
-// 	pthread_mutex_t   lock, *plock;
-// 	pthread_cond_t    cond, *pcond;
-// 	pthread_barrier_t barr, *pbarr;
-// }thread_args_t;
-
-
 
 typedef struct data_thread_args{
 	pthread_mutex_t   lock, *plock;	 	/* mutex */
@@ -24,21 +13,30 @@ typedef struct data_thread_args{
 	pthread_cond_t    dcond, *pdcond;   	/* condition variable */
 	sem_t 		  sem, *psem;		/* semaphore */
 	node_t *Node;                     	/* libm3l node_t structure pointer */
-// 	pthread_t  VARIABLE, *PVARIABLE;  	/* thread number sent for identification */
- 	lmint_t  *psocket; 		/* socket ID passed to data_Thread, message upon receiving it */
- 	lmsize_t *pcounter, *prcounter;
-	lmchar_t *pname_of_data_set;  /* stores data_set name which is then compared in data_thread */
+ 	lmint_t  *psocket; 			/* socket ID passed to data_Thread, message upon receiving it */
+ 	lmsize_t *pcounter, *prcounter;         /* number of available threads, number of remaining threads = *pcounter - taken threads */
+	lmchar_t *pname_of_data_set, *pSR_mode;  /* stores data_set name which is then compared in data_thread and SM_mode */
 }data_thread_args_t;
 
 
 
 typedef struct data_thread_str{
 	lmsize_t n_data_threads;              					/* number of thread in group data_threads */
- 	lmsize_t *data_threads_availth_counter, *data_threads_remainth_counter; 	/* number of available and free threads  */
+ 	lmsize_t *data_threads_availth_counter, *data_threads_remainth_counter; /* number of available and free threads  */
 	pthread_t *data_threads;              					/* thread ID of all threads in group data_threads */
 	data_thread_args_t *Data_Glob_Args;   					/* pointer to heap for this group of data_threads */
-	lmchar_t *name_of_data_set;                                             /* stores data_set name which is then compared in data_thread */
+	lmchar_t *name_of_data_set, *SR_mode;                                   /* stores data_set name which is then compared in data_thread  and SM_moode*/
  	lmint_t  *socket; 		                                        /* socket ID passed to data_Thread, message upon receiving it */
 }data_thread_str_t;
+
+
+typedef struct SR_thread_args{
+	lmchar_t *pbuffer;
+}SR_thread_args_t;
+
+typedef struct SR_thread_str{
+	SR_thread_args_t  *SM_data_glob;
+	lmchar_t buffer[MAXLINE +1];
+}SR_thread_str_t;
 
 #endif

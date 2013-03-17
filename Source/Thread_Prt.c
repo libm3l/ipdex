@@ -24,9 +24,9 @@ void *Data_Threads(void *arg)
 	MyThreadID = pthread_self();
 	
 	Pthread_mutex_lock(c->plock);
-		printf("\n\n In THREAD %lu\n\n", MyThreadID);
-		if(m3l_Cat(c->Node, "--all", "-L", "-P", "*",   (lmchar_t *)NULL) != 0)
-			Warning("CatData");
+// 		printf("\n\n In THREAD %lu\n\n", MyThreadID);
+// 		if(m3l_Cat(c->Node, "--all", "-L", "-P", "*",   (lmchar_t *)NULL) != 0)
+// 			Warning("CatData");
 /*
  * find name of data set
  * if it does not exist or more then one data set is found, give error message
@@ -57,7 +57,7 @@ void *Data_Threads(void *arg)
 			Error("Thread_Prt: Name_of_Data_Set not found\n");
 		}
 /*
- * find number of processes which will read the data set
+ * find name of process which will read the data set
  * there is only one writing processes
  */
 		if( (SFounds = m3l_Locate(c->Node, "./Data_Set/Receiving_Processes", "./*/*",  (lmchar_t *)NULL)) != NULL){
@@ -68,7 +68,7 @@ void *Data_Threads(void *arg)
  * pointer to list of found nodes
  */
 				if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
-					Error("NULThread_Prt: L Receiving_Processes");
+					Error("NULThread_Prt: Missing Receiving_Processes");
 			
 				data_rec_proc = (lmsize_t *)m3l_get_data_pointer(List);
 				n_rec_proc = data_rec_proc[0];
@@ -81,8 +81,6 @@ void *Data_Threads(void *arg)
 		{
 			printf("Thread_Prt: Receiving_Processes not found\n");
 		}
-		
-		printf(" Name of thread is %s, length is %ld, nrec is %d\n", data_set_name, len, n_rec_proc);
 		
 	Pthread_mutex_unlock(c->plock);
 /*
@@ -106,19 +104,13 @@ void *Data_Threads(void *arg)
 	Pthread_barrier_wait(c->pbarr);
 	
 	
-	
-// 			printf(" THREAD:  after  barrier number of counter is %d\n", *c->prcounter );
-	
-	
-	
 	while(1){
+		
+		printf(" THREAD %s in while loop\n", local_set_name);
 /*
  * start identifying threads once identified, leave do loop
  */
 	do{
-		
-			printf(" THREAD:  in do   \n");
-
 /*
  * if already went through do loop, wait here at sync point until all threads are here
  */
@@ -131,20 +123,17 @@ void *Data_Threads(void *arg)
 				Pthread_cond_wait(c->pcond, c->plock);
 
 			(*c->prcounter)--;   /* decrement counter of thread  which will check condition*/
-					
-// 			if(*c->PVARIABLE == MyThreadID){
-// 			printf(" THREAD:  loking for %s  %s  %d \n", c->pname_of_data_set, local_set_name, len);
 
 			if(strncmp(c->pname_of_data_set,local_set_name, len) == 0){ 
 				
 				local_socket = *c->psocket;
-				
-				printf(" thread FOUND %s\n\n", local_set_name);
 /*
  * NOTE: implement taking thread
  */
 
-// 				(*c->pcounter)--;   /* if the thread is positively identified, decrement counter of available thread for next round of identification */
+
+
+
 /* 
  * when the thread is positively identified, decrement counter of available thread for next round of identification, 
  * omce n_avail_loc_theads == 0 decrement (*c->pcounter)--
@@ -179,14 +168,15 @@ void *Data_Threads(void *arg)
 		
 		}while(received != 1);
 
-		printf(" -------------------------------------------------   Thread %lu received its SOCKET\n", MyThreadID );
+		printf(" -------------------------------   Thread %lu named as '%s' received its SOCKET\n", MyThreadID , local_set_name);
+		printf("                                   Thread name is '%s' SM_mode is '%c'\n", c->pname_of_data_set, *c->pSR_mode);
 /*
  * once all R-W threads are taken decrement counter of data_threads ie. Data_Thread->data_threads_availth_counter
  */
 		if (n_avail_loc_theads == 0){
 			Pthread_mutex_lock(c->plock);	
 			(*c->pcounter)--;
-			printf(" COUUNTER OF AVAILABLE THREADS IS UUUU  %d    %d  %s\n", (*c->pcounter), n_avail_loc_theads, local_set_name);
+// 			printf(" COUUNTER OF AVAILABLE THREADS IS UUUU  %d    %d  %s\n", (*c->pcounter), n_avail_loc_theads, local_set_name);
 
 			Pthread_mutex_unlock(c->plock);
 		}
@@ -214,7 +204,7 @@ void *Data_Threads(void *arg)
 			n_avail_loc_theads = n_rec_proc;
 			Pthread_mutex_lock(c->plock);	
 				(*c->pcounter)++;
-			printf(" COUUNTER OF AVAILABLE THREADS IS %d    %d   %s\n", (*c->pcounter), n_avail_loc_theads, local_set_name);
+// 			printf(" COUUNTER OF AVAILABLE THREADS IS %d    %d   %s\n", (*c->pcounter), n_avail_loc_theads, local_set_name);
 			Pthread_mutex_unlock(c->plock);	
 		}
 		
