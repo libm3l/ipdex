@@ -12,7 +12,7 @@ void *Data_Threads(void *arg)
 	lmint_t received;
 	node_t *List;
 	
-	lmsize_t len, *data_rec_proc, n_rec_proc, n_avail_loc_theads;
+	lmsize_t len, *data_rec_proc, n_rec_proc, n_avail_loc_theads, i;
 	
 	lmchar_t *data_set_name, local_set_name[MAX_NAME_LENGTH];
 	find_t *SFounds;
@@ -218,6 +218,27 @@ void *Data_Threads(void *arg)
 	
 	
 	printf(" Leaving WHILE \n");
+	
+	
+	
+	/*
+ * join threads and release memmory
+ */
+		for(i=0; i< n_avail_loc_theads; i++)
+			if( pthread_join(SR_Threads->data_threads[i], NULL) != 0)
+				Error(" Joining thread failed");
+				
+		Pthread_mutex_destroy(&SR_Threads->lock);
+		Pthread_barrier_destroy(&SR_Threads->barr);
+		Pthread_cond_destroy(&SR_Threads->cond);
+		Pthread_cond_destroy(&SR_Threads->dcond);
+		Sem_destroy(&SR_Threads->sem);
+		
+		free(SR_Threads->data_threads);
+		free(SR_Threads->SR_mode);
+		free(SR_Threads->sockfd);
+		free(SR_Threads);
+
 /*
  * release borrowed memory, malloced before starting thread in Data_Thread()
  */

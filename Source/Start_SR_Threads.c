@@ -22,6 +22,11 @@ SR_thread_str_t *Start_SR_Threads(lmint_t n_threads){
  */
 	if( (SR_Data_Thread->data_threads = (pthread_t *)malloc(sizeof(pthread_t) * n_threads)) == NULL)
 		Perror("Start_SR_Threads: SR_Data_Thread->data_threads malloc");
+	if( (SR_Data_Thread->sockfd = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
+		Perror("Start_SR_Threads: SR_Data_Thread->sockfd malloc");
+	if( (SR_Data_Thread->SR_mode = (lmchar_t *)malloc(sizeof(lmchar_t))) == NULL)
+		Perror("Start_SR_Threads: SR_Data_Thread->SR_mode malloc");
+
 /*
  * initialize mutex, barrier and condition variable
  */
@@ -42,6 +47,8 @@ SR_thread_str_t *Start_SR_Threads(lmint_t n_threads){
 		SR_DataArgs->pbarr 		= &SR_Data_Thread->barr;	
 		SR_DataArgs->pcond 		= &SR_Data_Thread->cond;	
 		SR_DataArgs->pdcond 		= &SR_Data_Thread->dcond;	
+		SR_DataArgs->pSR_mode 		=  SR_Data_Thread->SR_mode;	
+		SR_DataArgs->psockfd 		=  SR_Data_Thread->sockfd;	
 /*
  * create thread
  */

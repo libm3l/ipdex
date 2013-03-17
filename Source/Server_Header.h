@@ -42,8 +42,8 @@ typedef struct SR_thread_args{
 	pthread_cond_t    *pdcond;   	/* condition variable */
 	sem_t 		  *psem;	/* semaphore */
 	lmchar_t *pbuffer;              /* pointer to buffer */
-	lmint_t sockfd;                 /* socket id, unique to every thread, can be in thread stack */
-	lmchar_t SR_mode;               /* threads mode - Sender(S), Receiver(R) */
+	lmint_t *psockfd;               /* socket id, unique to every thread, can be in thread stack */
+	lmchar_t *pSR_mode;             /* threads mode - Sender(S), Receiver(R) */
 }SR_thread_args_t;
 
 typedef struct SR_thread_str{
@@ -54,6 +54,8 @@ typedef struct SR_thread_str{
 	sem_t 		  sem;		/* semaphore */
 	lmchar_t *buffer;		/* buffer where the exchange data will be written and read from */
 	pthread_t *data_threads;	/* thread ID of all threads in group data_threads */
+	lmint_t  *sockfd;              /* socket id, unique to every thread, can be in thread stack */
+	lmchar_t *SR_mode;             /* threads mode - Sender(S), Receiver(R) */
 }SR_thread_str_t;
 
 #endif
