@@ -60,7 +60,7 @@ lmint_t Data_Fork(node_t *Gnode){
 /*
  * spawn a child by forking
  */	
-		childpid = Fork();
+// 		childpid = Fork();
 		if (childpid == 0) {
 			
 			printf(" child process %d - pid is %d \n", i, getpid());

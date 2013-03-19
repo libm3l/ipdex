@@ -96,7 +96,7 @@ void *Data_Threads(void *arg)
 // 	if(  (SR_Threads = Start_SR_Threads(n_avail_loc_theads)) == NULL)
 // 		Perror("Thread_Prt: Start_SR_Threads error");
 // 	Pthread_barrier_wait(&SR_Threads->barr);
-
+//	*SR_Threads->thr_cntr=0;
 /*
  * wait on this barrier until all threads are started
  * the barrier is called n-times (n=number of Data_Threads + 1) where the last call is made
@@ -236,6 +236,7 @@ void *Data_Threads(void *arg)
 		
 		free(SR_Threads->data_threads);
 		free(SR_Threads->SR_mode);
+		free(SR_Threads->thr_cntr);
 		free(SR_Threads->sockfd);
 		free(SR_Threads);
 
