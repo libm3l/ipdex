@@ -32,7 +32,6 @@ SR_thread_str_t *Start_SR_Threads(lmint_t n_threads){
  * initialize mutex, barrier and condition variable
  */
 	Pthread_mutex_init(&SR_Data_Thread->lock);
-	Pthread_barrier_init(&SR_Data_Thread->barr, n_threads);
 	Pthread_cond_init(&SR_Data_Thread->cond);
 	Pthread_cond_init(&SR_Data_Thread->dcond);
 	Sem_init(&SR_Data_Thread->sem, 0);
@@ -45,7 +44,6 @@ SR_thread_str_t *Start_SR_Threads(lmint_t n_threads){
 		
 		SR_DataArgs->plock 		= &SR_Data_Thread->lock;	
 		SR_DataArgs->psem 		= &SR_Data_Thread->sem;	
-		SR_DataArgs->pbarr 		= &SR_Data_Thread->barr;	
 		SR_DataArgs->pcond 		= &SR_Data_Thread->cond;	
 		SR_DataArgs->pdcond 		= &SR_Data_Thread->dcond;	
 		SR_DataArgs->pSR_mode 		=  SR_Data_Thread->SR_mode;	
@@ -59,10 +57,9 @@ SR_thread_str_t *Start_SR_Threads(lmint_t n_threads){
 // 			Perror("pthread_create()"); 
 	}
 /*
- * wait on this barrier until all threads are created - the barriers are waited on in Data_Threads and this is the last one
- * makes sure we leave the function after all threads are created
+ * when all threads are spawned, signal Thread_Prt functions about it
  */
-	Pthread_barrier_wait(&SR_Data_Thread->barr);
+	Sem_post(&SR_Data_Thread->sem);
 	
 	return SR_Data_Thread;
 }

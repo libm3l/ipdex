@@ -37,7 +37,6 @@ typedef struct data_thread_str{
 
 typedef struct SR_thread_args{
 	pthread_mutex_t   *plock;	/* mutex */
-	pthread_barrier_t *pbarr;  	/* barrier */
 	pthread_cond_t    *pcond;   	/* condition variable */
 	pthread_cond_t    *pdcond;   	/* condition variable */
 	sem_t 		  *psem;	/* semaphore */
@@ -49,7 +48,6 @@ typedef struct SR_thread_args{
 
 typedef struct SR_thread_str{
 	pthread_mutex_t   lock;	 	/* mutex */
-	pthread_barrier_t barr;  	/* barrier */
 	pthread_cond_t    cond;   	/* condition variable */
 	pthread_cond_t    dcond;   	/* condition variable */	
 	sem_t 		  sem;		/* semaphore */

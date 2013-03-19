@@ -2,13 +2,14 @@
 #include "libm3l.h"
 #include "Server_Header.h"
 #include "Server_Functions_Prt.h"
+#include "Start_SR_Threads.h"
 
 #include "Thread_Prt.h"
 
 void *Data_Threads(void *arg)
 {
 	data_thread_args_t *c = (data_thread_args_t *)arg;
-	lmint_t local_socket;
+	lmint_t local_cntr;
 	node_t *List;
 	
 	lmsize_t len, *data_rec_proc, n_rec_proc, n_avail_loc_theads, i;
@@ -92,9 +93,11 @@ void *Data_Threads(void *arg)
  * NOTE imlement R_W data thread startup
  * wait for barrier, indicating all threads in Start_SR_Threads were created
  */
-// 	if(  (SR_Threads = Start_SR_Threads(n_avail_loc_theads)) == NULL)
-// 		Perror("Thread_Prt: Start_SR_Threads error");
-// 	Pthread_barrier_wait(&SR_Threads->barr);
+	if(  (SR_Threads = Start_SR_Threads(n_avail_loc_theads)) == NULL)
+		Perror("Thread_Prt: Start_SR_Threads error");
+	
+	Sem_wait(&SR_Threads->sem);
+	Sem_destroy(&SR_Threads->sem);
 
 	*SR_Threads->thr_cntr=0;
 /*
@@ -113,6 +116,7 @@ void *Data_Threads(void *arg)
 	while(1){
 		
 		printf(" THREAD %s in while loop\n", local_set_name);
+		local_cntr = 0;
 /*
  * start identifying threads once identified, leave do loop
  */
@@ -127,21 +131,19 @@ void *Data_Threads(void *arg)
 			while (*c->prcounter == 0)
 				Pthread_cond_wait(c->pcond, c->plock);
 
+			
 			(*c->prcounter)--;   /* decrement counter of thread  which will check condition*/
 
-			if(strncmp(c->pname_of_data_set,local_set_name, len) == 0){ 
-				
-				local_socket = *c->psocket;
+			if(strncmp(c->pname_of_data_set,local_set_name, len) == 0){
 /*
- * NOTE: implement taking thread
- */
-
-
-
-
+ * save socket number and mode of the jobe (S, R) and increase increment
+ */				
+				SR_Threads->sockfd[local_cntr]  = *c->psocket;
+				SR_Threads->SR_mode[local_cntr] = *c->pSR_mode;
+				local_cntr++;
 /* 
  * when the thread is positively identified, decrement counter of available thread for next round of identification, 
- * omce n_avail_loc_theads == 0 decrement (*c->pcounter)--
+ * once n_avail_loc_theads == 0 decrement (*c->pcounter)--
  */
 				n_avail_loc_theads--;
 			}
@@ -178,12 +180,9 @@ void *Data_Threads(void *arg)
 /*
  * once all R-W threads are taken decrement counter of data_threads ie. Data_Thread->data_threads_availth_counter
  */
-		if (n_avail_loc_theads == 0){
-			Pthread_mutex_lock(c->plock);	
+		Pthread_mutex_lock(c->plock);	
 			(*c->pcounter)--;
-			
-			Pthread_mutex_unlock(c->plock);
-		}
+		Pthread_mutex_unlock(c->plock);
 /* 
  * unlock semaphore in the main program so that another loop can start
  */
@@ -198,18 +197,11 @@ void *Data_Threads(void *arg)
 /*
  * once the data transfer is finished increase increment of available data_threads
  */
-		if (n_avail_loc_theads == 0){
-			
-			
-			
-			
-			
-			n_avail_loc_theads = n_rec_proc;
-			Pthread_mutex_lock(c->plock);	
-				(*c->pcounter)++;
+		n_avail_loc_theads = n_rec_proc + 1;
+		Pthread_mutex_lock(c->plock);	
+			(*c->pcounter)++;
 // 			printf(" COUUNTER OF AVAILABLE THREADS IS %d    %d   %s\n", (*c->pcounter), n_avail_loc_theads, local_set_name);
-			Pthread_mutex_unlock(c->plock);	
-		}
+		Pthread_mutex_unlock(c->plock);	
 		
 		
 	}
@@ -227,10 +219,10 @@ void *Data_Threads(void *arg)
 				Error(" Joining thread failed");
 				
 		Pthread_mutex_destroy(&SR_Threads->lock);
-		Pthread_barrier_destroy(&SR_Threads->barr);
+// 		Pthread_barrier_destroy(&SR_Threads->barr);
 		Pthread_cond_destroy(&SR_Threads->cond);
 		Pthread_cond_destroy(&SR_Threads->dcond);
-		Sem_destroy(&SR_Threads->sem);
+// 		Sem_destroy(&SR_Threads->sem);
 		
 		free(SR_Threads->data_threads);
 		free(SR_Threads->SR_mode);
