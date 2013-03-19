@@ -90,32 +90,38 @@ void *Data_Threads(void *arg)
  */
 	n_avail_loc_theads = n_rec_proc + 1;
 /*
- * NOTE imlement R_W data thread startup
- * wait for barrier, indicating all threads in Start_SR_Threads were created
+ * spawn SR_thread, wait until all ST_threads for this data set are spawned. Use semafore for syncing
  */
 	if(  (SR_Threads = Start_SR_Threads(n_avail_loc_theads)) == NULL)
 		Perror("Thread_Prt: Start_SR_Threads error");
-	
+/*
+ * all ST_threads were spawend, destroy senmaphore
+ */
 	Sem_wait(&SR_Threads->sem);
 	Sem_destroy(&SR_Threads->sem);
-
-	*SR_Threads->thr_cntr=0;
 /*
  * wait on this barrier until all threads are started
  * the barrier is called n-times (n=number of Data_Threads + 1) where the last call is made
  * from Data_Thread which spawns this thread
+ * Once this barrier is reached, the main threads initializes some variables
+ * and waits on another barrier
  */	
 	Pthread_barrier_wait(c->pbarr);
 /*
  * wait on this barrier until main thread sets value of counter and lock c->plock
  * the last call to _wait() is done in the main function after returning back from Data_Threads = Data_Thread(Gnode)
+ * Once this barrier is reached, the main threads starts accepting requests from client
  */
 	Pthread_barrier_wait(c->pbarr);
-	
 	
 	while(1){
 		
 		printf(" THREAD %s in while loop\n", local_set_name);
+/* 
+ * set the counter 0
+ * this counter will be used by each SR_Thread to get the values of the socket and SR_mode
+ */
+		*SR_Threads->thr_cntr=0;
 		local_cntr = 0;
 /*
  * start identifying threads once identified, leave do loop
@@ -130,9 +136,11 @@ void *Data_Threads(void *arg)
  */
 			while (*c->prcounter == 0)
 				Pthread_cond_wait(c->pcond, c->plock);
-
-			
-			(*c->prcounter)--;   /* decrement counter of thread  which will check condition*/
+ /* 
+  * decrement counter of thread  which will check condition, used for syncing all threads before 
+  * going back to caller function
+  */
+			(*c->prcounter)--; 
 
 			if(strncmp(c->pname_of_data_set,local_set_name, len) == 0){
 /*
@@ -143,7 +151,8 @@ void *Data_Threads(void *arg)
 				local_cntr++;
 /* 
  * when the thread is positively identified, decrement counter of available thread for next round of identification, 
- * once n_avail_loc_theads == 0 decrement (*c->pcounter)--
+ * once n_avail_loc_theads == 0 all SR threads arrived, leave do - while loop and decrement (*c->pcounter)--
+ * ie. next arriving threads will not use this thread because it is alrady used
  */
 				n_avail_loc_theads--;
 			}
@@ -194,6 +203,9 @@ void *Data_Threads(void *arg)
  * NOTE implement R-W thread sharing data
  */
 
+
+
+
 /*
  * once the data transfer is finished increase increment of available data_threads
  */
@@ -202,8 +214,6 @@ void *Data_Threads(void *arg)
 			(*c->pcounter)++;
 // 			printf(" COUUNTER OF AVAILABLE THREADS IS %d    %d   %s\n", (*c->pcounter), n_avail_loc_theads, local_set_name);
 		Pthread_mutex_unlock(c->plock);	
-		
-		
 	}
 	
 	
