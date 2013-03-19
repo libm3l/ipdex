@@ -9,7 +9,6 @@ void *Data_Threads(void *arg)
 {
 	data_thread_args_t *c = (data_thread_args_t *)arg;
 	lmint_t local_socket;
-	lmint_t received;
 	node_t *List;
 	
 	lmsize_t len, *data_rec_proc, n_rec_proc, n_avail_loc_theads, i;
@@ -96,7 +95,8 @@ void *Data_Threads(void *arg)
 // 	if(  (SR_Threads = Start_SR_Threads(n_avail_loc_theads)) == NULL)
 // 		Perror("Thread_Prt: Start_SR_Threads error");
 // 	Pthread_barrier_wait(&SR_Threads->barr);
-//	*SR_Threads->thr_cntr=0;
+
+	*SR_Threads->thr_cntr=0;
 /*
  * wait on this barrier until all threads are started
  * the barrier is called n-times (n=number of Data_Threads + 1) where the last call is made
@@ -120,7 +120,6 @@ void *Data_Threads(void *arg)
 /*
  * if already went through do loop, wait here at sync point until all threads are here
  */
-			received = 0;		
 			Pthread_mutex_lock(c->plock);
 /*
  * wait for data sent by main thread
@@ -145,7 +144,6 @@ void *Data_Threads(void *arg)
  * omce n_avail_loc_theads == 0 decrement (*c->pcounter)--
  */
 				n_avail_loc_theads--;
-				received = 1;        /* indicate thread received connection */
 			}
 /*
  * synchronized all threads at the end, the last thread will broadcast
@@ -156,6 +154,7 @@ void *Data_Threads(void *arg)
  * indicate this is the last thread
  */
 				pthread_cond_broadcast(c->pdcond);
+				Sem_post(c->psem);
 /* 
  * unlock semaphore in the main program so that another loop can start
  */
@@ -171,8 +170,9 @@ void *Data_Threads(void *arg)
 			
 			Pthread_mutex_unlock(c->plock);	
 		
-		}while(received != 1);
+		}while(n_avail_loc_theads != 0);  /* all connecting thread arrivied, ie. one Sender and n_rec_proc Receivers */
 
+		
 		printf(" -------------------------------   Thread %lu named as '%s' received its SOCKET\n", MyThreadID , local_set_name);
 		printf("                                   Thread name is '%s' SM_mode is '%c'\n", c->pname_of_data_set, *c->pSR_mode);
 /*
@@ -181,14 +181,12 @@ void *Data_Threads(void *arg)
 		if (n_avail_loc_theads == 0){
 			Pthread_mutex_lock(c->plock);	
 			(*c->pcounter)--;
-// 			printf(" COUUNTER OF AVAILABLE THREADS IS UUUU  %d    %d  %s\n", (*c->pcounter), n_avail_loc_theads, local_set_name);
-
+			
 			Pthread_mutex_unlock(c->plock);
 		}
 /* 
  * unlock semaphore in the main program so that another loop can start
  */
-		Sem_post(c->psem);
 		
 		
 		
