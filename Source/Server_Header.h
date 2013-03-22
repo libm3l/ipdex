@@ -36,6 +36,7 @@ typedef struct data_thread_str{
 
 
 typedef struct SR_thread_args{
+	pthread_barrier_t *pbarr;  	/* barrier */
 	pthread_mutex_t   *plock;	/* mutex */
 	pthread_cond_t    *pcond;   	/* condition variable */
 	pthread_cond_t    *pdcond;   	/* condition variable */
@@ -44,9 +45,11 @@ typedef struct SR_thread_args{
 	lmint_t 	*psockfd;       /* socket id, unique to every thread, can be in thread stack */
 	lmchar_t 	*pSR_mode;      /* threads mode - Sender(S), Receiver(R) */
 	lmsize_t  	*pthr_cntr;     /* thread counter */
+ 	lmsize_t *pcounter, *prcounter;         /* number of available R_threads, number of remaining threads = *pcounter - taken threads */
 }SR_thread_args_t;
 
 typedef struct SR_thread_str{
+	pthread_barrier_t barr;  	/* barrier */
 	pthread_mutex_t   lock;	 	/* mutex */
 	pthread_cond_t    cond;   	/* condition variable */
 	pthread_cond_t    dcond;   	/* condition variable */	
@@ -56,6 +59,7 @@ typedef struct SR_thread_str{
 	lmint_t  *sockfd;               /* socket id, unique to every thread, can be in thread stack */
 	lmchar_t *SR_mode;              /* threads mode - Sender(S), Receiver(R) */
 	lmsize_t  *thr_cntr;            /* thread counter */
+ 	lmsize_t *R_availth_counter, *R_remainth_counter; /* number of available and free threads  */
 }SR_thread_str_t;
 
 #endif

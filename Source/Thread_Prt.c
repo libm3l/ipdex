@@ -99,6 +99,11 @@ void *Data_Threads(void *arg)
  */
 	Sem_wait(&SR_Threads->sem);
 	Sem_destroy(&SR_Threads->sem);
+/* 
+ * set the counter 0
+ * this counter will be used by each SR_Thread to get the values of the socket and SR_mode
+ */
+	*SR_Threads->thr_cntr=0;
 /*
  * wait on this barrier until all threads are started
  * the barrier is called n-times (n=number of Data_Threads + 1) where the last call is made
@@ -114,14 +119,10 @@ void *Data_Threads(void *arg)
  */
 	Pthread_barrier_wait(c->pbarr);
 	
+	
 	while(1){
 		
 		printf(" THREAD %s in while loop\n", local_set_name);
-/* 
- * set the counter 0
- * this counter will be used by each SR_Thread to get the values of the socket and SR_mode
- */
-		*SR_Threads->thr_cntr=0;
 		local_cntr = 0;
 /*
  * start identifying threads once identified, leave do loop
@@ -191,6 +192,7 @@ void *Data_Threads(void *arg)
  */
 		Pthread_mutex_lock(c->plock);	
 			(*c->pcounter)--;
+// 			SR_Data_Thread->R_remainth_counter = n_rec_proc; 
 		Pthread_mutex_unlock(c->plock);
 /* 
  * unlock semaphore in the main program so that another loop can start
@@ -203,9 +205,6 @@ void *Data_Threads(void *arg)
  * NOTE implement R-W thread sharing data
  */
 
-
-
-
 /*
  * once the data transfer is finished increase increment of available data_threads
  */
@@ -213,7 +212,14 @@ void *Data_Threads(void *arg)
 		Pthread_mutex_lock(c->plock);	
 			(*c->pcounter)++;
 // 			printf(" COUUNTER OF AVAILABLE THREADS IS %d    %d   %s\n", (*c->pcounter), n_avail_loc_theads, local_set_name);
-		Pthread_mutex_unlock(c->plock);	
+		Pthread_mutex_unlock(c->plock);
+/* 
+ * set the counter 0
+ * this counter will be used by each SR_Thread to get the values of the socket and SR_mode
+ */		
+		*SR_Threads->thr_cntr=0;
+		
+		
 	}
 	
 	
@@ -229,7 +235,7 @@ void *Data_Threads(void *arg)
 				Error(" Joining thread failed");
 				
 		Pthread_mutex_destroy(&SR_Threads->lock);
-// 		Pthread_barrier_destroy(&SR_Threads->barr);
+ 		Pthread_barrier_destroy(&SR_Threads->barr);
 		Pthread_cond_destroy(&SR_Threads->cond);
 		Pthread_cond_destroy(&SR_Threads->dcond);
 // 		Sem_destroy(&SR_Threads->sem);
@@ -238,6 +244,8 @@ void *Data_Threads(void *arg)
 		free(SR_Threads->SR_mode);
 		free(SR_Threads->thr_cntr);
 		free(SR_Threads->sockfd);
+// 		free(SR_Threads->R_availth_counter);
+		free(SR_Threads->R_remainth_counter);
 		free(SR_Threads);
 
 /*

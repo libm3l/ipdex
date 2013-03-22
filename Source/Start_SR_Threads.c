@@ -28,12 +28,19 @@ SR_thread_str_t *Start_SR_Threads(lmint_t n_threads){
 		Perror("Start_SR_Threads: SR_Data_Thread->SR_mode malloc");
 	if( (SR_Data_Thread->thr_cntr = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
 		Perror("Start_SR_Threads: SR_Data_Thread->thr_cntr malloc");
-/*
+	if( (SR_Data_Thread->R_availth_counter = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
+		Perror("Start_SR_Threads: SR_Data_Thread->R_availth_counter");
+	if( (SR_Data_Thread->R_remainth_counter = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
+		Perror("Start_SR_Threads:  SR_Data_Thread->R_remainth_counter");/*
  * initialize mutex, barrier and condition variable
  */
 	Pthread_mutex_init(&SR_Data_Thread->lock);
 	Pthread_cond_init(&SR_Data_Thread->cond);
 	Pthread_cond_init(&SR_Data_Thread->dcond);
+/* 
+ * initialize barrier, the coutner should be the same as number of R_threads, will be used to sync all R_threads 
+ */
+	Pthread_barrier_init(&SR_Data_Thread->barr,  n_threads-1);
 	Sem_init(&SR_Data_Thread->sem, 0);
 /*
  * spawn threads
@@ -41,14 +48,16 @@ SR_thread_str_t *Start_SR_Threads(lmint_t n_threads){
 	for(i=0; i < n_threads; i++){
 		if( (SR_DataArgs = (SR_thread_args_t *)malloc(sizeof(SR_thread_args_t))) == NULL)
 			Perror("Start_SR_Threads: SR_DataArgs malloc");	
-		
-		SR_DataArgs->plock 		= &SR_Data_Thread->lock;	
-		SR_DataArgs->psem 		= &SR_Data_Thread->sem;	
+
+		SR_DataArgs->plock 			= &SR_Data_Thread->lock;	
+		SR_DataArgs->psem 			= &SR_Data_Thread->sem;	
 		SR_DataArgs->pcond 		= &SR_Data_Thread->cond;	
 		SR_DataArgs->pdcond 		= &SR_Data_Thread->dcond;	
-		SR_DataArgs->pSR_mode 		=  SR_Data_Thread->SR_mode;	
-		SR_DataArgs->psockfd 		=  SR_Data_Thread->sockfd;	
-		SR_DataArgs->pthr_cntr 		=  SR_Data_Thread->thr_cntr;	
+		SR_DataArgs->pSR_mode 		= SR_Data_Thread->SR_mode;	
+		SR_DataArgs->psockfd 		= SR_Data_Thread->sockfd;	
+		SR_DataArgs->pthr_cntr 		= SR_Data_Thread->thr_cntr;
+		SR_DataArgs->prcounter		= SR_Data_Thread->R_remainth_counter;
+		SR_DataArgs->pcounter		= SR_Data_Thread->R_availth_counter;
 /*
  * create thread
  */
