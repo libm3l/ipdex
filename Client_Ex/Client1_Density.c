@@ -85,8 +85,6 @@ int main(int argc, char *argv[])
 /*
  * open socket, IP address of server is in argv[1], port number is in portno
  */
-
-		
 		Gnode = Header("Density", 'S');
 		
 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)

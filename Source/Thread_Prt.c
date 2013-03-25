@@ -19,6 +19,8 @@ void *Data_Threads(void *arg)
 	
 	pthread_t  MyThreadID;
 	
+	lmint_t ii;
+	
 	SR_thread_str_t *SR_Threads;
 /*
  * get my thread ID
@@ -165,7 +167,7 @@ void *Data_Threads(void *arg)
  * the last thread, broadcast
  * indicate this is the last thread
  */
-				pthread_cond_broadcast(c->pdcond);
+				Pthread_cond_broadcast(c->pdcond);
 				Sem_post(c->psem);
 /* 
  * unlock semaphore in the main program so that another loop can start
@@ -190,28 +192,35 @@ void *Data_Threads(void *arg)
 /*
  * once all R-W threads are taken decrement counter of data_threads ie. Data_Thread->data_threads_availth_counter
  */
+
+		printf(" Number of jobs %d\n", n_rec_proc + 1);
+		
+		for (ii = 0; ii< n_rec_proc + 1; ii++)
+			printf("job %d, socket %d, mode %c\n", ii, SR_Threads->sockfd[ii], SR_Threads->SR_mode[ii]);
+
+
 		Pthread_mutex_lock(c->plock);	
 			(*c->pcounter)--;
 // 			SR_Data_Thread->R_remainth_counter = n_rec_proc; 
 		Pthread_mutex_unlock(c->plock);
 /* 
  * unlock semaphore in the main program so that another loop can start
+ * broadcast codnition variable to SR_threads so that they can start 
  */
-		
-		
-		
-		
-/*
- * NOTE implement R-W thread sharing data
- */
-
+		printf("Broadcasting\n");
+		Pthread_mutex_lock(&SR_Threads->lock_g);		
+		Pthread_cond_broadcast(&SR_Threads->cond_g);	
+		Pthread_mutex_unlock(&SR_Threads->lock_g);
+		printf("After Broadcasting\n");
 /*
  * once the data transfer is finished increase increment of available data_threads
  */
+		Sem_wait(&SR_Threads->sem_g);
+
 		n_avail_loc_theads = n_rec_proc + 1;
 		Pthread_mutex_lock(c->plock);	
 			(*c->pcounter)++;
-// 			printf(" COUUNTER OF AVAILABLE THREADS IS %d    %d   %s\n", (*c->pcounter), n_avail_loc_theads, local_set_name);
+// 			printf(" COUNTER OF AVAILABLE THREADS IS %d    %d   %s\n", (*c->pcounter), n_avail_loc_theads, local_set_name);
 		Pthread_mutex_unlock(c->plock);
 /* 
  * set the counter 0
@@ -226,8 +235,7 @@ void *Data_Threads(void *arg)
 	printf(" Leaving WHILE \n");
 	
 	
-	
-	/*
+/*
  * join threads and release memmory
  */
 		for(i=0; i< n_avail_loc_theads; i++)
@@ -235,17 +243,22 @@ void *Data_Threads(void *arg)
 				Error(" Joining thread failed");
 				
 		Pthread_mutex_destroy(&SR_Threads->lock);
- 		Pthread_barrier_destroy(&SR_Threads->barr);
+		Pthread_mutex_destroy(&SR_Threads->lock_g);
+//  		Pthread_barrier_destroy(&SR_Threads->barr);
 		Pthread_cond_destroy(&SR_Threads->cond);
 		Pthread_cond_destroy(&SR_Threads->dcond);
-// 		Sem_destroy(&SR_Threads->sem);
+		Pthread_cond_destroy(&SR_Threads->cond_g);
+ 		Sem_destroy(&SR_Threads->sem_g);
 		
 		free(SR_Threads->data_threads);
 		free(SR_Threads->SR_mode);
 		free(SR_Threads->thr_cntr);
 		free(SR_Threads->sockfd);
-// 		free(SR_Threads->R_availth_counter);
+		free(SR_Threads->buffer);
+		free(SR_Threads->R_availth_counter);
 		free(SR_Threads->R_remainth_counter);
+		free(SR_Threads->ngotten);
+		free(SR_Threads->EofBuff);
 		free(SR_Threads);
 
 /*
@@ -254,4 +267,6 @@ void *Data_Threads(void *arg)
 	free(c);
 		
  	return NULL;
+		free(SR_Threads->ngotten);
+		Pthread_cond_destroy(&SR_Threads->dcond);
 }

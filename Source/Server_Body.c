@@ -72,8 +72,8 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 		if(m3l_Cat(RecNode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
 			Error("CatData");
 		
- 		if( m3l_Send_to_tcpipsocket(NULL, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754", "--SEOB",  (char *)NULL) < 1)
- 					Error("Error during reading data from socket");
+//  		if( m3l_Send_to_tcpipsocket(NULL, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754", "--SEOB",  (char *)NULL) < 1)
+//  					Error("Error during reading data from socket");
 /* 
  * find Name_of_Data_Set
  */
@@ -106,6 +106,15 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 					Error("NULThread_Prt: Missing S_mode");
 			
 				SR_mode = (lmchar_t *)m3l_get_data_pointer(List);
+				
+				if(*SR_mode == 'S'){
+/*
+ * if process is sender, indicate Sender header was received before receiving payload
+ * - not needed if process is Receiver
+ */
+					if( m3l_Send_to_tcpipsocket(NULL, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754", "--SEOB",  (char *)NULL) < 1)
+						Error("Error during reading data from socket");
+				}
 /* 
  * free memory allocated in m3l_Locate
  */
