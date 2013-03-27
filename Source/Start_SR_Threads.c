@@ -49,9 +49,12 @@ SR_thread_str_t *Start_SR_Threads(lmint_t n_threads){
 /* 
  * initialize barrier, the coutner should be the same as number of R_threads, will be used to sync all R_threads 
  */
-// 	Pthread_barrier_init(&SR_Data_Thread->barr,  n_threads-1);
+ 	Pthread_barrier_init(&SR_Data_Thread->barr,  n_threads+1);
 	Sem_init(&SR_Data_Thread->sem, 0);
-	Sem_init(&SR_Data_Thread->sem_g, 0);
+	Sem_init(&SR_Data_Thread->sem_g, 0); 
+
+	*SR_Data_Thread->R_remainth_counter = 0;
+	*SR_Data_Thread->R_availth_counter = 0;
 /*
  * spawn threads
  */	
@@ -60,14 +63,15 @@ SR_thread_str_t *Start_SR_Threads(lmint_t n_threads){
 			Perror("Start_SR_Threads: SR_DataArgs malloc");	
 
 		SR_DataArgs->plock 		= &SR_Data_Thread->lock;	
-		SR_DataArgs->plock_g 		= &SR_Data_Thread->lock_g;	
-		SR_DataArgs->psem 		= &SR_Data_Thread->sem;	
-		SR_DataArgs->psem_g 		= &SR_Data_Thread->sem_g;	
+		SR_DataArgs->plock_g 		= &SR_Data_Thread->lock_g;
+		SR_DataArgs->psem 		= &SR_Data_Thread->sem;
+		SR_DataArgs->psem_g 		= &SR_Data_Thread->sem_g;
 		SR_DataArgs->pcond 		= &SR_Data_Thread->cond;	
-		SR_DataArgs->pcond_g 		= &SR_Data_Thread->cond_g;	
-		SR_DataArgs->pdcond 		= &SR_Data_Thread->dcond;	
-		SR_DataArgs->pSR_mode 		= SR_Data_Thread->SR_mode;	
-		SR_DataArgs->psockfd 		= SR_Data_Thread->sockfd;	
+		SR_DataArgs->pcond_g 		= &SR_Data_Thread->cond_g;
+		SR_DataArgs->pdcond 		= &SR_Data_Thread->dcond;
+		SR_DataArgs->pbarr	 		= &SR_Data_Thread->barr;
+		SR_DataArgs->pSR_mode 		= SR_Data_Thread->SR_mode;
+		SR_DataArgs->psockfd 		= SR_Data_Thread->sockfd;
 		SR_DataArgs->pthr_cntr 		= SR_Data_Thread->thr_cntr;
 		SR_DataArgs->prcounter		= SR_Data_Thread->R_remainth_counter;
 		SR_DataArgs->pcounter		= SR_Data_Thread->R_availth_counter;
@@ -84,8 +88,7 @@ SR_thread_str_t *Start_SR_Threads(lmint_t n_threads){
 /*
  * when all threads are spawned, signal Thread_Prt functions about it
  */
-	Sem_post(&SR_Data_Thread->sem);
-	Pthread_mutex_unlock(&SR_Data_Thread->lock);
+	Sem_post(&SR_Data_Thread->sem_g);
 	
 	return SR_Data_Thread;
 }

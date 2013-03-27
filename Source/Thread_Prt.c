@@ -97,10 +97,9 @@ void *Data_Threads(void *arg)
 	if(  (SR_Threads = Start_SR_Threads(n_avail_loc_theads)) == NULL)
 		Perror("Thread_Prt: Start_SR_Threads error");
 /*
- * all ST_threads were spawend, destroy senmaphore
+ * all ST_threads were spawend
  */
-	Sem_wait(&SR_Threads->sem);
-	Sem_destroy(&SR_Threads->sem);
+	Sem_wait(&SR_Threads->sem_g);
 /* 
  * set the counter 0
  * this counter will be used by each SR_Thread to get the values of the socket and SR_mode
@@ -149,8 +148,11 @@ void *Data_Threads(void *arg)
 /*
  * save socket number and mode of the jobe (S, R) and increase increment
  */				
-				SR_Threads->sockfd[local_cntr]  = *c->psocket;
+				SR_Threads->sockfd[local_cntr]      = *c->psocket;
 				SR_Threads->SR_mode[local_cntr] = *c->pSR_mode;
+
+				printf(" Thread_Prt   %d    %d    %c\n", local_cntr, *c->psocket, *c->pSR_mode);
+
 				local_cntr++;
 /* 
  * when the thread is positively identified, decrement counter of available thread for next round of identification, 
@@ -201,21 +203,29 @@ void *Data_Threads(void *arg)
 
 		Pthread_mutex_lock(c->plock);	
 			(*c->pcounter)--;
-// 			SR_Data_Thread->R_remainth_counter = n_rec_proc; 
+// 	 		*SR_Threads->R_remainth_counter = n_rec_proc;
+			*SR_Threads->R_availth_counter = n_rec_proc+1;
 		Pthread_mutex_unlock(c->plock);
+
+
+		printf("Waiting on barrier \n");
+		Pthread_barrier_wait(&SR_Threads->barr);
+		printf("After Waiting on barrier \n\n\n");
+
 /* 
  * unlock semaphore in the main program so that another loop can start
  * broadcast codnition variable to SR_threads so that they can start 
  */
 		printf("Broadcasting\n");
-		Pthread_mutex_lock(&SR_Threads->lock_g);		
-		Pthread_cond_broadcast(&SR_Threads->cond_g);	
+		Pthread_mutex_lock(&SR_Threads->lock_g);
+		Pthread_cond_broadcast(&SR_Threads->cond_g);
 		Pthread_mutex_unlock(&SR_Threads->lock_g);
-		printf("After Broadcasting\n");
+		printf("After Broadcasting\n\n\n");
 /*
  * once the data transfer is finished increase increment of available data_threads
  */
 		Sem_wait(&SR_Threads->sem_g);
+		printf("TEST_... After waiting\n\n\n");
 
 		n_avail_loc_theads = n_rec_proc + 1;
 		Pthread_mutex_lock(c->plock);	
@@ -227,8 +237,6 @@ void *Data_Threads(void *arg)
  * this counter will be used by each SR_Thread to get the values of the socket and SR_mode
  */		
 		*SR_Threads->thr_cntr=0;
-		
-		
 	}
 	
 	
@@ -244,11 +252,12 @@ void *Data_Threads(void *arg)
 				
 		Pthread_mutex_destroy(&SR_Threads->lock);
 		Pthread_mutex_destroy(&SR_Threads->lock_g);
-//  		Pthread_barrier_destroy(&SR_Threads->barr);
+  		Pthread_barrier_destroy(&SR_Threads->barr);
 		Pthread_cond_destroy(&SR_Threads->cond);
 		Pthread_cond_destroy(&SR_Threads->dcond);
 		Pthread_cond_destroy(&SR_Threads->cond_g);
  		Sem_destroy(&SR_Threads->sem_g);
+ 		Sem_destroy(&SR_Threads->sem);
 		
 		free(SR_Threads->data_threads);
 		free(SR_Threads->SR_mode);
