@@ -50,8 +50,6 @@
 #include "libm3l.h"
 #include "ACK.h"
 
-// static node_t *client_name(char *);
-
 int main(int argc, char *argv[])
 {
 	node_t *Gnode=NULL, *RecNode=NULL, *TmpNode = NULL;
@@ -67,7 +65,7 @@ int main(int argc, char *argv[])
 	int nmax;
 	double *tmpdf;
 
-	nmax = 5;
+	nmax = 100;
 /*
  * get port number
  */
@@ -81,9 +79,9 @@ int main(int argc, char *argv[])
  * we need to open socket manualy and used Send_receive function with hostname = NULL, ie. as server
  * portno is then replaced by socket number
  */
-// 	for(i=0; i<nmax; i++){
+	for(i=0; i<nmax; i++){
 
-// 		printf("\n\n--------------------------------    i = %ld\n\n", i);
+ 		printf("\n\n--------------------------------    i = %ld\n\n", i);
 /*
  * open socket, IP address of server is in argv[1], port number is in portno
  */
@@ -99,7 +97,8 @@ int main(int argc, char *argv[])
 
 		if(m3l_Umount(&Gnode) != 1)
 			Perror("m3l_Umount");
-		
+
+		printf(" Creating payload \n");
 		
 		Gnode = client_name("Text from Client1");
 	
@@ -119,34 +118,18 @@ int main(int argc, char *argv[])
 				Error("m3l_Mklist");
 		tmpdf = (double *)m3l_get_data_pointer(TmpNode);
 		for(j=0; j<10; j++)
-			tmpdf[j] = i*j*1.1;
+			tmpdf[j] = (i+1)*j*1.1;
 		free(dim);
+
+		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
+			Error("CatData");
+
+		m3l_Send_receive_tcpipsocket(Gnode,(char *)NULL, sockfd, "--encoding" , "IEEE-754",  "--REOB", (char *)NULL);
 		
 		if( close(sockfd) == -1)
 			Perror("close");
-// 	}
+ 	}
 
 
      return 0; 
 }
-
-// node_t *client_name(char *name)
-// {
-// 	node_t *Gnode, *TmpNode;
-// 	char *answer="ACKN";
-// 	size_t *dim;
-// 	
-// 	if(  (Gnode = m3l_Mklist("Client_Data", "DIR", 0, 0, (node_t **)NULL, (const char *)NULL, (const char *)NULL, (char *)NULL)) == 0)
-// 		Perror("m3l_Mklist");
-// 	
-// 	dim = (size_t *) malloc( 1* sizeof(size_t));
-// 	dim[0] = strlen(name)+1;
-// 	
-// 	if(  (TmpNode = m3l_Mklist("Name", "C", 1, dim, &Gnode, "/Client_Data", "./", "--no_malloc", (char *)NULL)) == 0)
-// 		Error("m3l_Mklist");
-// 	TmpNode->data.c = name;
-// 	
-// 	free(dim);
-// 	
-//  	return Gnode;
-// }

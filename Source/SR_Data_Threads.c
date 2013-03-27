@@ -24,35 +24,34 @@ void *SR_Data_Threads(void *arg)
 */
 	while(1){
 
-		printf(" HERE \n");
+// 		printf(" HERE \n");
 /*
  * wait until all RSR_Data_Threads are started and 
  * Thread_Prt filled initial value of prcounter
  */
 			Pthread_barrier_wait(c->pbarr);
 
-		printf(" HERE 01\n");
+// 		printf(" HERE 01\n");
 		
 		Pthread_mutex_lock(c->plock_g);
 		while (*c->pcounter == 0)
 			Pthread_cond_wait(c->pcond_g, c->plock_g);
 		Pthread_mutex_unlock(c->plock_g);
 
-		printf(" HERE 02\n");
+// 		printf(" HERE 02\n");
 
 		Pthread_mutex_lock(c->plock);
 
-		printf(" HERE1 cntr is %d\n",  *c->pthr_cntr);
+// 		printf(" HERE1 cntr is %d\n",  *c->pthr_cntr);
 			
 			SR_mode =  c->pSR_mode[*c->pthr_cntr];
 			sockfd  =  c->psockfd[*c->pthr_cntr];
 
-//  			*c->pthr_cntr = *c->pthr_cntr + 1;
  			(*c->pthr_cntr)++; 
 
-		printf("job socket %d, mode %c\n", sockfd,  SR_mode);
-		printf("PR counter is %d \n", *c->prcounter);
-		printf("PTHR counter is %d \n", *c->pthr_cntr);
+// 		printf("job socket %d, mode %c\n", sockfd,  SR_mode);
+// 		printf("PR counter is %d \n", *c->prcounter);
+// 		printf("PTHR counter is %d \n", *c->pthr_cntr);
 
 		Pthread_mutex_unlock(c->plock);
 // 
@@ -60,7 +59,7 @@ void *SR_Data_Threads(void *arg)
 
 		if(SR_mode == 'R'){
 
-		printf(" READER \n");
+// 		printf(" READER \n");
 /*
  * thread reads the data from buffer and send over TCP/IP to client
  */
@@ -72,14 +71,14 @@ void *SR_Data_Threads(void *arg)
 				while (*c->prcounter == 0)
 					Pthread_cond_wait(c->pcond, c->plock);
 				
-					printf(" READER after cond_wait \n");
+// 					printf(" READER after cond_wait \n");
 
 				(*c->prcounter)--;
 				
 				if ( (n = Write(sockfd,c->pbuffer, *c->pngotten)) < *c->pngotten)
 					Perror("write()");
 
-				printf(" RECEIVER SENT DATA  %d\n ", *c->prcounter);
+// 				printf(" RECEIVER SENT DATA  %d\n ", *c->prcounter);
 				
 				if(*c->prcounter == 0){
 /* 	
@@ -87,7 +86,6 @@ void *SR_Data_Threads(void *arg)
  * set number of remaining threads equal to number of reading threads (only if reading will be repeated, otherwise keep it 0)
  * indicate this is the last thread
  */
-// 					if(*c->pEofBuff != 0)*c->prcounter = *c->pcounter - 1 ;
 					Pthread_cond_broadcast(c->pdcond);
 					Sem_post(c->psem);
 /* 
@@ -103,7 +101,7 @@ void *SR_Data_Threads(void *arg)
 					Pthread_cond_wait(c->pdcond, c->plock);
 				}
 
-				printf(" REDER after syncing %d\n", *c->pEofBuff );
+// 				printf(" REDER after syncing %d\n", *c->pEofBuff );
 			
 				Pthread_mutex_unlock(c->plock);
 
@@ -114,9 +112,8 @@ void *SR_Data_Threads(void *arg)
  * EOFbuff received, transmition is finished
  * close socket, and if last partition, unlock semaphore so that Thead_Prt can continue
  */
-
+			 m3l_Receive_tcpipsocket((const char *)NULL, sockfd, "--encoding" , "IEEE-754", "--REOB",  (char *)NULL);
 				printf(" REDER closing socket \n" );
-
 			if( close(sockfd) == -1)
 				Perror("close");
 			if(*c->prcounter == 0)
@@ -142,7 +139,7 @@ void *SR_Data_Threads(void *arg)
  * set counter of Receiving threads to number of R_threads (used in synchronizaiton of R_Threads)
  */ 		
 				*c->prcounter = *c->pcounter-1;
-				printf(" Sender  %d  \n", *c->prcounter);
+// 				printf(" Sender  %d  \n", *c->prcounter);
 				*c->pEofBuff = 1;
 
 // 		printf(" Sender  READING \n");
@@ -157,27 +154,27 @@ void *SR_Data_Threads(void *arg)
 
 				eofbuffcond = Check_EOFbuff(c->pbuffer,prevbuff, strlen(c->pbuffer), EOBlen, EOFbuff);
 // 				eofbuffcond = Check_EOFbuff(c->pbuffer,prevbuff, *c->pngotten, EOBlen, EOFbuff);
-				printf(" Sender  after EOFBUFF check %d \n", eofbuffcond);
+// 				printf(" Sender  after EOFBUFF check %d \n", eofbuffcond);
 				
 				if(eofbuffcond == 1)*c->pEofBuff = 0;
 /*
  * The buffer has been red from socket, send broadcast signal to all R_threads to go on
  * then unlock mutex and wait for semaphore
  */			
-		printf(" Sender  BROADCAST \n");
+// 		printf(" Sender  BROADCAST \n");
 				Pthread_cond_broadcast(c->pcond);
-		printf(" Sender  UNLOCK \n");
+// 		printf(" Sender  UNLOCK \n");
 				Pthread_mutex_unlock(c->plock);
-		printf(" Sender  WAIT \n");
+// 		printf(" Sender  WAIT \n");
 				Sem_wait(c->psem);
-		printf(" Sender  after WAIT \n");
+// 		printf(" Sender  after WAIT \n");
 /*
  * if end of buffer reached, leave do cycle
  */
 			start++;
 			}while(eofbuffcond != 1);
 
-		printf(" SENDER leaving while\n");
+// 		printf(" SENDER leaving while\n");
 
 /*
  * sender sent payload, before closign socket send back acknowledgement
@@ -187,6 +184,7 @@ void *SR_Data_Threads(void *arg)
 
 			if( close(sockfd) == -1)
 				Perror("close");
+		printf(" SENDER closed sockfd\n");
 		}
 		else{
 			Error("Wrong option");
@@ -211,7 +209,7 @@ lmssize_t Write(lmint_t sockfd,  lmchar_t *buffer, lmsize_t size){
 	buff = buffer;
 
 
-	printf(" WRITE %d  '%s'\n", sockfd, buff);
+// 	printf(" WRITE %d  '%s'\n", sockfd, buff);
 	
 	while(size > 0) {
 		

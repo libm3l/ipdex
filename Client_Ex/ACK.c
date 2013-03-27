@@ -112,8 +112,6 @@ node_t *Header(char *name, char RWmode){
 	
 	dim[0] = 2;
 	
-	printf(" mode is %c \n", RWmode);
-	
 	if(  (TmpNode = m3l_Mklist("SR_mode", "C", 1, dim, &Gnode, "/Header", "./", (char *)NULL)) == 0)
 		Error("m3l_Mklist");
 	TmpNode->data.c[0] = RWmode;

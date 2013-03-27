@@ -63,9 +63,13 @@ int main(int argc, char *argv[])
 	char *name="Pressure";
 
 	int nmax;
-	double *tmpdf;
+	double *tmpdf;	
 
-	nmax = 5;
+	struct timespec tim, tim2;
+	tim.tv_sec = 0;
+	tim.tv_nsec = 100000000L;    /* 0.1 secs */
+
+	nmax = 100;
 /*
  * get port number
  */
@@ -79,9 +83,9 @@ int main(int argc, char *argv[])
  * we need to open socket manualy and used Send_receive function with hostname = NULL, ie. as server
  * portno is then replaced by socket number
  */
-// 	for(i=0; i<nmax; i++){
+ 	for(i=0; i<nmax; i++){
 
-// 		printf("\n\n--------------------------------    i = %ld\n\n", i);
+ 		printf("\n\n--------------------------------    i = %ld\n\n", i);
 /*
  * open socket, IP address of server is in argv[1], port number is in portno
  */
@@ -93,7 +97,6 @@ int main(int argc, char *argv[])
 		if ( (sockfd =  m3l_cli_open_socket(argv[1], portno, (char *)NULL)) < 0)
 			Error("Could not open socket");
 
-// 		m3l_Send_receive_tcpipsocket(Gnode,(char *)NULL, sockfd, "--encoding" , "IEEE-754",  "--REOB", (char *)NULL);
 		m3l_Send_to_tcpipsocket(Gnode,(char *)NULL, sockfd, "--encoding" , "IEEE-754", (char *)NULL);
 		
 		if(m3l_Umount(&Gnode) != 1)
@@ -101,7 +104,12 @@ int main(int argc, char *argv[])
 
 		if( (Gnode = m3l_Receive_tcpipsocket((char *)NULL, sockfd, "--encoding" , "IEEE-754", (char *)NULL)) == NULL)
 			Error("Receiving data");
-		
+
+		m3l_Send_to_tcpipsocket(NULL,(char *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB", (char *)NULL);
+
+/*		if( (Gnode = m3l_Receive_send_tcpipsocket((node_t *)NULL,(char *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB",  (char *)NULL)) == NULL)
+			Error("Receiving data");	*/	
+
 		if( close(sockfd) == -1)
 			Perror("close");
 		
@@ -110,7 +118,12 @@ int main(int argc, char *argv[])
 		
 		if(m3l_Umount(&Gnode) != 1)
 			Perror("m3l_Umount");
-// 	}
+
+		if(nanosleep(&tim , &tim2) < 0 )
+			Error("Nano sleep system call failed \n");
+
+
+ 	}
 
 
      return 0; 

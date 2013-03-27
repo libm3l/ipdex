@@ -123,7 +123,7 @@ void *Data_Threads(void *arg)
 	
 	while(1){
 		
-		printf(" THREAD %s in while loop\n", local_set_name);
+		printf(" THREAD %s in while loop %d  %d\n", local_set_name, (*c->prcounter), (*c->pcounter));
 		local_cntr = 0;
 /*
  * start identifying threads once identified, leave do loop
@@ -132,10 +132,14 @@ void *Data_Threads(void *arg)
 /*
  * if already went through do loop, wait here at sync point until all threads are here
  */
+			printf("Before lock %d\n", *c->prcounter );
 			Pthread_mutex_lock(c->plock);
 /*
  * wait for data sent by main thread
  */
+
+			printf("Waiting on condition %d\n", *c->prcounter );
+
 			while (*c->prcounter == 0)
 				Pthread_cond_wait(c->pcond, c->plock);
  /* 
@@ -143,6 +147,7 @@ void *Data_Threads(void *arg)
   * going back to caller function
   */
 			(*c->prcounter)--; 
+			printf("After condition\n");
 
 			if(strncmp(c->pname_of_data_set,local_set_name, len) == 0){
 /*
@@ -150,9 +155,6 @@ void *Data_Threads(void *arg)
  */				
 				SR_Threads->sockfd[local_cntr]      = *c->psocket;
 				SR_Threads->SR_mode[local_cntr] = *c->pSR_mode;
-
-				printf(" Thread_Prt   %d    %d    %c\n", local_cntr, *c->psocket, *c->pSR_mode);
-
 				local_cntr++;
 /* 
  * when the thread is positively identified, decrement counter of available thread for next round of identification, 
@@ -170,6 +172,7 @@ void *Data_Threads(void *arg)
  * indicate this is the last thread
  */
 				Pthread_cond_broadcast(c->pdcond);
+				if(n_avail_loc_theads == 0)(*c->pcounter)--;
 				Sem_post(c->psem);
 /* 
  * unlock semaphore in the main program so that another loop can start
@@ -195,15 +198,14 @@ void *Data_Threads(void *arg)
  * once all R-W threads are taken decrement counter of data_threads ie. Data_Thread->data_threads_availth_counter
  */
 
-		printf(" Number of jobs %d\n", n_rec_proc + 1);
+// 		printf(" Number of jobs %d\n", n_rec_proc + 1);
 		
 		for (ii = 0; ii< n_rec_proc + 1; ii++)
 			printf("job %d, socket %d, mode %c\n", ii, SR_Threads->sockfd[ii], SR_Threads->SR_mode[ii]);
 
 
 		Pthread_mutex_lock(c->plock);	
-			(*c->pcounter)--;
-// 	 		*SR_Threads->R_remainth_counter = n_rec_proc;
+// 			(*c->pcounter)--;
 			*SR_Threads->R_availth_counter = n_rec_proc+1;
 		Pthread_mutex_unlock(c->plock);
 
@@ -218,26 +220,37 @@ void *Data_Threads(void *arg)
  */
 		printf("Broadcasting\n");
 		Pthread_mutex_lock(&SR_Threads->lock_g);
-		Pthread_cond_broadcast(&SR_Threads->cond_g);
+			Pthread_cond_broadcast(&SR_Threads->cond_g);
 		Pthread_mutex_unlock(&SR_Threads->lock_g);
 		printf("After Broadcasting\n\n\n");
 /*
  * once the data transfer is finished increase increment of available data_threads
  */
 		Sem_wait(&SR_Threads->sem_g);
-		printf("TEST_... After waiting\n\n\n");
+		printf("TEST_... TRANFER FINISHED\n\n\n");
 
-		n_avail_loc_theads = n_rec_proc + 1;
-		Pthread_mutex_lock(c->plock);	
-			(*c->pcounter)++;
-// 			printf(" COUNTER OF AVAILABLE THREADS IS %d    %d   %s\n", (*c->pcounter), n_avail_loc_theads, local_set_name);
+/*		n_avail_loc_theads = n_rec_proc + 1;*/
+		Pthread_mutex_lock(c->plock);
+			n_avail_loc_theads = n_rec_proc + 1;
+/*
+ * if all data_threads were taken   *c->pcounter == 0, the Server_Body is waiting on condition 
+ * before accept. Signal that it can go
+ */
+// 			if( *c->pcounter == 0){
+// 				(*c->pcounter)++;
+// 				Pthread_cond_signal(c->pcond);
+// 			}
+// 			else
+				(*c->pcounter)++;
+			
 		Pthread_mutex_unlock(c->plock);
 /* 
  * set the counter 0
  * this counter will be used by each SR_Thread to get the values of the socket and SR_mode
  */		
 		*SR_Threads->thr_cntr=0;
-	}
+		printf("GOING TO NEXT LOOP\n\n\n");
+		}
 	
 	
 	printf(" Leaving WHILE \n");
