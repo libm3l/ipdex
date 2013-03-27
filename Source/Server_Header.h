@@ -11,6 +11,7 @@ typedef struct data_thread_args{
 	pthread_barrier_t 	*pbarr;  	/* barrier */
 	pthread_cond_t    	*pcond;   	/* condition variable */
 	pthread_cond_t    	*pdcond;   	/* condition variable */
+// 	pthread_cond_t    	*pcond_g;   	/* condition variable */
 	sem_t 		  	*psem;		/* semaphore */
 	node_t 			*Node;		/* libm3l node_t structure pointer */
  	lmint_t  		*psocket; 			/* socket ID passed to data_Thread, message upon receiving it */
@@ -25,6 +26,7 @@ typedef struct data_thread_str{
 	pthread_barrier_t 	barr;  	/* barrier */
 	pthread_cond_t    	cond;   	/* condition variable */
 	pthread_cond_t    	dcond;   	/* condition variable */	
+// 	pthread_cond_t    	cond_g;   	/* condition variable */
 	sem_t 		 	sem;		/* semaphore */
 	
 	lmsize_t 		n_data_threads;              					/* number of thread in group data_threads */

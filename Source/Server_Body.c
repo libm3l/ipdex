@@ -63,11 +63,11 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 //  * no available data_threads, wait until at least one is available
 //  */
 // 			printf(" Server_Body: wating for ACCEPT %d  %d\n", *Data_Threads->data_threads_remainth_counter, *Data_Threads->data_threads_availth_counter);
-// 			Pthread_mutex_lock(&Data_Threads->lock);
+// 			Pthread_mutex_lock(&Data_Threads->lock_g);
 // 			while (*Data_Threads->data_threads_availth_counter == 0)
-// 				Pthread_cond_wait(&Data_Threads->cond, &Data_Threads->lock);
+// 				Pthread_cond_wait(&Data_Threads->cond_g, &Data_Threads->lock_g);
 // 			*Data_Threads->data_threads_remainth_counter = *Data_Threads->data_threads_availth_counter;
-// 			Pthread_mutex_unlock(&Data_Threads->lock);
+// 			Pthread_mutex_unlock(&Data_Threads->lock_g);
 // 			printf(" Server_Body: after waiting for ACCEPT %d  %d\n", *Data_Threads->data_threads_remainth_counter, *Data_Threads->data_threads_availth_counter);
 // 		}
 

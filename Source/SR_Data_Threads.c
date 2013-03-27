@@ -26,7 +26,7 @@ void *SR_Data_Threads(void *arg)
 
 // 		printf(" HERE \n");
 /*
- * wait until all RSR_Data_Threads are started and 
+ * wait until all SR_Data_Threads are started and 
  * Thread_Prt filled initial value of prcounter
  */
 			Pthread_barrier_wait(c->pbarr);
@@ -174,7 +174,7 @@ void *SR_Data_Threads(void *arg)
 			start++;
 			}while(eofbuffcond != 1);
 
-// 		printf(" SENDER leaving while\n");
+		printf(" SENDER closing socket leaving while\n");
 
 /*
  * sender sent payload, before closign socket send back acknowledgement

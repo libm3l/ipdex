@@ -209,7 +209,9 @@ void *Data_Threads(void *arg)
 			*SR_Threads->R_availth_counter = n_rec_proc+1;
 		Pthread_mutex_unlock(c->plock);
 
-
+/*
+ * this barrier is syncing with barriers in SR_Data_Threads so that all SR_threads start at the same time
+ */
 		printf("Waiting on barrier \n");
 		Pthread_barrier_wait(&SR_Threads->barr);
 		printf("After Waiting on barrier \n\n\n");
@@ -218,7 +220,7 @@ void *Data_Threads(void *arg)
  * unlock semaphore in the main program so that another loop can start
  * broadcast codnition variable to SR_threads so that they can start 
  */
-		printf("Broadcasting\n");
+// 		printf("Broadcasting\n");
 		Pthread_mutex_lock(&SR_Threads->lock_g);
 			Pthread_cond_broadcast(&SR_Threads->cond_g);
 		Pthread_mutex_unlock(&SR_Threads->lock_g);
@@ -229,18 +231,21 @@ void *Data_Threads(void *arg)
 		Sem_wait(&SR_Threads->sem_g);
 		printf("TEST_... TRANFER FINISHED\n\n\n");
 
-/*		n_avail_loc_theads = n_rec_proc + 1;*/
 		Pthread_mutex_lock(c->plock);
 			n_avail_loc_theads = n_rec_proc + 1;
 /*
  * if all data_threads were taken   *c->pcounter == 0, the Server_Body is waiting on condition 
  * before accept. Signal that it can go
  */
-// 			if( *c->pcounter == 0){
-// 				(*c->pcounter)++;
-// 				Pthread_cond_signal(c->pcond);
-// 			}
-// 			else
+			if( *c->pcounter == 0){
+// 				(*c->prcounter)++;
+// 				Pthread_mutex_lock(c->plock_g);
+					(*c->pcounter)++;
+// 					Pthread_cond_signal(c->pcond_g);
+// 				Pthread_mutex_unlock(c->plock_g);
+					
+			}
+			else
 				(*c->pcounter)++;
 			
 		Pthread_mutex_unlock(c->plock);
