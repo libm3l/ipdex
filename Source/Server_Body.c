@@ -32,7 +32,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  */
 	*Data_Threads->data_threads_availth_counter  =  Data_Threads->n_data_threads;
 	
-// printf(" TOTAL NUMBER OF THREADS IS %ld\n", *Data_Threads->data_threads_availth_counter);
+printf(" TOTAL NUMBER OF THREADS IS %ld\n", *Data_Threads->data_threads_availth_counter);
 /*
  * at the beginning the coutner of remainign threads is equal to 
  * number of available threads
@@ -56,27 +56,16 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	while(1){
 
 		clilen = sizeof(cli_addr);
-		
-		
-// 		if( *Data_Threads->data_threads_availth_counter == 0){
-// /*
-//  * no available data_threads, wait until at least one is available
-//  */
-// 			printf(" Server_Body: wating for ACCEPT %d  %d\n", *Data_Threads->data_threads_remainth_counter, *Data_Threads->data_threads_availth_counter);
-// 			Pthread_mutex_lock(&Data_Threads->lock_g);
-// 			while (*Data_Threads->data_threads_availth_counter == 0)
-// 				Pthread_cond_wait(&Data_Threads->cond_g, &Data_Threads->lock_g);
-// 			*Data_Threads->data_threads_remainth_counter = *Data_Threads->data_threads_availth_counter;
-// 			Pthread_mutex_unlock(&Data_Threads->lock_g);
-// 			printf(" Server_Body: after waiting for ACCEPT %d  %d\n", *Data_Threads->data_threads_remainth_counter, *Data_Threads->data_threads_availth_counter);
-// 		}
 
 		if ( (newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen)) < 0){
 			if(errno == EINTR) /* If Interrupted system call, restart - back to while ()  UNP V1 p124  */
 				continue;
 			else
 				Perror("accept()");
-		}		
+		}
+/*
+ * NOTE - here new synchronizer with Threads
+ */
 /*
  * receive header with solver and data set information
  */
@@ -121,14 +110,14 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			
 				SR_mode = (lmchar_t *)m3l_get_data_pointer(List);
 				
-// 				if(*SR_mode == 'S'){
-// /*
-//  * if process is sender, indicate Sender header was received before receiving payload
-//  * - not needed if process is Receiver
-//  */
-// 					if( m3l_Send_to_tcpipsocket(NULL, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754", "--SEOB",  (char *)NULL) < 1)
-// 						Error("Error during reading data from socket");
-// 				}
+				if(*SR_mode == 'S'){
+/*
+ * if process is sender, indicate Sender header was received before receiving payload
+ * - not needed if process is Receiver
+ */
+					if( m3l_Send_to_tcpipsocket(NULL, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754", "--SEOB",  (char *)NULL) < 1)
+						Error("Error during reading data from socket");
+				}
 /* 
  * free memory allocated in m3l_Locate
  */
@@ -144,13 +133,13 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  */
 		if(cycle > 0)
 			Pthread_mutex_lock(&Data_Threads->lock);
-// printf(" Here 1\n");
+printf(" Here 1\n");
 /*
  * set number of tested threads to number of available threads
  * save name of data set from header, SM_Mode of the process and socket number to thread data structure
  */		
 		*Data_Threads->data_threads_remainth_counter = *Data_Threads->data_threads_availth_counter;	
-// printf(" Here %d  %d 2\n", *Data_Threads->data_threads_remainth_counter, *Data_Threads->data_threads_availth_counter);
+printf(" Here %d  %d 2\n", *Data_Threads->data_threads_remainth_counter, *Data_Threads->data_threads_availth_counter);
 		if( snprintf(Data_Threads->name_of_data_set, MAX_NAME_LENGTH,"%s",name_of_required_data_set) < 0)
 			Perror("snprintf");
 		*Data_Threads->SR_mode = *SR_mode;
@@ -162,21 +151,21 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * and release borrowed memory
  */			
 		Pthread_cond_broadcast(&Data_Threads->cond);
-// printf(" Here 3\n");
+printf(" Here 3\n");
 			
 		Pthread_mutex_unlock(&Data_Threads->lock);
-// printf(" Here 4\n");
+printf(" Here 4\n");
 		
 		if( m3l_Umount(&RecNode) != 1)
 			Perror("m3l_Umount");
-// printf(" Here 5\n");
+printf(" Here 5\n");
 
 /* 
  * when all Data_Thread are finished, - the identification part, the threads are waiting on each other. 
  * the last thread unlock the semaphore so that the next loop can start
  */		
 		Sem_wait(&Data_Threads->sem);
-// printf(" Here 6\n");
+printf(" Here 6\n");
 
 		cycle = 1;
 
@@ -200,6 +189,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 		free(Data_Threads->data_threads_availth_counter);
 		free(Data_Threads->data_threads_remainth_counter);
 		free(Data_Threads->socket);
+		free(Data_Threads->sync);
 		free(Data_Threads);
 
 	

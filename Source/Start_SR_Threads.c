@@ -38,7 +38,10 @@ SR_thread_str_t *Start_SR_Threads(lmint_t n_threads){
 	if( (SR_Data_Thread->ngotten = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
 		Perror("Start_SR_Threads:  SR_Data_Thread->ngotten");
 	if( (SR_Data_Thread->buffer = (lmchar_t *)malloc( (MAXLINE+1)*sizeof(lmsize_t))) == NULL)
-		Perror("Start_SR_Threads:  SR_Data_Thread->buffer");/*
+		Perror("Start_SR_Threads:  SR_Data_Thread->buffer");
+	if( (SR_Data_Thread->sync = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
+		Perror("Start_SR_Threads:  SR_Data_Thread->sync");
+/*
  * initialize mutex, barrier and condition variable
  */
 	Pthread_mutex_init(&SR_Data_Thread->lock);
@@ -69,7 +72,7 @@ SR_thread_str_t *Start_SR_Threads(lmint_t n_threads){
 		SR_DataArgs->pcond 		= &SR_Data_Thread->cond;	
 		SR_DataArgs->pcond_g 		= &SR_Data_Thread->cond_g;
 		SR_DataArgs->pdcond 		= &SR_Data_Thread->dcond;
-		SR_DataArgs->pbarr	 		= &SR_Data_Thread->barr;
+		SR_DataArgs->pbarr	 	= &SR_Data_Thread->barr;
 		SR_DataArgs->pSR_mode 		= SR_Data_Thread->SR_mode;
 		SR_DataArgs->psockfd 		= SR_Data_Thread->sockfd;
 		SR_DataArgs->pthr_cntr 		= SR_Data_Thread->thr_cntr;
@@ -78,6 +81,7 @@ SR_thread_str_t *Start_SR_Threads(lmint_t n_threads){
 		SR_DataArgs->pbuffer		= SR_Data_Thread->buffer;
 		SR_DataArgs->pngotten		= SR_Data_Thread->ngotten;
 		SR_DataArgs->pEofBuff		= SR_Data_Thread->EofBuff;
+		SR_DataArgs->psync		= SR_Data_Thread->sync;
 /*
  * create thread
  */

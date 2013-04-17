@@ -98,6 +98,28 @@ int main(int argc, char *argv[])
 		if(m3l_Umount(&Gnode) != 1)
 			Perror("m3l_Umount");
 
+
+
+		if( close(sockfd) == -1)
+			Perror("close");
+
+
+	}
+
+	printf("End of cycle\n");	
+
+
+
+
+
+
+
+
+
+
+
+
+
 		printf(" Creating payload \n");
 		
 		Gnode = client_name("Text from Client1");
@@ -128,7 +150,7 @@ int main(int argc, char *argv[])
 		
 		if( close(sockfd) == -1)
 			Perror("close");
- 	}
+//  	}
 
 
      return 0; 

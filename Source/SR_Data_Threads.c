@@ -26,7 +26,7 @@ void *SR_Data_Threads(void *arg)
 
 // 		printf(" HERE \n");
 /*
- * wait until all SR_Data_Threads are started and 
+ * wait until all RSR_Data_Threads are started and 
  * Thread_Prt filled initial value of prcounter
  */
 			Pthread_barrier_wait(c->pbarr);
@@ -47,6 +47,7 @@ void *SR_Data_Threads(void *arg)
 			SR_mode =  c->pSR_mode[*c->pthr_cntr];
 			sockfd  =  c->psockfd[*c->pthr_cntr];
 
+//  			*c->pthr_cntr = *c->pthr_cntr + 1;
  			(*c->pthr_cntr)++; 
 
 // 		printf("job socket %d, mode %c\n", sockfd,  SR_mode);
@@ -65,6 +66,7 @@ void *SR_Data_Threads(void *arg)
  */
 			do{
 				Pthread_mutex_lock(c->plock);
+				*c->psync == 0;
 /*
  * wait for data sent by main thread
  */
@@ -86,6 +88,7 @@ void *SR_Data_Threads(void *arg)
  * set number of remaining threads equal to number of reading threads (only if reading will be repeated, otherwise keep it 0)
  * indicate this is the last thread
  */
+					*c->psync == 1;
 					Pthread_cond_broadcast(c->pdcond);
 					Sem_post(c->psem);
 /* 
@@ -97,8 +100,8 @@ void *SR_Data_Threads(void *arg)
  * still some threads working, wait for them
  * indicate this is waiting thread
  */
-// 					while (*c->prcounter != 0)
-					Pthread_cond_wait(c->pdcond, c->plock);
+					while (*c->psync != 0)
+						Pthread_cond_wait(c->pdcond, c->plock);
 				}
 
 // 				printf(" REDER after syncing %d\n", *c->pEofBuff );
@@ -113,7 +116,7 @@ void *SR_Data_Threads(void *arg)
  * close socket, and if last partition, unlock semaphore so that Thead_Prt can continue
  */
 			 m3l_Receive_tcpipsocket((const char *)NULL, sockfd, "--encoding" , "IEEE-754", "--REOB",  (char *)NULL);
-				printf(" REDER closing socket \n" );
+// 				printf(" REDER closing socket \n" );
 			if( close(sockfd) == -1)
 				Perror("close");
 			if(*c->prcounter == 0)
@@ -174,7 +177,7 @@ void *SR_Data_Threads(void *arg)
 			start++;
 			}while(eofbuffcond != 1);
 
-		printf(" SENDER closing socket leaving while\n");
+// 		printf(" SENDER leaving while\n");
 
 /*
  * sender sent payload, before closign socket send back acknowledgement
@@ -184,7 +187,7 @@ void *SR_Data_Threads(void *arg)
 
 			if( close(sockfd) == -1)
 				Perror("close");
-		printf(" SENDER closed sockfd\n");
+// 		printf(" SENDER closed sockfd\n");
 		}
 		else{
 			Error("Wrong option");
