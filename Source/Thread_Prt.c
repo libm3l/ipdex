@@ -117,6 +117,7 @@ void *Data_Threads(void *arg)
  * wait on this barrier until main thread sets value of counter and lock c->plock
  * the last call to _wait() is done in the main function after returning back from Data_Threads = Data_Thread(Gnode)
  * Once this barrier is reached, the main threads starts accepting requests from client
+ * This barrier makes sure the initial start is properly done
  */
 	Pthread_barrier_wait(c->pbarr);
 	
@@ -137,16 +138,26 @@ void *Data_Threads(void *arg)
  * wait for data sent by main thread
  */
 
-			printf("Waiting on condition\n");
+			printf("Waiting on condition  %d\n", *c->pcondpred);
 
 			while (*c->prcounter == 0)
+// 			while (*c->pcondpred == 0)
 				Pthread_cond_wait(c->pcond, c->plock);
+			
+			
+//-------------------------------------------
+
+// 			(*c->prcounter)--; 
+
+//-------------------------------------------
+			
+			
  /* 
   * decrement counter of thread  which will check condition, used for syncing all threads before 
   * going back to caller function
   */
 			(*c->prcounter)--; 
-			printf("After condition\n");
+			printf("After condition  %d\n", *c->pcondpred);
 
 			if(strncmp(c->pname_of_data_set,local_set_name, len) == 0){
 /*
@@ -183,8 +194,8 @@ void *Data_Threads(void *arg)
  * still some threads working, wait for them
  * indicate this is waiting thread
  */
-			while (*c->psync == 0)
-				Pthread_cond_wait(c->pdcond, c->plock);
+				while (*c->psync == 0)
+					Pthread_cond_wait(c->pdcond, c->plock);
 			}
 			
 			Pthread_mutex_unlock(c->plock);	

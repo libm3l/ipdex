@@ -23,6 +23,8 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  */
 	if(  (Data_Threads = Data_Thread(Gnode)) == NULL)
 		Perror("Server_Body: Data_Threads error");
+	
+	*Data_Threads->condpred = 0;
 /*
  * fill the initial data to data_thread_str before threads start
  */	
@@ -149,8 +151,11 @@ printf(" Here %d  %d 2\n", *Data_Threads->data_threads_remainth_counter, *Data_T
 /*
  * once all necessary data are set, send signal to all threads to start unloc mutex
  * and release borrowed memory
- */			
+ */
+		*Data_Threads->condpred = 1;
 		Pthread_cond_broadcast(&Data_Threads->cond);
+		*Data_Threads->condpred = 0;
+		
 printf(" Here 3\n");
 			
 		Pthread_mutex_unlock(&Data_Threads->lock);
@@ -190,6 +195,7 @@ printf(" Here 6\n");
 		free(Data_Threads->data_threads_remainth_counter);
 		free(Data_Threads->socket);
 		free(Data_Threads->sync);
+		free(Data_Threads->condpred);
 		free(Data_Threads);
 
 	
