@@ -7,7 +7,7 @@
 
 lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	
-	lmsize_t i, len;
+	lmsize_t i, len, counter;
 	lmint_t sockfd, newsockfd, cycle;
 	struct sockaddr_in cli_addr;
 	data_thread_str_t *Data_Threads;
@@ -18,6 +18,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	node_t *RecNode, *List;
 	
 	cycle=0;
+	counter = 0;
 /*
  * spawn all threads
  */
@@ -41,7 +42,7 @@ printf(" TOTAL NUMBER OF THREADS IS %ld\n", *Data_Threads->data_threads_availth_
  * this coutner is used to synchronize all threads at the end when they went on each other
  * it is reset every iterational step
  */
-	*Data_Threads->data_threads_remainth_counter  = *Data_Threads->data_threads_availth_counter;
+	*Data_Threads->data_threads_remainth_counter  = 0; // *Data_Threads->data_threads_availth_counter;
 /*
  * wait for barrier, indicating all threads in Data_Thread were created
  * the _wait on this barrier is the second_wait call in Data_Thread for each thread and this is the last one
@@ -56,6 +57,8 @@ printf(" TOTAL NUMBER OF THREADS IS %ld\n", *Data_Threads->data_threads_availth_
 		Perror("Open_Bind_Listen");
 	
 	while(1){
+		
+		printf(" COUNTER is %ld \n", counter++);
 
 		clilen = sizeof(cli_addr);
 
@@ -140,8 +143,8 @@ printf(" Here 1\n");
  * set number of tested threads to number of available threads
  * save name of data set from header, SM_Mode of the process and socket number to thread data structure
  */		
-		*Data_Threads->data_threads_remainth_counter = *Data_Threads->data_threads_availth_counter;	
-printf(" Here %d  %d 2\n", *Data_Threads->data_threads_remainth_counter, *Data_Threads->data_threads_availth_counter);
+		*Data_Threads->data_threads_remainth_counter = 0; // *Data_Threads->data_threads_availth_counter;	
+		printf(" Here 2   %d  %d\n", *Data_Threads->data_threads_remainth_counter, *Data_Threads->data_threads_availth_counter);
 		if( snprintf(Data_Threads->name_of_data_set, MAX_NAME_LENGTH,"%s",name_of_required_data_set) < 0)
 			Perror("snprintf");
 		*Data_Threads->SR_mode = *SR_mode;
@@ -152,9 +155,35 @@ printf(" Here %d  %d 2\n", *Data_Threads->data_threads_remainth_counter, *Data_T
  * once all necessary data are set, send signal to all threads to start unloc mutex
  * and release borrowed memory
  */
-		*Data_Threads->condpred = 1;
-		Pthread_cond_broadcast(&Data_Threads->cond);
-		*Data_Threads->condpred = 0;
+// 		*Data_Threads->condpred = 1;
+// 		Pthread_cond_broadcast(&Data_Threads->cond);
+//  		*Data_Threads->condpred = 0;
+// 		
+		
+//-------------------------------------------
+// 			*Data_Threads->data_threads_remainth_counter = 0;
+			while (*Data_Threads->data_threads_remainth_counter < *Data_Threads->data_threads_availth_counter) { /* wait on 'condWaiting' until all active threads are waiting */
+				printf(" MAIN COUNTER Increased %d %d\n", *Data_Threads->data_threads_remainth_counter,  *Data_Threads->data_threads_availth_counter);
+				pthread_cond_wait(&Data_Threads->wait_cond, &Data_Threads->lock);
+				printf(" MAIN COUNTER AFTER Increased %d %d\n", *Data_Threads->data_threads_remainth_counter,  *Data_Threads->data_threads_availth_counter);
+			}
+
+			
+			
+			if (*Data_Threads->data_threads_availth_counter != 0) {
+				*Data_Threads->condpred = 1;
+				
+				*Data_Threads->data_threads_remainth_counter = *Data_Threads->data_threads_availth_counter;
+				
+				pthread_cond_broadcast(&Data_Threads->cond);
+			}
+			
+// 			 *Data_Threads->condpred = 0;
+
+// 
+//-------------------------------------------		
+		
+		
 		
 printf(" Here 3\n");
 			
@@ -168,8 +197,17 @@ printf(" Here 5\n");
 /* 
  * when all Data_Thread are finished, - the identification part, the threads are waiting on each other. 
  * the last thread unlock the semaphore so that the next loop can start
- */		
+ */
+// 		Pthread_mutex_lock(&Data_Threads->lock);
+// 			*Data_Threads->condpred = 0;
+// 			*Data_Threads->data_threads_remainth_counter = 0;
+// 		Pthread_mutex_unlock(&Data_Threads->lock);
+		
 		Sem_wait(&Data_Threads->sem);
+// 		Pthread_mutex_lock(&Data_Threads->lock);
+// 			*Data_Threads->condpred = 0;
+// 		Pthread_mutex_unlock(&Data_Threads->lock);
+		
 printf(" Here 6\n");
 
 		cycle = 1;
@@ -186,6 +224,7 @@ printf(" Here 6\n");
 		Pthread_barrier_destroy(&Data_Threads->barr);
 		Pthread_cond_destroy(&Data_Threads->cond);
 		Pthread_cond_destroy(&Data_Threads->dcond);
+		Pthread_cond_destroy(&Data_Threads->wait_cond);
 		Sem_destroy(&Data_Threads->sem);
 		
 		free(Data_Threads->data_threads);

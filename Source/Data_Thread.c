@@ -71,6 +71,7 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 	Pthread_barrier_init(&Data_Thread->barr,  Data_Thread->n_data_threads + 1);
 	Pthread_cond_init(&Data_Thread->cond);
 	Pthread_cond_init(&Data_Thread->dcond);
+	Pthread_cond_init(&Data_Thread->wait_cond);
 	Sem_init(&Data_Thread->sem, 0);
 /*
  * spawn threads
@@ -84,6 +85,7 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 		DataArgs->psem 			= &Data_Thread->sem;	
 		DataArgs->pbarr 		= &Data_Thread->barr;	
 		DataArgs->pcond 		= &Data_Thread->cond;	
+		DataArgs->wait_pcond 		= &Data_Thread->wait_cond;	
 		DataArgs->pdcond 		= &Data_Thread->dcond;	
 		DataArgs->psocket    		=  Data_Thread->socket;	
 		DataArgs->psync    		=  Data_Thread->sync;	
