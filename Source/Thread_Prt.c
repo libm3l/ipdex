@@ -134,6 +134,7 @@ void *Data_Threads(void *arg)
  */
 			Pthread_mutex_lock(c->plock);
 			*c->psync == 0;
+			*c->pcondpred == 1;
 /*
  * wait for data sent by main thread
  */
@@ -149,25 +150,49 @@ void *Data_Threads(void *arg)
 
 
 // 			if (*c->pcondpred == 0) {
-				
-				printf(" Increasign counter\n");
-				(*c->prcounter)++;
-				printf(" Increased  %d  \n", *c->prcounter);
-				
-				do {
-					printf(" In DO %d  \n", *c->prcounter);
-					pthread_cond_signal(c->wait_pcond); /* EDIT: signal the main thread when a thread begins waiting */
-
-					printf(" In DO before WAIT  %d  %d\n", *c->prcounter, *c->pcondpred);
-
-					pthread_cond_wait(c->pcond, c->plock);
-				} while (*c->pcondpred == 0);
-				
-				printf(" decrementing counter  %d  \n", *c->prcounter);
-
-				(*c->prcounter)--;
-				printf(" decremented   %d  \n", *c->prcounter);
+// 				printf(" Increasign counter\n");
+// 				(*c->prcounter)++;
+// 				printf(" Increased  %d  \n", *c->prcounter);
+// 				
+// 				do {
+// 					printf(" In DO %d  \n", *c->prcounter);
+// 					pthread_cond_signal(c->wait_pcond); /* EDIT: signal the main thread when a thread begins waiting */
+// 
+// 					printf(" In DO before WAIT  %d  %d\n", *c->prcounter, *c->pcondpred);
+// 
+// 					pthread_cond_wait(c->pcond, c->plock);
+// 				} while (*c->pcondpred == 0);
+// 				
+// 				printf(" decrementing counter  %d  \n", *c->prcounter);
+// 
+// 				(*c->prcounter)--;
+// 				printf(" decremented   %d  \n", *c->prcounter);
 // 			}
+
+			(*c->prcounter)++;
+
+			
+			if(*c->prcounter == *c->pcounter){
+/* 	
+ * the last thread, broadcast
+ * indicate this is the last thread
+ */
+				printf(" I'm HERE\n");
+				*c->pcondpred = 1;
+				Pthread_cond_broadcast(c->pdcond);
+/* 
+ * unlock semaphore in the main program so that another loop can start
+ */
+			}
+			else{
+/*
+ * still some threads working, wait for them
+ * indicate this is waiting thread
+ */
+// 				printf(" I'm THERE\n");
+				while (*c->pcondpred == 0)
+					Pthread_cond_wait(c->pdcond, c->plock);
+			}
 
 
 //-------------------------------------------
@@ -205,7 +230,7 @@ void *Data_Threads(void *arg)
  * indicate this is the last thread
  */
 				*c->psync == 1;
-				*c->pcondpred = 0;
+// 				*c->pcondpred = 0;
 				Pthread_cond_broadcast(c->pdcond);
 				if(n_avail_loc_theads == 0)(*c->pcounter)--;
 				Sem_post(c->psem);  /* later it can be replaced by the same synchronization */
@@ -221,6 +246,8 @@ void *Data_Threads(void *arg)
 				while (*c->psync == 0)
 					Pthread_cond_wait(c->pdcond, c->plock);
 			}
+			
+			*c->pcondpred = 0;
 			
 			Pthread_mutex_unlock(c->plock);
 			

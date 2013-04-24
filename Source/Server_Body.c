@@ -160,25 +160,48 @@ printf(" Here 1\n");
 //  		*Data_Threads->condpred = 0;
 // 		
 		
-//-------------------------------------------
-// 			*Data_Threads->data_threads_remainth_counter = 0;
-			while (*Data_Threads->data_threads_remainth_counter < *Data_Threads->data_threads_availth_counter) { /* wait on 'condWaiting' until all active threads are waiting */
-				printf(" MAIN COUNTER Increased %d %d\n", *Data_Threads->data_threads_remainth_counter,  *Data_Threads->data_threads_availth_counter);
-				pthread_cond_wait(&Data_Threads->wait_cond, &Data_Threads->lock);
-				printf(" MAIN COUNTER AFTER Increased %d %d\n", *Data_Threads->data_threads_remainth_counter,  *Data_Threads->data_threads_availth_counter);
-			}
+// //-------------------------------------------
+ 			*Data_Threads->data_threads_remainth_counter = 0;
+// 			while (*Data_Threads->data_threads_remainth_counter < *Data_Threads->data_threads_availth_counter) { /* wait on 'condWaiting' until all active threads are waiting */
+// 				printf(" MAIN COUNTER Increased %d %d\n", *Data_Threads->data_threads_remainth_counter,  *Data_Threads->data_threads_availth_counter);
+// 				pthread_cond_wait(&Data_Threads->wait_cond, &Data_Threads->lock);
+// 				printf(" MAIN COUNTER AFTER Increased %d %d\n", *Data_Threads->data_threads_remainth_counter,  *Data_Threads->data_threads_availth_counter);
+// 			}
+// 
+// 			
+// 			
+// 			if (*Data_Threads->data_threads_availth_counter != 0) {
+// 				*Data_Threads->condpred = 1;
+// 				
+// 				*Data_Threads->data_threads_remainth_counter = *Data_Threads->data_threads_availth_counter;
+// 				
+// 				pthread_cond_broadcast(&Data_Threads->cond);
+// 			}
+// 			
+			 *Data_Threads->condpred = 0;
+// 			 (*Data_Threads->data_threads_remainth_counter)++;
 
-			
-			
-			if (*Data_Threads->data_threads_availth_counter != 0) {
-				*Data_Threads->condpred = 1;
-				
-				*Data_Threads->data_threads_remainth_counter = *Data_Threads->data_threads_availth_counter;
-				
-				pthread_cond_broadcast(&Data_Threads->cond);
+			if(*Data_Threads->data_threads_remainth_counter == *Data_Threads->data_threads_availth_counter){
+/* 	
+ * the last thread, broadcast
+ * indicate this is the last thread
+ */
+				printf(" Server I'm HEer\n");
+				*Data_Threads->condpred == 1;
+				Pthread_cond_broadcast(&Data_Threads->dcond);
+/* 
+ * unlock semaphore in the main program so that another loop can start
+ */
 			}
-			
-// 			 *Data_Threads->condpred = 0;
+			else{
+/*
+ * still some threads working, wait for them
+ * indicate this is waiting thread
+ */
+				printf(" Server I'm THERE\n");
+				while (*Data_Threads->condpred == 0)
+					Pthread_cond_wait(&Data_Threads->dcond, &Data_Threads->lock);
+			}
 
 // 
 //-------------------------------------------		
