@@ -40,6 +40,7 @@ printf(" TOTAL NUMBER OF THREADS IS %ld\n", *Data_Threads->data_threads_availth_
  * it is reset every iterational step
  */
 	*Data_Threads->data_threads_remainth_counter  = *Data_Threads->data_threads_availth_counter;
+	*Data_Threads->sync->nthreads  		      = *Data_Threads->data_threads_availth_counter;
 /*
  * wait for barrier, indicating all threads in Data_Thread were created
  * the _wait on this barrier is the second_wait call in Data_Thread for each thread and this is the last one
@@ -139,7 +140,10 @@ printf(" Here 1\n");
  * save name of data set from header, SM_Mode of the process and socket number to thread data structure
  */		
 		*Data_Threads->data_threads_remainth_counter = *Data_Threads->data_threads_availth_counter;	
-printf(" Here %d  %d 2\n", *Data_Threads->data_threads_remainth_counter, *Data_Threads->data_threads_availth_counter);
+printf(" Here 2 -- %d  %d\n", *Data_Threads->data_threads_remainth_counter, *Data_Threads->data_threads_availth_counter);
+
+		*Data_Threads->sync->nthreads  		      = *Data_Threads->data_threads_availth_counter + 1;
+
 		if( snprintf(Data_Threads->name_of_data_set, MAX_NAME_LENGTH,"%s",name_of_required_data_set) < 0)
 			Perror("snprintf");
 		*Data_Threads->SR_mode = *SR_mode;
@@ -150,7 +154,12 @@ printf(" Here %d  %d 2\n", *Data_Threads->data_threads_remainth_counter, *Data_T
  * once all necessary data are set, send signal to all threads to start unloc mutex
  * and release borrowed memory
  */
-		Pthread_cond_broadcast(&Data_Threads->cond);
+
+		printf(" Waiting for gate - MAIN \n");
+		pt_sync(Data_Threads->sync);
+		printf(" After gate - MAIN \n");
+
+// 		Pthread_cond_broadcast(&Data_Threads->cond);
 		
 printf(" Here 3\n");
 			
@@ -190,7 +199,18 @@ printf(" Here 6\n");
 		free(Data_Threads->data_threads_availth_counter);
 		free(Data_Threads->data_threads_remainth_counter);
 		free(Data_Threads->socket);
+		
+		free(Data_Threads->sync->nsync);
+		free(Data_Threads->sync->nthreads);
+		Pthread_mutex_destroy(&Data_Threads->sync->mutex);
+		Pthread_mutex_destroy(&Data_Threads->sync->block);
+		Pthread_cond_destroy(&Data_Threads->sync->condvar);
+		Pthread_cond_destroy(&Data_Threads->sync->last);
+		
 		free(Data_Threads->sync);
+		free(Data_Threads->sync_loc);
+
+	
 		free(Data_Threads);
 
 	

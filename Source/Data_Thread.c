@@ -53,12 +53,25 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 		Perror("Data_Thread: Data_Thread->data_threads_remainth_counter");
 	if( (Data_Thread->socket = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
 		Perror("Data_Thread: Data_Thread->socket");
-	if( (Data_Thread->sync = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
-		Perror("Data_Thread: Data_Thread->sync");
+	if( (Data_Thread->sync_loc = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
+		Perror("Data_Thread: Data_Thread->sync_loc");
 	if ( (Data_Thread->name_of_data_set  = (lmchar_t *)malloc(MAX_NAME_LENGTH* sizeof(lmchar_t))) == NULL)
 		Perror("Data_Thread: Data_Thread->name_of_data_set");	
 	if ( (Data_Thread->SR_mode  = (lmchar_t *)malloc(sizeof(lmchar_t))) == NULL)
 		Perror("Data_Thread: Data_Thread->SR_mode");	
+/*
+ * initialize sync 
+ */
+	if ( (Data_Thread->sync  = (pt_sync_t *)malloc(sizeof(pt_sync_t))) == NULL)
+		Perror("Data_Thread: Data_Thread->sync");
+	if ( (Data_Thread->sync->nsync  = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
+		Perror("Data_Thread: Data_Thread->sybc->nsync");	
+	if ( (Data_Thread->sync->nthreads  = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
+		Perror("Data_Thread: Data_Thread->sybc->nthreads");	
+	Pthread_mutex_init(&Data_Thread->sync->mutex);
+	Pthread_mutex_init(&Data_Thread->sync->block);
+	Pthread_cond_init(&Data_Thread->sync->condvar);
+	Pthread_cond_init(&Data_Thread->sync->last);
 	
 	*Data_Thread->data_threads_availth_counter = 0;
 	*Data_Thread->data_threads_remainth_counter = 0;
@@ -84,11 +97,20 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 		DataArgs->pcond 		= &Data_Thread->cond;	
 		DataArgs->pdcond 		= &Data_Thread->dcond;	
 		DataArgs->psocket    		=  Data_Thread->socket;	
-		DataArgs->psync    		=  Data_Thread->sync;	
+		DataArgs->psync_loc    		=  Data_Thread->sync_loc;	
 		DataArgs->pcounter    		=  Data_Thread->data_threads_availth_counter;
 		DataArgs->prcounter    		=  Data_Thread->data_threads_remainth_counter;
 		DataArgs->pname_of_data_set    	=  Data_Thread->name_of_data_set;
 		DataArgs->pSR_mode	    	=  Data_Thread->SR_mode;
+		
+		
+		DataArgs->psync 		= Data_Thread->sync;
+		DataArgs->psync->pnsync 	= Data_Thread->sync->nsync;
+		DataArgs->psync->pnthreads 	= Data_Thread->sync->nthreads;
+		DataArgs->psync->pmutex 	= &Data_Thread->sync->mutex;
+		DataArgs->psync->pblock		= &Data_Thread->sync->block;
+		DataArgs->psync->pcondvar	= &Data_Thread->sync->condvar;
+		DataArgs->psync->plast		= &Data_Thread->sync->last;
 /*
  * create thread
  */

@@ -25,6 +25,7 @@ extern void Sem_destroy(sem_t *);
 extern lmint_t Sem_getvalue(sem_t *);
 
 extern node_t *sender_identification(lmchar_t *, lmchar_t );
+extern void pt_sync(pt_sync_t *sync);
 
 // extern void Sync(lmint_t);
 

@@ -6,6 +6,18 @@
 #include <pthread.h>
 #include <semaphore.h>
 
+
+ typedef struct pt_sync{
+	lmint_t *nsync, *pnsync;            
+	lmint_t *nthreads, *pnthreads;           
+	pthread_mutex_t mutex, *pmutex;  
+	pthread_mutex_t block, *pblock;  
+	pthread_cond_t condvar, *pcondvar; 
+	pthread_cond_t last, *plast;    
+}pt_sync_t;
+
+
+
 typedef struct data_thread_args{
 	pthread_mutex_t   	*plock;	 	/* mutex */
 	pthread_barrier_t 	*pbarr;  	/* barrier */
@@ -13,9 +25,10 @@ typedef struct data_thread_args{
 	pthread_cond_t    	*pdcond;   	/* condition variable */
 	sem_t 		  	*psem;		/* semaphore */
 	node_t 			*Node;		/* libm3l node_t structure pointer */
- 	lmint_t  		*psocket, *psync; 		/* socket ID passed to data_Thread, message upon receiving it */
- 	lmsize_t		*pcounter, *prcounter;         	/* number of available threads, number of remaining threads = *pcounter - taken threads */
+	lmint_t  		*psocket, *psync_loc; 		/* socket ID passed to data_Thread, message upon receiving it */
+	lmsize_t		*pcounter, *prcounter;         	/* number of available threads, number of remaining threads = *pcounter - taken threads */
 	lmchar_t 		*pname_of_data_set, *pSR_mode;	/* stores data_set name which is then compared in data_thread and SM_mode */
+	pt_sync_t		*psync;
 }data_thread_args_t;
 
 
@@ -28,10 +41,11 @@ typedef struct data_thread_str{
 	sem_t 		 	sem;		/* semaphore */
 	
 	lmsize_t 		n_data_threads;              					/* number of thread in group data_threads */
- 	lmsize_t 		*data_threads_availth_counter, *data_threads_remainth_counter; 	/* number of available and free threads  */
+	lmsize_t 		*data_threads_availth_counter, *data_threads_remainth_counter; 	/* number of available and free threads  */
 	pthread_t 		*data_threads;              					/* thread ID of all threads in group data_threads */
 	lmchar_t 		*name_of_data_set, *SR_mode;					/* stores data_set name which is then compared in data_thread  and SM_moode*/
- 	lmint_t  		*socket, *sync; 					/* socket ID passed to data_Thread, message upon receiving it */
+	lmint_t  		*socket, *sync_loc; 					/* socket ID passed to data_Thread, message upon receiving it */
+	pt_sync_t		*sync;
 }data_thread_str_t;
 
 
@@ -43,7 +57,7 @@ typedef struct data_thread_str{
 
 
 typedef struct SR_thread_args{
- 	pthread_barrier_t 	*pbarr;  	/* barrier */
+	pthread_barrier_t 	*pbarr;  	/* barrier */
 	pthread_mutex_t   	*plock;		/* mutex */
 	pthread_mutex_t   	*plock_g;	/* mutex */
 	pthread_cond_t    	*pcond;   	/* condition variable */
@@ -54,7 +68,7 @@ typedef struct SR_thread_args{
 	lmint_t 		*psockfd, *pEofBuff, *psync;       	/* socket id, unique to every thread, can be in thread stack, End-ofbuffer signal */
 	lmchar_t 		*pSR_mode;      			/* threads mode - Sender(S), Receiver(R) */
 	lmsize_t  		*pthr_cntr;    				/* thread counter */
- 	lmsize_t 		*pcounter, *prcounter, *pngotten;  	/* number of available R_threads, number of remaining threads = *pcounter - taken threads 
+	lmsize_t 		*pcounter, *prcounter, *pngotten;  	/* number of available R_threads, number of remaining threads = *pcounter - taken threads 
 									length of buffer from TCP/IP */
 }SR_thread_args_t;
 
@@ -71,7 +85,7 @@ typedef struct SR_thread_str{
 	lmint_t  		*sockfd, *EofBuff, *sync;               /* socket id, unique to every thread, can be in thread stack , End-ofbuffer signal */
 	lmchar_t 		*SR_mode;              			/* threads mode - Sender(S), Receiver(R) */
 	lmsize_t  		*thr_cntr;            			/* thread counter */
- 	lmsize_t 		*R_availth_counter, *R_remainth_counter, *ngotten; /* number of available and free threads, length of buffer from TCP/IP   */
+	lmsize_t 		*R_availth_counter, *R_remainth_counter, *ngotten; /* number of available and free threads, length of buffer from TCP/IP   */
 }SR_thread_str_t;
 
 #endif

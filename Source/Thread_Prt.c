@@ -132,13 +132,20 @@ void *Data_Threads(void *arg)
 /*
  * if already went through do loop, wait here at sync point until all threads are here
  */
+			printf(" in DO - child \n");
+			
 			Pthread_mutex_lock(c->plock);
-			*c->psync == 0;
+			*c->psync_loc == 0;
 /*
  * wait for data sent by main thread
  */
-			while (*c->prcounter == 0)
-				Pthread_cond_wait(c->pcond, c->plock);
+// 			while (*c->prcounter == 0)
+// 				Pthread_cond_wait(c->pcond, c->plock);
+
+			printf(" Waiting for gate - child \n");
+			pt_sync(c->psync);
+			printf(" After gate - child \n");
+
  /* 
   * decrement counter of thread  which will check condition, used for syncing all threads before 
   * going back to caller function
@@ -167,7 +174,7 @@ void *Data_Threads(void *arg)
  * the last thread, broadcast
  * indicate this is the last thread
  */
-				*c->psync == 1;
+				*c->psync_loc == 1;
 				Pthread_cond_broadcast(c->pdcond);
 				if(n_avail_loc_theads == 0)(*c->pcounter)--;
 				Sem_post(c->psem);  /* later it can be replaced by the same synchronization */
@@ -180,7 +187,7 @@ void *Data_Threads(void *arg)
  * still some threads working, wait for them
  * indicate this is waiting thread
  */
-				while (*c->psync == 0)
+				while (*c->psync_loc == 0)
 					Pthread_cond_wait(c->pdcond, c->plock);
 			}
 			

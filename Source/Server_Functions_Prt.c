@@ -167,3 +167,53 @@ node_t *sender_identification(lmchar_t *Sender_data_set, lmchar_t RWmode)
 //                 will be able to return from the routine! */
 //         pthread_mutex_unlock(&sync_lock);
 // }
+
+
+
+void pt_sync(pt_sync_t *sync)
+{
+	if (*sync->pnthreads<2) return;           /* trivial case            */
+/*
+ * lock the block and mutex
+ */
+	Pthread_mutex_lock(sync->pblock);
+
+	Pthread_mutex_lock(sync->pmutex);
+/*
+ * find if the job is last or not
+ */
+	if (++(*sync->pnsync) < *sync->pnthreads) { /* are we the last one in? */
+/*
+ * no, unlock block and 
+ */
+	Pthread_mutex_unlock(sync->pblock);
+/*
+ * wait for condvar
+ */
+	Pthread_cond_wait(sync->pcondvar, sync->pmutex);
+
+	} 
+/*
+ * last process
+ */	else 
+  	{
+/*
+ * wake up all waiting processes
+ */
+	Pthread_cond_broadcast(sync->pcondvar);
+/* 
+ * got to sleep till they are all awake, then release block
+ */
+	Pthread_cond_wait(sync->plast,sync->pmutex);
+	Pthread_mutex_unlock(sync->pblock);
+	}
+/*
+ * if next to last one out, wake up the last one
+ */
+	if (--(*sync->pnsync)==1)
+		Pthread_cond_broadcast(sync->plast);
+/*
+ * release mutex
+ */
+	Pthread_mutex_unlock(sync->pmutex);
+}
