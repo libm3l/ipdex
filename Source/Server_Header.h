@@ -13,7 +13,7 @@ typedef struct data_thread_args{
 	pthread_cond_t    	*pdcond;   	/* condition variable */
 	sem_t 		  	*psem;		/* semaphore */
 	node_t 			*Node;		/* libm3l node_t structure pointer */
- 	lmint_t  		*psocket, *psync, *pcondpred; 		/* socket ID passed to data_Thread, message upon receiving it */
+ 	lmint_t  		*psocket, *psync; 		/* socket ID passed to data_Thread, message upon receiving it */
  	lmsize_t		*pcounter, *prcounter;         	/* number of available threads, number of remaining threads = *pcounter - taken threads */
 	lmchar_t 		*pname_of_data_set, *pSR_mode;	/* stores data_set name which is then compared in data_thread and SM_mode */
 }data_thread_args_t;
@@ -31,7 +31,7 @@ typedef struct data_thread_str{
  	lmsize_t 		*data_threads_availth_counter, *data_threads_remainth_counter; 	/* number of available and free threads  */
 	pthread_t 		*data_threads;              					/* thread ID of all threads in group data_threads */
 	lmchar_t 		*name_of_data_set, *SR_mode;					/* stores data_set name which is then compared in data_thread  and SM_moode*/
- 	lmint_t  		*socket, *sync, *condpred; 					/* socket ID passed to data_Thread, message upon receiving it */
+ 	lmint_t  		*socket, *sync; 					/* socket ID passed to data_Thread, message upon receiving it */
 }data_thread_str_t;
 
 

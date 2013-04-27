@@ -137,27 +137,13 @@ void *Data_Threads(void *arg)
 /*
  * wait for data sent by main thread
  */
-
-			printf("Waiting on condition  %d\n", *c->pcondpred);
-
 			while (*c->prcounter == 0)
-// 			while (*c->pcondpred == 0)
 				Pthread_cond_wait(c->pcond, c->plock);
-			
-			
-//-------------------------------------------
-
-// 			(*c->prcounter)--; 
-
-//-------------------------------------------
-			
-			
  /* 
   * decrement counter of thread  which will check condition, used for syncing all threads before 
   * going back to caller function
   */
 			(*c->prcounter)--; 
-			printf("After condition  %d\n", *c->pcondpred);
 
 			if(strncmp(c->pname_of_data_set,local_set_name, len) == 0){
 /*
