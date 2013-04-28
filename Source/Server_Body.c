@@ -40,7 +40,11 @@ printf(" TOTAL NUMBER OF THREADS IS %ld\n", *Data_Threads->data_threads_availth_
  * it is reset every iterational step
  */
 	*Data_Threads->data_threads_remainth_counter  = *Data_Threads->data_threads_availth_counter;
-	*Data_Threads->sync->nthreads  		      = *Data_Threads->data_threads_availth_counter;
+/*
+ * this counter is used in gate syncing data threads and server_body 
+ * at the beginning it should be set to number of threads + 1 (n_threads + 1 Server_Body)
+ */
+	*Data_Threads->sync->nthreads  		      = *Data_Threads->data_threads_availth_counter + 1;
 /*
  * wait for barrier, indicating all threads in Data_Thread were created
  * the _wait on this barrier is the second_wait call in Data_Thread for each thread and this is the last one
@@ -132,6 +136,8 @@ printf(" TOTAL NUMBER OF THREADS IS %ld\n", *Data_Threads->data_threads_availth_
 /*
  * loop over and send variable
  */
+printf(" Before IF cycle\n");
+
 		if(cycle > 0)
 			Pthread_mutex_lock(&Data_Threads->lock);
 printf(" Here 1\n");
@@ -143,6 +149,7 @@ printf(" Here 1\n");
 printf(" Here 2 -- %d  %d\n", *Data_Threads->data_threads_remainth_counter, *Data_Threads->data_threads_availth_counter);
 
 		*Data_Threads->sync->nthreads  		      = *Data_Threads->data_threads_availth_counter + 1;
+// 		*Data_Threads->sync->nsync  		      = 0;
 
 		if( snprintf(Data_Threads->name_of_data_set, MAX_NAME_LENGTH,"%s",name_of_required_data_set) < 0)
 			Perror("snprintf");
@@ -154,6 +161,7 @@ printf(" Here 2 -- %d  %d\n", *Data_Threads->data_threads_remainth_counter, *Dat
  * once all necessary data are set, send signal to all threads to start unloc mutex
  * and release borrowed memory
  */
+		Pthread_mutex_unlock(&Data_Threads->lock);
 
 		printf(" Waiting for gate - MAIN \n");
 		pt_sync(Data_Threads->sync);
@@ -163,7 +171,7 @@ printf(" Here 2 -- %d  %d\n", *Data_Threads->data_threads_remainth_counter, *Dat
 		
 printf(" Here 3\n");
 			
-		Pthread_mutex_unlock(&Data_Threads->lock);
+// 		Pthread_mutex_unlock(&Data_Threads->lock);
 printf(" Here 4\n");
 		
 		if( m3l_Umount(&RecNode) != 1)

@@ -75,6 +75,8 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 	
 	*Data_Thread->data_threads_availth_counter = 0;
 	*Data_Thread->data_threads_remainth_counter = 0;
+	*Data_Thread->sync->nsync = 0;
+	*Data_Thread->sync->nthreads = Data_Thread->n_data_threads + 1;	
 /*
  * initialize mutex, barrier and condition variable
  */

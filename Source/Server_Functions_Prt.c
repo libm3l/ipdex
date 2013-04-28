@@ -172,20 +172,30 @@ node_t *sender_identification(lmchar_t *Sender_data_set, lmchar_t RWmode)
 
 void pt_sync(pt_sync_t *sync)
 {
+	 printf(" In gate1111 %d  %d\n", *sync->pnsync , *sync->pnthreads);
+
 	if (*sync->pnthreads<2) return;           /* trivial case            */
 /*
  * lock the block and mutex
  */
+
+
+ printf(" In gate %d  %d\n", *sync->pnsync , *sync->pnthreads);
+
 	Pthread_mutex_lock(sync->pblock);
+// printf(" In gate 1\n");
 
 	Pthread_mutex_lock(sync->pmutex);
+// printf(" In gate2  %d  %d  \n", *sync->pnsync,  *sync->pnthreads);
 /*
- * find if the job is last or not
+ * find if the job is last or not  NOTE: *sync->pnsync has to be intialized to 0
  */
-	if (++(*sync->pnsync) < *sync->pnthreads) { /* are we the last one in? */
+	if (++(*sync->pnsync) < *sync->pnthreads) { 
 /*
  * no, unlock block and 
  */
+// printf(" In gate3\n");
+
 	Pthread_mutex_unlock(sync->pblock);
 /*
  * wait for condvar
@@ -197,9 +207,12 @@ void pt_sync(pt_sync_t *sync)
  * last process
  */	else 
   	{
+// 	printf(" In gate4\n");
+	
 /*
  * wake up all waiting processes
  */
+// 	*sync->pnsync = 0;
 	Pthread_cond_broadcast(sync->pcondvar);
 /* 
  * got to sleep till they are all awake, then release block

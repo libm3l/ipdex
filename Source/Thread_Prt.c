@@ -123,7 +123,7 @@ void *Data_Threads(void *arg)
 	
 	while(1){
 		
-		printf(" THREAD %s in while loop %d  %d\n", local_set_name, (*c->prcounter), (*c->pcounter));
+		printf(" THREAD %s in while loop %d  %d  %d\n", local_set_name, (*c->prcounter), (*c->pcounter), n_avail_loc_theads);
 		local_cntr = 0;
 /*
  * start identifying threads once identified, leave do loop
@@ -132,7 +132,9 @@ void *Data_Threads(void *arg)
 /*
  * if already went through do loop, wait here at sync point until all threads are here
  */
-			printf(" in DO - child \n");
+			printf(" Waiting for gate - child \n");
+			pt_sync(c->psync);
+			printf(" After gate - child \n");
 			
 			Pthread_mutex_lock(c->plock);
 			*c->psync_loc == 0;
@@ -141,10 +143,6 @@ void *Data_Threads(void *arg)
  */
 // 			while (*c->prcounter == 0)
 // 				Pthread_cond_wait(c->pcond, c->plock);
-
-			printf(" Waiting for gate - child \n");
-			pt_sync(c->psync);
-			printf(" After gate - child \n");
 
  /* 
   * decrement counter of thread  which will check condition, used for syncing all threads before 
@@ -192,6 +190,9 @@ void *Data_Threads(void *arg)
 			}
 			
 			Pthread_mutex_unlock(c->plock);	
+			
+			printf(" Unlocking semaphore \n");
+
 		
 		}while(n_avail_loc_theads != 0);  /* all connecting thread arrivied, ie. one Sender and n_rec_proc Receivers */
 
