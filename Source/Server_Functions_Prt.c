@@ -206,7 +206,7 @@ void pt_sync(pt_sync_t *sync)
 /*
  * wake up all waiting processes
  */
-	printf(" GATE - LAST\n");
+// 	printf(" GATE - LAST\n");
 	Pthread_cond_broadcast(sync->pcondvar);
 /* 
  * got to sleep till they are all awake, then release block
@@ -218,7 +218,7 @@ void pt_sync(pt_sync_t *sync)
  * if next to last one out, wake up the last one
  */
 	if (--(*sync->pnsync)==1){
-		printf(" GATE - NEXT TO LAST\n");
+// 		printf(" GATE - NEXT TO LAST\n");
 // 		Pthread_cond_broadcast(sync->plast);
  		Pthread_cond_signal(sync->plast);
 	}

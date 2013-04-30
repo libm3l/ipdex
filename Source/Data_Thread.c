@@ -33,7 +33,7 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 	if( (Data_Thread = (data_thread_str_t *)malloc(sizeof(data_thread_str_t))) == NULL)
 		Perror("Data_Thread: Data_Thread malloc");
 /*
- * found how many data sets - defines how many data_threads to do
+ * find how many data sets - defines how many data_threads to spawn
  */
 
 	if( (SFounds = m3l_Locate(Gnode, "/COMM_DEF/Data_Sets/Data_Set", "/*/*/*", (lmchar_t *)NULL)) != NULL){
@@ -76,7 +76,8 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 	if ( (Data_Thread->sync->nsync  = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
 		Perror("Data_Thread: Data_Thread->sybc->nsync");	
 	if ( (Data_Thread->sync->nthreads  = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
-		Perror("Data_Thread: Data_Thread->sybc->nthreads");	
+		Perror("Data_Thread: Data_Thread->sybc->nthreads");
+
 	Pthread_mutex_init(&Data_Thread->sync->mutex);
 	Pthread_mutex_init(&Data_Thread->sync->block);
 	Pthread_cond_init(&Data_Thread->sync->condvar);
@@ -87,9 +88,9 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
  * *Data_Thread->sync->nthreads will always be set to number of jobs the 
  * syncing points is required to sync
  */	
-	*Data_Thread->data_threads_availth_counter = 0;
+	*Data_Thread->data_threads_availth_counter  = 0;
 	*Data_Thread->data_threads_remainth_counter = 0;
-	*Data_Thread->sync->nsync = 0;
+	*Data_Thread->sync->nsync    = 0;
 	*Data_Thread->sync->nthreads = Data_Thread->n_data_threads + 1;	
 /*
  * initialize mutex, barrier and condition variable
@@ -106,12 +107,12 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 		if( (DataArgs = (data_thread_args_t *)malloc(sizeof(data_thread_args_t))) == NULL)
 			Perror("Data_Thread: DataArgs malloc");	
 		
-		DataArgs->Node  			= m3l_get_Found_node(SFounds, i);
-		DataArgs->plock 			= &Data_Thread->lock;	
+		DataArgs->Node  		= m3l_get_Found_node(SFounds, i);
+		DataArgs->plock 		= &Data_Thread->lock;	
 		DataArgs->psem 			= &Data_Thread->sem;	
-		DataArgs->pbarr 			= &Data_Thread->barr;	
-		DataArgs->pcond 			= &Data_Thread->cond;	
-		DataArgs->pdcond 			= &Data_Thread->dcond;	
+		DataArgs->pbarr 		= &Data_Thread->barr;	
+		DataArgs->pcond 		= &Data_Thread->cond;	
+		DataArgs->pdcond 		= &Data_Thread->dcond;	
 		DataArgs->psocket    		=  Data_Thread->socket;	
 		DataArgs->psync_loc    		=  Data_Thread->sync_loc;	
 		DataArgs->pcounter    		=  Data_Thread->data_threads_availth_counter;
@@ -120,8 +121,8 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 		DataArgs->pSR_mode	    	=  Data_Thread->SR_mode;
 		
 		
-		DataArgs->psync 			= Data_Thread->sync;
-		DataArgs->psync->pnsync 		= Data_Thread->sync->nsync;
+		DataArgs->psync 		= Data_Thread->sync;
+		DataArgs->psync->pnsync 	= Data_Thread->sync->nsync;
 		DataArgs->psync->pnthreads 	= Data_Thread->sync->nthreads;
 		DataArgs->psync->pmutex 	= &Data_Thread->sync->mutex;
 		DataArgs->psync->pblock		= &Data_Thread->sync->block;

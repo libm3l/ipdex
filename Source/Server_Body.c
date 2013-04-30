@@ -147,14 +147,14 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * Once the data transfer is finished, add the data thread to the pool of available data threads
  * (ie. increment  (*Data_Threads->data_threads_availth_counter)++)
  */
-printf(" Before IF cycle\n");
+// printf(" Before IF cycle\n");
 
 /*
  * if already in cycle, you need to lock mutex here
  */
 		if(cycle > 0)
 			Pthread_mutex_lock(&Data_Threads->lock);
-printf(" Here 1\n");
+// printf(" Here 1\n");
 /*
  * set number of tested threads to number of available threads
  * save name of data set from header, SM_Mode of the process and socket number to thread data structure
@@ -178,7 +178,7 @@ printf(" Here 1\n");
  */
 
 		*Data_Threads->data_threads_remainth_counter = *Data_Threads->data_threads_availth_counter;	
-printf(" Here 2 -- %d  %d\n", *Data_Threads->data_threads_remainth_counter, *Data_Threads->data_threads_availth_counter);
+// printf(" Here 2 -- %d  %d\n", *Data_Threads->data_threads_remainth_counter, *Data_Threads->data_threads_availth_counter);
 
 		*Data_Threads->sync->nthreads  		      = *Data_Threads->data_threads_availth_counter + 1;
 
@@ -187,7 +187,7 @@ printf(" Here 2 -- %d  %d\n", *Data_Threads->data_threads_remainth_counter, *Dat
 		*Data_Threads->SR_mode = *SR_mode;
 		*Data_Threads->socket = newsockfd;
 			
- 		printf(" Before Broadcasting SOCKET number is %d   %c\n", *Data_Threads->socket, *Data_Threads->SR_mode);
+//  		printf(" Before Broadcasting SOCKET number is %d   %c\n", *Data_Threads->socket, *Data_Threads->SR_mode);
 
 
 		Pthread_mutex_unlock(&Data_Threads->lock);
@@ -195,27 +195,27 @@ printf(" Here 2 -- %d  %d\n", *Data_Threads->data_threads_remainth_counter, *Dat
  * once all necessary data are set, send signal to all threads to start unloc mutex
  * and release borrowed memory
  */
-		printf(" Waiting for gate - MAIN \n");
+// 		printf(" Waiting for gate - MAIN \n");
 		pt_sync(Data_Threads->sync);
-		printf(" After gate - MAIN \n");
+// 		printf(" After gate - MAIN \n");
 
 // 		Pthread_cond_broadcast(&Data_Threads->cond);
 		
-printf(" Here 3\n");
+// printf(" Here 3\n");
 			
 // 		Pthread_mutex_unlock(&Data_Threads->lock);
-printf(" Here 4\n");
+// printf(" Here 4\n");
 		
 		if( m3l_Umount(&RecNode) != 1)
 			Perror("m3l_Umount");
-printf(" Here 5\n");
+// printf(" Here 5\n");
 
 /* 
  * when all Data_Thread are finished, - the identification part, the threads are waiting on each other. 
  * the last thread unlock the semaphore so that the next loop can start
  */		
 		Sem_wait(&Data_Threads->sem);
-printf(" Here 6\n");
+// printf(" Here 6\n");
 
 		cycle = 1;
 

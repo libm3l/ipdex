@@ -100,6 +100,7 @@ void *Data_Threads(void *arg)
  * all ST_threads were spawend
  */
 	Sem_wait(&SR_Threads->sem_g);
+	Sem_destroy(&SR_Threads->sem_g);
 /* 
  * set the counter 0
  * this counter will be used by each SR_Thread to get the values of the socket and SR_mode
@@ -132,17 +133,12 @@ void *Data_Threads(void *arg)
 /*
  * if already went through do loop, wait here at sync point until all threads are here
  */
-			printf(" Waiting for gate - child \n");
+// 			printf(" Waiting for gate - child \n");
 			pt_sync(c->psync);
-			printf(" After gate - child \n");
+// 			printf(" After gate - child \n");
 			
 			Pthread_mutex_lock(c->plock);
 			*c->psync_loc == 0;
-
-			if(*c->pcounter > 3) {
-				printf("EXITTING       \n");
-			exit;
-			}
 /*
  * wait for data sent by main thread
  */
@@ -196,7 +192,7 @@ void *Data_Threads(void *arg)
 			
 			Pthread_mutex_unlock(c->plock);	
 			
-			printf(" Unlocking semaphore \n");
+// 			printf(" Unlocking semaphore \n");
 
 		
 		}while(n_avail_loc_theads != 0);  /* all connecting thread arrivied, ie. one Sender and n_rec_proc Receivers */
@@ -215,7 +211,6 @@ void *Data_Threads(void *arg)
 
 
 		Pthread_mutex_lock(c->plock);	
-// 			(*c->pcounter)--;
 			*SR_Threads->R_availth_counter = n_rec_proc+1;
 		Pthread_mutex_unlock(c->plock);
 
@@ -239,9 +234,8 @@ void *Data_Threads(void *arg)
 // 		Sem_wait(&SR_Threads->sem_g);
 // 		printf("TEST_... TRANFER FINISHED\n\n\n");
 
-/*		n_avail_loc_theads = n_rec_proc + 1;*/
+		n_avail_loc_theads = n_rec_proc + 1;
 		Pthread_mutex_lock(c->plock);
-			n_avail_loc_theads = n_rec_proc + 1;
 			(*c->pcounter)++;
 /*
  * if all threads were occupied, ie *Data_Threads->data_threads_availth_counter == *c->pcounter == 0
@@ -249,7 +243,8 @@ void *Data_Threads(void *arg)
  * this is done in Server_Bodcy before syncing with data threads
  * If this happens, signal Server_Body data_thread is avaiable 
  */
-			if(*c->pcounter == 1)Pthread_cond_signal(c->pcond);
+			if(*c->pcounter == 1)
+				Pthread_cond_signal(c->pcond);
 
 		Pthread_mutex_unlock(c->plock);
 /* 
@@ -261,7 +256,7 @@ void *Data_Threads(void *arg)
 		}
 	
 	
-	printf(" Leaving WHILE \n");
+// 	printf(" Leaving WHILE \n");
 	
 	
 /*
@@ -272,12 +267,8 @@ void *Data_Threads(void *arg)
 				Error(" Joining thread failed");
 				
 		Pthread_mutex_destroy(&SR_Threads->lock);
-		Pthread_mutex_destroy(&SR_Threads->lock_g);
   		Pthread_barrier_destroy(&SR_Threads->barr);
-		Pthread_cond_destroy(&SR_Threads->cond);
 		Pthread_cond_destroy(&SR_Threads->dcond);
-		Pthread_cond_destroy(&SR_Threads->cond_g);
- 		Sem_destroy(&SR_Threads->sem_g);
  		Sem_destroy(&SR_Threads->sem);
 		
 		free(SR_Threads->data_threads);
@@ -290,14 +281,23 @@ void *Data_Threads(void *arg)
 		free(SR_Threads->ngotten);
 		free(SR_Threads->EofBuff);
 		free(SR_Threads->sync);
+		
+		free(SR_Threads->sync_loc->nsync);
+		free(SR_Threads->sync_loc->nthreads);
+		Pthread_mutex_destroy(&SR_Threads->sync_loc->mutex);
+		Pthread_mutex_destroy(&SR_Threads->sync_loc->block);
+		Pthread_cond_destroy(&SR_Threads->sync_loc->condvar);
+		Pthread_cond_destroy(&SR_Threads->sync_loc->last);
+		free(SR_Threads->sync_loc);
+		
+		
 		free(SR_Threads);
 
 /*
  * release borrowed memory, malloced before starting thread in Data_Thread()
  */
 	free(c);
-		
- 	return NULL;
-		free(SR_Threads->ngotten);
-		Pthread_cond_destroy(&SR_Threads->dcond);
+
+	return NULL;
+
 }

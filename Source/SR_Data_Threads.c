@@ -26,28 +26,28 @@ void *SR_Data_Threads(void *arg)
 
 // 		printf(" HERE \n");
 /*
- * wait until all RSR_Data_Threads are started and 
- * Thread_Prt filled initial value of prcounter
+ * wait until all requests (all Receiver + Sender) for a particular data_set arrived 
  */
-			Pthread_barrier_wait(c->pbarr);
+		Pthread_barrier_wait(c->pbarr);
 
 // 		printf(" HERE 01\n");
 		
-		Pthread_mutex_lock(c->plock_g);
-		while (*c->pcounter == 0)
-			Pthread_cond_wait(c->pcond_g, c->plock_g);
-		Pthread_mutex_unlock(c->plock_g);
+// 		Pthread_mutex_lock(c->plock_g);
+// 		while (*c->pcounter == 0)
+// 			Pthread_cond_wait(c->pcond_g, c->plock_g);
+// 		Pthread_mutex_unlock(c->plock_g);
 
 // 		printf(" HERE 02\n");
-
+/*
+ * get SR_mode and socket number of each connected processes
+ * protext by mutex
+ */
 		Pthread_mutex_lock(c->plock);
 
 // 		printf(" HERE1 cntr is %d\n",  *c->pthr_cntr);
 			
 			SR_mode =  c->pSR_mode[*c->pthr_cntr];
 			sockfd  =  c->psockfd[*c->pthr_cntr];
-
-//  			*c->pthr_cntr = *c->pthr_cntr + 1;
  			(*c->pthr_cntr)++; 
 
 // 		printf("job socket %d, mode %c\n", sockfd,  SR_mode);
@@ -65,22 +65,28 @@ void *SR_Data_Threads(void *arg)
  * thread reads the data from buffer and send over TCP/IP to client
  */
 			do{
-				Pthread_mutex_lock(c->plock);
-				*c->psync == 0;
+// 				Pthread_mutex_lock(c->plock);
+// 				*c->psync == 0;
 /*
- * wait for data sent by main thread
+ * wait for data sent by main thread  NOTE - gate here, possible deadlock
  */
-				while (*c->prcounter == 0)
-					Pthread_cond_wait(c->pcond, c->plock);
+// 				while (*c->prcounter == 0)
+// 					Pthread_cond_wait(c->pcond, c->plock);
+/*
+ * gate syncing all threads
+ */
+				pt_sync(c->psync_loc);
 				
-// 					printf(" READER after cond_wait \n");
-
-				(*c->prcounter)--;
+// 					printf(" READER after cond_wait \n");				
 				
 				if ( (n = Write(sockfd,c->pbuffer, *c->pngotten)) < *c->pngotten)
 					Perror("write()");
 
 // 				printf(" RECEIVER SENT DATA  %d\n ", *c->prcounter);
+
+				Pthread_mutex_lock(c->plock);
+				(*c->prcounter)--;
+				*c->psync == 0;
 				
 				if(*c->prcounter == 0){
 /* 	
@@ -165,9 +171,15 @@ void *SR_Data_Threads(void *arg)
  * then unlock mutex and wait for semaphore
  */			
 // 		printf(" Sender  BROADCAST \n");
-				Pthread_cond_broadcast(c->pcond);
-// 		printf(" Sender  UNLOCK \n");
+// 				Pthread_cond_broadcast(c->pcond);  //  NOTE - gate here, possible deadlock
+
+			// NOTE GATE
+
 				Pthread_mutex_unlock(c->plock);
+				pt_sync(c->psync_loc);
+
+
+// 		printf(" Sender  UNLOCK \n");
 // 		printf(" Sender  WAIT \n");
 				Sem_wait(c->psem);
 // 		printf(" Sender  after WAIT \n");

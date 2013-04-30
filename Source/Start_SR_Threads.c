@@ -45,19 +45,32 @@ SR_thread_str_t *Start_SR_Threads(lmint_t n_threads){
  * initialize mutex, barrier and condition variable
  */
 	Pthread_mutex_init(&SR_Data_Thread->lock);
-	Pthread_mutex_init(&SR_Data_Thread->lock_g);
-	Pthread_cond_init(&SR_Data_Thread->cond);
-	Pthread_cond_init(&SR_Data_Thread->cond_g);
 	Pthread_cond_init(&SR_Data_Thread->dcond);
 /* 
  * initialize barrier, the coutner should be the same as number of R_threads, will be used to sync all R_threads 
  */
  	Pthread_barrier_init(&SR_Data_Thread->barr,  n_threads+1);
+	
 	Sem_init(&SR_Data_Thread->sem, 0);
 	Sem_init(&SR_Data_Thread->sem_g, 0); 
 
 	*SR_Data_Thread->R_remainth_counter = 0;
 	*SR_Data_Thread->R_availth_counter = 0;
+/*
+ * initialize sync data structure
+ */
+	if ( (SR_Data_Thread->sync_loc  = (pt_sync_t *)malloc(sizeof(pt_sync_t))) == NULL)
+		Perror("Data_Thread: Data_Thread->sync");
+	if ( (SR_Data_Thread->sync_loc->nsync  = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
+		Perror("Data_Thread: Data_Thread->sybc->nsync");	
+	if ( (SR_Data_Thread->sync_loc->nthreads  = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
+		Perror("Data_Thread: Data_Thread->sybc->nthreads");
+	Pthread_mutex_init(&SR_Data_Thread->sync_loc->mutex);
+	Pthread_mutex_init(&SR_Data_Thread->sync_loc->block);
+	Pthread_cond_init(&SR_Data_Thread->sync_loc->condvar);
+	Pthread_cond_init(&SR_Data_Thread->sync_loc->last);
+	*SR_Data_Thread->sync_loc->nsync    = 0;
+	*SR_Data_Thread->sync_loc->nthreads = n_threads+1;	
 /*
  * spawn threads
  */	
@@ -66,11 +79,8 @@ SR_thread_str_t *Start_SR_Threads(lmint_t n_threads){
 			Perror("Start_SR_Threads: SR_DataArgs malloc");	
 
 		SR_DataArgs->plock 		= &SR_Data_Thread->lock;	
-		SR_DataArgs->plock_g 		= &SR_Data_Thread->lock_g;
 		SR_DataArgs->psem 		= &SR_Data_Thread->sem;
 		SR_DataArgs->psem_g 		= &SR_Data_Thread->sem_g;
-		SR_DataArgs->pcond 		= &SR_Data_Thread->cond;	
-		SR_DataArgs->pcond_g 		= &SR_Data_Thread->cond_g;
 		SR_DataArgs->pdcond 		= &SR_Data_Thread->dcond;
 		SR_DataArgs->pbarr	 	= &SR_Data_Thread->barr;
 		SR_DataArgs->pSR_mode 		= SR_Data_Thread->SR_mode;
@@ -82,6 +92,14 @@ SR_thread_str_t *Start_SR_Threads(lmint_t n_threads){
 		SR_DataArgs->pngotten		= SR_Data_Thread->ngotten;
 		SR_DataArgs->pEofBuff		= SR_Data_Thread->EofBuff;
 		SR_DataArgs->psync		= SR_Data_Thread->sync;
+		
+		SR_DataArgs->psync_loc 		= SR_Data_Thread->sync_loc;
+		SR_DataArgs->psync_loc->pnsync 	= SR_Data_Thread->sync_loc->nsync;
+		SR_DataArgs->psync_loc->pnthreads= SR_Data_Thread->sync_loc->nthreads;
+		SR_DataArgs->psync_loc->pmutex 	= &SR_Data_Thread->sync_loc->mutex;
+		SR_DataArgs->psync_loc->pblock	= &SR_Data_Thread->sync_loc->block;
+		SR_DataArgs->psync_loc->pcondvar= &SR_Data_Thread->sync_loc->condvar;
+		SR_DataArgs->psync_loc->plast	= &SR_Data_Thread->sync_loc->last;
 /*
  * create thread
  */
