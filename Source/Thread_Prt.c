@@ -138,6 +138,11 @@ void *Data_Threads(void *arg)
 			
 			Pthread_mutex_lock(c->plock);
 			*c->psync_loc == 0;
+
+			if(*c->pcounter > 3) {
+				printf("EXITTING       \n");
+			exit;
+			}
 /*
  * wait for data sent by main thread
  */
@@ -148,7 +153,7 @@ void *Data_Threads(void *arg)
   * decrement counter of thread  which will check condition, used for syncing all threads before 
   * going back to caller function
   */
-			(*c->prcounter)--; 
+			(*c->prcounter)--;
 
 			if(strncmp(c->pname_of_data_set,local_set_name, len) == 0){
 /*
@@ -238,6 +243,14 @@ void *Data_Threads(void *arg)
 		Pthread_mutex_lock(c->plock);
 			n_avail_loc_theads = n_rec_proc + 1;
 			(*c->pcounter)++;
+/*
+ * if all threads were occupied, ie *Data_Threads->data_threads_availth_counter == *c->pcounter == 0
+ * the server is waiting for signal before the proceeding with data process identification. 
+ * this is done in Server_Bodcy before syncing with data threads
+ * If this happens, signal Server_Body data_thread is avaiable 
+ */
+			if(*c->pcounter == 1)Pthread_cond_signal(c->pcond);
+
 		Pthread_mutex_unlock(c->plock);
 /* 
  * set the counter 0

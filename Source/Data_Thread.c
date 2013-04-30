@@ -7,6 +7,15 @@
 #include "Server_Functions_Prt.h"
 
 data_thread_str_t *Data_Thread(node_t *Gnode){
+/*
+ * function spawns data_threads
+ * the number of threads is defined by the number of data sets to be transferred
+ * each data_thread then spawns additional n-threads which take care of communication
+ * where 1 thread is Sender and n-1 threads are Receivers
+ * 
+ * Allocated data set in this function are freed when threads are finished (ie. satement free(c) in Thread_Prt.c) 
+ * and the main data structure is freed in function invoking this function (ie. Serve_Body.c)
+ */
 
 	lmsize_t i;
 	lmint_t pth_err;
@@ -72,7 +81,12 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 	Pthread_mutex_init(&Data_Thread->sync->block);
 	Pthread_cond_init(&Data_Thread->sync->condvar);
 	Pthread_cond_init(&Data_Thread->sync->last);
-	
+/*
+ * plus the values of the syncing - ie. nsync = 0 and nthreads = n_data_threads + 1
+ * during the run, the *Data_Thread->sync->nsync should not be never reset
+ * *Data_Thread->sync->nthreads will always be set to number of jobs the 
+ * syncing points is required to sync
+ */	
 	*Data_Thread->data_threads_availth_counter = 0;
 	*Data_Thread->data_threads_remainth_counter = 0;
 	*Data_Thread->sync->nsync = 0;
@@ -92,22 +106,22 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 		if( (DataArgs = (data_thread_args_t *)malloc(sizeof(data_thread_args_t))) == NULL)
 			Perror("Data_Thread: DataArgs malloc");	
 		
-		DataArgs->Node  		= m3l_get_Found_node(SFounds, i);
-		DataArgs->plock 		= &Data_Thread->lock;	
+		DataArgs->Node  			= m3l_get_Found_node(SFounds, i);
+		DataArgs->plock 			= &Data_Thread->lock;	
 		DataArgs->psem 			= &Data_Thread->sem;	
-		DataArgs->pbarr 		= &Data_Thread->barr;	
-		DataArgs->pcond 		= &Data_Thread->cond;	
-		DataArgs->pdcond 		= &Data_Thread->dcond;	
+		DataArgs->pbarr 			= &Data_Thread->barr;	
+		DataArgs->pcond 			= &Data_Thread->cond;	
+		DataArgs->pdcond 			= &Data_Thread->dcond;	
 		DataArgs->psocket    		=  Data_Thread->socket;	
 		DataArgs->psync_loc    		=  Data_Thread->sync_loc;	
 		DataArgs->pcounter    		=  Data_Thread->data_threads_availth_counter;
 		DataArgs->prcounter    		=  Data_Thread->data_threads_remainth_counter;
-		DataArgs->pname_of_data_set    	=  Data_Thread->name_of_data_set;
+		DataArgs->pname_of_data_set   	=  Data_Thread->name_of_data_set;
 		DataArgs->pSR_mode	    	=  Data_Thread->SR_mode;
 		
 		
-		DataArgs->psync 		= Data_Thread->sync;
-		DataArgs->psync->pnsync 	= Data_Thread->sync->nsync;
+		DataArgs->psync 			= Data_Thread->sync;
+		DataArgs->psync->pnsync 		= Data_Thread->sync->nsync;
 		DataArgs->psync->pnthreads 	= Data_Thread->sync->nthreads;
 		DataArgs->psync->pmutex 	= &Data_Thread->sync->mutex;
 		DataArgs->psync->pblock		= &Data_Thread->sync->block;
@@ -125,8 +139,7 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 
 		while ( ( pth_err = pthread_create(&Data_Thread->data_threads[i], NULL, &Data_Threads,  DataArgs)) != 0 && errno == EAGAIN);
 		if(pth_err != 0)
-		Perror("pthread_create()"); 
-
+			Perror("pthread_create()");
 /*
  * create a node
  */

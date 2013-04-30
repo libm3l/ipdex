@@ -3,7 +3,7 @@
 #include "Data_Thread.h"
 #include "Server_Functions_Prt.h"
 #include "Server_Body.h"
-
+#include "arpa/inet.h"
 
 lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	
@@ -15,7 +15,9 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	
 	socklen_t clilen;
 	find_t *SFounds;
-	node_t *RecNode, *List;
+	node_t *RecNode, *List, *DataBuffer;
+
+	char str[100];
 	
 	cycle=0;
 /*
@@ -24,6 +26,10 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	if(  (Data_Threads = Data_Thread(Gnode)) == NULL)
 		Perror("Server_Body: Data_Threads error");
 /*
+ * allocate buffer for received data sets
+ */
+// 	if( (DataBuffer = Allocate_DataBuffer(Gnode)
+/*
  * fill the initial data to data_thread_str before threads start
  */	
 	Pthread_mutex_lock(&Data_Threads->lock);
@@ -31,8 +37,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * set the counter to number of available threads
  */
 	*Data_Threads->data_threads_availth_counter  =  Data_Threads->n_data_threads;
-	
-printf(" TOTAL NUMBER OF THREADS IS %ld\n", *Data_Threads->data_threads_availth_counter);
 /*
  * at the beginning the coutner of remainign threads is equal to 
  * number of available threads
@@ -68,9 +72,12 @@ printf(" TOTAL NUMBER OF THREADS IS %ld\n", *Data_Threads->data_threads_availth_
 			else
 				Perror("accept()");
 		}
-/*
- * NOTE - here new synchronizer with Threads
- */
+
+// 		inet_ntop(AF_INET, &(cli_addr.sin_addr), str, INET_ADDRSTRLEN);
+//    		printf("	CONNECTION --------------------   : %s:%d\n",str, ntohs(cli_addr.sin_port)); 
+
+
+// 	exit(0);
 /*
  * receive header with solver and data set information
  */
@@ -132,12 +139,19 @@ printf(" TOTAL NUMBER OF THREADS IS %ld\n", *Data_Threads->data_threads_availth_
 		{
 			printf("Server_Body: Receiving_Processes not found\n");
 		}
-		
 /*
- * loop over and send variable
+ * loop over - identify thread correspoding to required data thread.
+ * this thread spanws n SR threads (1 Sending thread and n-1 Reading threads) which take care of data transfer,
+ * so once the data_thread is identified n-times, the thread is taken away from 
+ * pool of available data threads (ie. decrement  (*Data_Threads->data_threads_availth_counter)--)
+ * Once the data transfer is finished, add the data thread to the pool of available data threads
+ * (ie. increment  (*Data_Threads->data_threads_availth_counter)++)
  */
 printf(" Before IF cycle\n");
 
+/*
+ * if already in cycle, you need to lock mutex here
+ */
 		if(cycle > 0)
 			Pthread_mutex_lock(&Data_Threads->lock);
 printf(" Here 1\n");
@@ -145,11 +159,28 @@ printf(" Here 1\n");
  * set number of tested threads to number of available threads
  * save name of data set from header, SM_Mode of the process and socket number to thread data structure
  */		
+/*
+ * if no data threads are available, wait until at least one of them is available
+ * this can happen when all threads are occupied with transferrign the data
+ */
+		if(*Data_Threads->data_threads_availth_counter == 0){
+			while(*Data_Threads->data_threads_availth_counter == 0)
+				Pthread_cond_wait(&Data_Threads->cond, &Data_Threads->lock);
+		}
+/*
+ * at least one data thread is availble:
+ *  -  set number of remainign data threads equalt to available data threads
+ *  (this values is used for syncig, ie. one the data thread is checked the coutner is decremented
+ * -  set number of syncing threads to number of available threads + 1 (this is used to sync all processes - both this process and 
+ * data threads are synced so that they all start at one point, Server_Body waits until all data threads arraive at syncing point before signaling 
+ * them to analyze the data
+ * - set data_set name, SR_Mode and socket number so that data_thread processes can start identification
+ */
+
 		*Data_Threads->data_threads_remainth_counter = *Data_Threads->data_threads_availth_counter;	
 printf(" Here 2 -- %d  %d\n", *Data_Threads->data_threads_remainth_counter, *Data_Threads->data_threads_availth_counter);
 
 		*Data_Threads->sync->nthreads  		      = *Data_Threads->data_threads_availth_counter + 1;
-// 		*Data_Threads->sync->nsync  		      = 0;
 
 		if( snprintf(Data_Threads->name_of_data_set, MAX_NAME_LENGTH,"%s",name_of_required_data_set) < 0)
 			Perror("snprintf");
@@ -157,12 +188,13 @@ printf(" Here 2 -- %d  %d\n", *Data_Threads->data_threads_remainth_counter, *Dat
 		*Data_Threads->socket = newsockfd;
 			
  		printf(" Before Broadcasting SOCKET number is %d   %c\n", *Data_Threads->socket, *Data_Threads->SR_mode);
+
+
+		Pthread_mutex_unlock(&Data_Threads->lock);
 /*
  * once all necessary data are set, send signal to all threads to start unloc mutex
  * and release borrowed memory
  */
-		Pthread_mutex_unlock(&Data_Threads->lock);
-
 		printf(" Waiting for gate - MAIN \n");
 		pt_sync(Data_Threads->sync);
 		printf(" After gate - MAIN \n");
