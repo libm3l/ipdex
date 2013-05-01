@@ -12,7 +12,7 @@ void *SR_Data_Threads(void *arg)
 	SR_thread_args_t *c = (SR_thread_args_t *)arg;
 
 	lmchar_t SR_mode, prevbuff[EOBlen+1];
-	lmint_t sockfd, eofbuffcond, start;
+	lmint_t sockfd, eofbuffcond;
 	lmsize_t n;
 /*
  * wait for signal broadcast
@@ -27,6 +27,7 @@ void *SR_Data_Threads(void *arg)
 // 		printf(" HERE \n");
 /*
  * wait until all requests (all Receiver + Sender) for a particular data_set arrived 
+ * the last invoking of Pthread_barrier_wait is done in Thread_Prt.c
  */
 		Pthread_barrier_wait(c->pbarr);
 
@@ -55,8 +56,6 @@ void *SR_Data_Threads(void *arg)
 // 		printf("PTHR counter is %d \n", *c->pthr_cntr);
 
 		Pthread_mutex_unlock(c->plock);
-// 
- 		start = 0;
 
 		if(SR_mode == 'R'){
 
@@ -113,8 +112,6 @@ void *SR_Data_Threads(void *arg)
 // 				printf(" REDER after syncing %d\n", *c->pEofBuff );
 			
 				Pthread_mutex_unlock(c->plock);
-
-				start++;
 
 			}while(*c->pEofBuff != 0);
 /*
@@ -186,7 +183,6 @@ void *SR_Data_Threads(void *arg)
 /*
  * if end of buffer reached, leave do cycle
  */
-			start++;
 			}while(eofbuffcond != 1);
 
 // 		printf(" SENDER leaving while\n");
@@ -216,13 +212,11 @@ lmssize_t Write(lmint_t sockfd,  lmchar_t *buffer, lmsize_t size){
 /*
  * write buffer to socket
  */
-
 	lmssize_t total, n;	
 	total = 0;
 	lmchar_t *buff;
 
 	buff = buffer;
-
 
 // 	printf(" WRITE %d  '%s'\n", sockfd, buff);
 	
@@ -232,9 +226,9 @@ lmssize_t Write(lmint_t sockfd,  lmchar_t *buffer, lmsize_t size){
 			if (errno == EINTR) continue;
 			return (total == 0) ? -1 : total;
 		}
- 		buff += n;
+ 		buff  += n;
 		total += n;
-		size -= n;
+		size  -= n;
 	}
 /*
  * buffer was sent, nullify it
