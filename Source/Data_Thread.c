@@ -64,6 +64,8 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 		Perror("Data_Thread: Data_Thread->socket");
 	if( (Data_Thread->sync_loc = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
 		Perror("Data_Thread: Data_Thread->sync_loc");
+	if( (Data_Thread->retval = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
+		Perror("Data_Thread: Data_Thread->retval");
 	if ( (Data_Thread->name_of_data_set  = (lmchar_t *)malloc(MAX_NAME_LENGTH* sizeof(lmchar_t))) == NULL)
 		Perror("Data_Thread: Data_Thread->name_of_data_set");	
 	if ( (Data_Thread->SR_mode  = (lmchar_t *)malloc(sizeof(lmchar_t))) == NULL)
@@ -114,6 +116,7 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 		DataArgs->pcond 		= &Data_Thread->cond;	
 		DataArgs->pdcond 		= &Data_Thread->dcond;	
 		DataArgs->psocket    		=  Data_Thread->socket;	
+		DataArgs->pretval    		=  Data_Thread->retval;	
 		DataArgs->psync_loc    		=  Data_Thread->sync_loc;	
 		DataArgs->pcounter    		=  Data_Thread->data_threads_availth_counter;
 		DataArgs->prcounter    		=  Data_Thread->data_threads_remainth_counter;

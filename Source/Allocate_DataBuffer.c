@@ -10,9 +10,9 @@ node_t *Allocate_DataBuffer(node_t *Gnode){
  * information about transfered data sets and number of threads 
  * each data set is going to be accessed by
  */
-	lmsize_t i, n_data_threads;
-	find_t *SFounds;
-	node_t *RetNode;
+	lmsize_t i, n_data_threads, *dim;
+	find_t *SFounds=NULL;
+	node_t *BuffNode=NULL, *TmpNode=NULL;
 	
 	if(Gnode == NULL){
 		Warning("Data_Thread: NULL Gnode");
@@ -38,24 +38,41 @@ node_t *Allocate_DataBuffer(node_t *Gnode){
 /*
  * make buffer structure
  */
+	if(  (BuffNode = m3l_Mklist("Buffer", "DIR", 0, 0, (node_t **)NULL, (const char *)NULL, (const char *)NULL, (char *)NULL)) == 0)
+		Perror("m3l_Mklist");
 
-// 	size_t *dim;
-// 	
-// 	if(  (Gnode = m3l_Mklist("Answer", "DIR", 0, 0, (node_t **)NULL, (const char *)NULL, (const char *)NULL, (char *)NULL)) == 0)
-// 		Perror("m3l_Mklist");
-// 	
-// 	dim = (size_t *) malloc( 1* sizeof(size_t));
-// 	dim[0] = strlen(answer)+1;
-// 	
-// 	if(  (TmpNode = m3l_Mklist("ANSWER", "C", 1, dim, &Gnode, "/Answer", "./", "--no_malloc", (char *)NULL)) == 0)
-// 		Error("m3l_Mklist");
-// 	TmpNode->data.c = answer;
-// 	
-// 	free(dim);
+	dim = (size_t *) malloc( 1* sizeof(lmsize_t));
+	dim[0] = 1;
+
+	if(  (TmpNode = m3l_Mklist("N_data_sets", "ST", 1, dim, &BuffNode, "/Buffer", "./", (char *)NULL)) == 0)
+		Error("m3l_Mklist");
+	TmpNode->data.st[0] = n_data_threads;
+	
+	if(  (TmpNode = m3l_Mklist("Buff_Status", "I", 1, dim, &BuffNode, "/Buffer", "./", (char *)NULL))  == 0)
+		Error("m3l_Mklist");
+	TmpNode->data.i[0] = 0;
+	
+	free(dim);
+
 
 	for(i=0; i < n_data_threads; i++){
-
+		
+		TmpNode = m3l_get_Found_node(SFounds, i);
+		
+// 		if(m3l_Cat(TmpNode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
+// 			Error("CatData");
+		
+		m3l_Mv(&TmpNode,  "./Data_Set", "./*", &BuffNode, "/Buffer", "/*", (lmchar_t *)NULL); 		
 	}
+	
+	
+			if(m3l_Cat(BuffNode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
+			Error("CatData");
+		/*	if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
+			Error("CatData");*/	
 
-	return RetNode;
+	m3l_DestroyFound(&SFounds);
+// 	exit(0);
+	
+	return BuffNode;
 }

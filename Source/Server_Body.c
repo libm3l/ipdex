@@ -4,6 +4,7 @@
 #include "Server_Functions_Prt.h"
 #include "Server_Body.h"
 #include "arpa/inet.h"
+#include "Allocate_DataBuffer.h"
 
 lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	
@@ -26,9 +27,10 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	if(  (Data_Threads = Data_Thread(Gnode)) == NULL)
 		Perror("Server_Body: Data_Threads error");
 /*
- * allocate buffer for received data sets
+ * create buffer structure for buffering recevied data requests if needed
  */
-// 	if( (DataBuffer = Allocate_DataBuffer(Gnode)
+	if( (DataBuffer = Allocate_DataBuffer(Gnode)) == NULL)
+		Error("Buffering problem");
 /*
  * fill the initial data to data_thread_str before threads start
  */	
@@ -49,6 +51,10 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * at the beginning it should be set to number of threads + 1 (n_threads + 1 Server_Body)
  */
 	*Data_Threads->sync->nthreads  		      = *Data_Threads->data_threads_availth_counter + 1;
+/*
+ * set return value to 0
+ */
+	*Data_Threads->retval = 0;
 /*
  * wait for barrier, indicating all threads in Data_Thread were created
  * the _wait on this barrier is the second_wait call in Data_Thread for each thread and this is the last one
@@ -76,8 +82,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 // 		inet_ntop(AF_INET, &(cli_addr.sin_addr), str, INET_ADDRSTRLEN);
 //    		printf("	CONNECTION --------------------   : %s:%d\n",str, ntohs(cli_addr.sin_port)); 
 
-
-// 	exit(0);
 /*
  * receive header with solver and data set information
  */
@@ -124,7 +128,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 				
 				if(*SR_mode == 'S'){
 /*
- * if process is sender, indicate Sender header was received before receiving payload
+ * if process is sender, indicate Sender that header was received before receiving payload
  * - not needed if process is Receiver
  */
 					if( m3l_Send_to_tcpipsocket(NULL, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754", "--SEOB",  (char *)NULL) < 1)
@@ -147,7 +151,12 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * Once the data transfer is finished, add the data thread to the pool of available data threads
  * (ie. increment  (*Data_Threads->data_threads_availth_counter)++)
  */
-// printf(" Before IF cycle\n");
+
+// NOTE - invoke buffer check 
+// add do while loop
+
+
+// 		do{ check entire buffer
 
 /*
  * if already in cycle, you need to lock mutex here
@@ -175,20 +184,20 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * data threads are synced so that they all start at one point, Server_Body waits until all data threads arraive at syncing point before signaling 
  * them to analyze the data
  * - set data_set name, SR_Mode and socket number so that data_thread processes can start identification
+ * - set the return value to 0, once the thread is identified, the value is set to 1
  */
-
 		*Data_Threads->data_threads_remainth_counter = *Data_Threads->data_threads_availth_counter;	
 // printf(" Here 2 -- %d  %d\n", *Data_Threads->data_threads_remainth_counter, *Data_Threads->data_threads_availth_counter);
 
 		*Data_Threads->sync->nthreads  		      = *Data_Threads->data_threads_availth_counter + 1;
-
+		*Data_Threads->retval = 0;
+		
 		if( snprintf(Data_Threads->name_of_data_set, MAX_NAME_LENGTH,"%s",name_of_required_data_set) < 0)
 			Perror("snprintf");
 		*Data_Threads->SR_mode = *SR_mode;
-		*Data_Threads->socket = newsockfd;
-			
-//  		printf(" Before Broadcasting SOCKET number is %d   %c\n", *Data_Threads->socket, *Data_Threads->SR_mode);
+		*Data_Threads->socket  = newsockfd;
 
+//  		printf(" Before Broadcasting SOCKET number is %d   %c\n", *Data_Threads->socket, *Data_Threads->SR_mode);
 
 		Pthread_mutex_unlock(&Data_Threads->lock);
 /*
@@ -205,10 +214,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			
 // 		Pthread_mutex_unlock(&Data_Threads->lock);
 // printf(" Here 4\n");
-		
-		if( m3l_Umount(&RecNode) != 1)
-			Perror("m3l_Umount");
-// printf(" Here 5\n");
 
 /* 
  * when all Data_Thread are finished, - the identification part, the threads are waiting on each other. 
@@ -217,42 +222,58 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 		Sem_wait(&Data_Threads->sem);
 // printf(" Here 6\n");
 
+		if(*Data_Threads->retval ==1){
+/*
+ * data set was identified
+ */
+			if( m3l_Umount(&RecNode) != 1)
+				Perror("m3l_Umount");
+		}
+		else{
+			Error("Server_Body: Not valid data set ");
+		}
+		
 		cycle = 1;
+/*
+ * upon finishing first do loop. the RecNode (received data set request) was checked, loop over the buffer and check 
+ * sets which are temporarily stored there
+ */
+
+// 		}while(still not checked entire buffer)
 
 	}      /* end of while(1) */
 /*
  * join threads and release memmory
  */
-		for(i=0; i< Data_Threads->n_data_threads; i++)
-			if( pthread_join(Data_Threads->data_threads[i], NULL) != 0)
-				Error(" Joining thread failed");
+	for(i=0; i< Data_Threads->n_data_threads; i++)
+		if( pthread_join(Data_Threads->data_threads[i], NULL) != 0)
+			Error(" Joining thread failed");
 				
-		Pthread_mutex_destroy(&Data_Threads->lock);
-		Pthread_barrier_destroy(&Data_Threads->barr);
-		Pthread_cond_destroy(&Data_Threads->cond);
-		Pthread_cond_destroy(&Data_Threads->dcond);
-		Sem_destroy(&Data_Threads->sem);
-		
-		free(Data_Threads->data_threads);
-		free(Data_Threads->name_of_data_set);
-		free(Data_Threads->SR_mode);
-		free(Data_Threads->data_threads_availth_counter);
-		free(Data_Threads->data_threads_remainth_counter);
-		free(Data_Threads->socket);
-		
-		free(Data_Threads->sync->nsync);
-		free(Data_Threads->sync->nthreads);
-		Pthread_mutex_destroy(&Data_Threads->sync->mutex);
-		Pthread_mutex_destroy(&Data_Threads->sync->block);
-		Pthread_cond_destroy(&Data_Threads->sync->condvar);
-		Pthread_cond_destroy(&Data_Threads->sync->last);
-		
-		free(Data_Threads->sync);
-		free(Data_Threads->sync_loc);
-
+	Pthread_mutex_destroy(&Data_Threads->lock);
+	Pthread_barrier_destroy(&Data_Threads->barr);
+	Pthread_cond_destroy(&Data_Threads->cond);
+	Pthread_cond_destroy(&Data_Threads->dcond);
+	Sem_destroy(&Data_Threads->sem);
 	
-		free(Data_Threads);
-
+	free(Data_Threads->data_threads);
+	free(Data_Threads->name_of_data_set);
+	free(Data_Threads->SR_mode);
+	free(Data_Threads->data_threads_availth_counter);
+	free(Data_Threads->data_threads_remainth_counter);
+	free(Data_Threads->socket);
+	free(Data_Threads->retval);
 	
+	free(Data_Threads->sync->nsync);
+	free(Data_Threads->sync->nthreads);
+	Pthread_mutex_destroy(&Data_Threads->sync->mutex);
+	Pthread_mutex_destroy(&Data_Threads->sync->block);
+	Pthread_cond_destroy(&Data_Threads->sync->condvar);
+	Pthread_cond_destroy(&Data_Threads->sync->last);
+	
+	free(Data_Threads->sync);
+	free(Data_Threads->sync_loc);
+
+	free(Data_Threads);
+
 	return 1;
 }

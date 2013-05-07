@@ -12,7 +12,7 @@ void *Data_Threads(void *arg)
 	lmint_t local_cntr;
 	node_t *List;
 	
-	lmsize_t len, *data_rec_proc, n_rec_proc, n_avail_loc_theads, i;
+	lmsize_t len, len1, *data_rec_proc, n_rec_proc, n_avail_loc_theads, i;
 	
 	lmchar_t *data_set_name, local_set_name[MAX_NAME_LENGTH];
 	find_t *SFounds;
@@ -151,19 +151,26 @@ void *Data_Threads(void *arg)
   */
 			(*c->prcounter)--;
 
-			if(strncmp(c->pname_of_data_set,local_set_name, len) == 0){
+			if(*c->pretval == 0){
+/* 
+ * if the data thread was not identified yet
+ */
+				len1 = strlen(c->pname_of_data_set);
+				if(len1 == len && strncmp(c->pname_of_data_set,local_set_name, len) == 0){
 /*
- * save socket number and mode of the jobe (S, R) and increase increment
+ * save socket number and mode of the jobe (S, R), increase increment and set return value to 1
  */				
-				SR_Threads->sockfd[local_cntr]	= *c->psocket;
-				SR_Threads->SR_mode[local_cntr] = *c->pSR_mode;
-				local_cntr++;
+					SR_Threads->sockfd[local_cntr]	= *c->psocket;
+					SR_Threads->SR_mode[local_cntr] = *c->pSR_mode;
+					local_cntr++;
+					*c->pretval = 1;
 /* 
  * when the thread is positively identified, decrement counter of available thread for next round of identification, 
  * once n_avail_loc_theads == 0 all SR threads arrived, leave do - while loop and decrement (*c->pcounter)--
  * ie. next arriving threads will not use this thread because it is alrady used
  */
-				n_avail_loc_theads--;
+					n_avail_loc_theads--;
+				}
 			}
 /*
  * synchronized all threads at the end, the last thread will broadcast

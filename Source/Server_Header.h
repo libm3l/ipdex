@@ -25,7 +25,7 @@ typedef struct data_thread_args{
 	pthread_cond_t    	*pdcond;   	/* condition variable */
 	sem_t 		  	*psem;		/* semaphore */
 	node_t 			*Node;		/* libm3l node_t structure pointer */
-	lmint_t  		*psocket, *psync_loc; 		/* socket ID passed to data_Thread, message upon receiving it */
+	lmint_t  		*psocket, *psync_loc, *pretval; /* socket ID passed to data_Thread, message upon receiving it, sync variable, return value */
 	lmsize_t		*pcounter, *prcounter;         	/* number of available threads, number of remaining threads = *pcounter - taken threads */
 	lmchar_t 		*pname_of_data_set, *pSR_mode;	/* stores data_set name which is then compared in data_thread and SM_mode */
 	pt_sync_t		*psync;
@@ -44,7 +44,7 @@ typedef struct data_thread_str{
 	lmsize_t 		*data_threads_availth_counter, *data_threads_remainth_counter; 	/* number of available and free threads  */
 	pthread_t 		*data_threads;              					/* thread ID of all threads in group data_threads */
 	lmchar_t 		*name_of_data_set, *SR_mode;					/* stores data_set name which is then compared in data_thread  and SM_moode*/
-	lmint_t  		*socket, *sync_loc; 					/* socket ID passed to data_Thread, message upon receiving it */
+	lmint_t  		*socket, *sync_loc, *retval; 					/* socket ID passed to data_Thread, message upon receiving it */
 	pt_sync_t		*sync;
 }data_thread_str_t;
 
@@ -84,5 +84,18 @@ typedef struct SR_thread_str{
 	lmsize_t 		*R_availth_counter, *R_remainth_counter, *ngotten; /* number of available and free threads, length of buffer from TCP/IP   */
 	pt_sync_t		*sync_loc;
 }SR_thread_str_t;
+
+
+
+typedef struct attr_buff_str{
+	lmchar_t SR_mode;
+	lmint_t socketnr;
+}attr_buff_str_t; 
+
+typedef struct buff_str{
+	lmchar_t name_of_required_data_set[MAX_NAME_LENGTH];
+	attr_buff_str_t *process_data;
+	lmint_t NR, TR, TS;  /* number of Receiving processes, number of taken processes, number of taken senders (TS can be either 0 or 1) */
+}buff_str_t;
 
 #endif
