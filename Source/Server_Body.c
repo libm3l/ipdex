@@ -5,6 +5,7 @@
 #include "Server_Body.h"
 #include "arpa/inet.h"
 #include "Allocate_DataBuffer.h"
+#include "Check_Request.h"
 
 lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	
@@ -90,9 +91,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 		
 		if(m3l_Cat(RecNode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
 			Error("CatData");
-		
-//  		if( m3l_Send_to_tcpipsocket(NULL, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754", "--SEOB",  (char *)NULL) < 1)
-//  					Error("Error during reading data from socket");
 /* 
  * find Name_of_Data_Set
  */
@@ -125,15 +123,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 					Error("NULThread_Prt: Missing S_mode");
 			
 				SR_mode = (lmchar_t *)m3l_get_data_pointer(List);
-				
-				if(*SR_mode == 'S'){
-/*
- * if process is sender, indicate Sender that header was received before receiving payload
- * - not needed if process is Receiver
- */
-					if( m3l_Send_to_tcpipsocket(NULL, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754", "--SEOB",  (char *)NULL) < 1)
-						Error("Error during reading data from socket");
-				}
 /* 
  * free memory allocated in m3l_Locate
  */
@@ -142,6 +131,15 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 		else
 		{
 			printf("Server_Body: Receiving_Processes not found\n");
+		}
+		
+		if(*SR_mode == 'S'){
+/*
+ * if process is sender, indicate Sender that header was received before receiving payload
+ * - not needed if process is Receiver
+ */
+			if( m3l_Send_to_tcpipsocket(NULL, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754", "--SEOB",  (char *)NULL) < 1)
+				Error("Error during reading data from socket");
 		}
 /*
  * loop over - identify thread correspoding to required data thread.
@@ -152,9 +150,24 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * (ie. increment  (*Data_Threads->data_threads_availth_counter)++)
  */
 
-// NOTE - invoke buffer check 
-// add do while loop
+// NOTE - invoke buffer check 	
+	
+// 	Check_Request(DataBuffer, RecNode, name_of_required_data_set, SR_mode, name_of_required_data_set);
 
+		switch ( Check_Request(DataBuffer, RecNode, name_of_required_data_set, SR_mode, name_of_required_data_set)) {
+
+			case 0:            /* Legal request, not in buffer, data_thread available */
+			break;
+			
+			case 1:            /* Legal request, not in buffer, data_thread not available */
+			break;
+
+			case -1:            /* Legal request, already in buffer */
+				printf(" Too many request from a client - Disregarding\n");
+			break;
+
+		}
+		
 
 // 		do{ check entire buffer
 
@@ -170,7 +183,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  */		
 /*
  * if no data threads are available, wait until at least one of them is available
- * this can happen when all threads are occupied with transferrign the data
+ * this can happen when all threads are occupied with transferring the data
  */
 		if(*Data_Threads->data_threads_availth_counter == 0){
 			while(*Data_Threads->data_threads_availth_counter == 0)
@@ -222,7 +235,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 		Sem_wait(&Data_Threads->sem);
 // printf(" Here 6\n");
 
-		if(*Data_Threads->retval ==1){
+		if(*Data_Threads->retval == 1){
 /*
  * data set was identified
  */
@@ -230,7 +243,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 				Perror("m3l_Umount");
 		}
 		else{
-			Error("Server_Body: Not valid data set ");
+			Error("Server_Body: Not valid data set");
 		}
 		
 		cycle = 1;
