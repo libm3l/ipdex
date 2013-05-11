@@ -10,16 +10,16 @@ void *Data_Threads(void *arg)
 {
 	data_thread_args_t *c = (data_thread_args_t *)arg;
 	lmint_t local_cntr;
-	node_t *List;
+	node_t *List, *TmpNode;
 	
 	lmsize_t len, len1, *data_rec_proc, n_rec_proc, n_avail_loc_theads, i;
 	
 	lmchar_t *data_set_name, local_set_name[MAX_NAME_LENGTH];
-	find_t *SFounds;
+	find_t *SFounds, *THRStat_SFounds;
 	
 	pthread_t  MyThreadID;
 	
-	lmint_t ii;
+	lmint_t ii, *Thread_Status;
 	
 	SR_thread_str_t *SR_Threads;
 /*
@@ -28,9 +28,9 @@ void *Data_Threads(void *arg)
 	MyThreadID = pthread_self();
 	
 	Pthread_mutex_lock(c->plock);
-// 		printf("\n\n In THREAD %lu\n\n", MyThreadID);
-// 		if(m3l_Cat(c->Node, "--all", "-L", "-P", "*",   (lmchar_t *)NULL) != 0)
-// 			Warning("CatData");
+		printf("\n\n In THREAD %lu\n\n", MyThreadID);
+		if(m3l_Cat(c->Node, "--all", "-L", "-P", "*",   (lmchar_t *)NULL) != 0)
+			Warning("CatData");
 /*
  * find name of data set
  * if it does not exist or more then one data set is found, give error message
@@ -134,6 +134,7 @@ void *Data_Threads(void *arg)
  * if already went through do loop, wait here at sync point until all threads are here
  */
 // 			printf(" Waiting for gate - child \n");
+		
 			pt_sync(c->psync);
 // 			printf(" After gate - child \n");
 			
@@ -204,7 +205,6 @@ void *Data_Threads(void *arg)
 		
 		}while(n_avail_loc_theads != 0);  /* all connecting thread arrivied, ie. one Sender and n_rec_proc Receivers */
 
-		
 		printf(" -------------------------------   Thread %lu named as '%s' received its SOCKET\n", MyThreadID , local_set_name);
 		printf("                                   Thread name is '%s' SM_mode is '%c'\n", c->pname_of_data_set, *c->pSR_mode);
 /*
@@ -219,6 +219,22 @@ void *Data_Threads(void *arg)
 
 		Pthread_mutex_lock(c->plock);	
 			*SR_Threads->R_availth_counter = n_rec_proc+1;
+/*
+ * set Thread_Status to 1
+ * 
+ */
+			if( (THRStat_SFounds = m3l_Locate(c->Node, "./Data_Set/Thread_Status", "/*/*", (lmchar_t *)NULL)) == NULL){
+				printf("Thread_Status: did not find any Thread_Status\n");
+				m3l_DestroyFound(&THRStat_SFounds);
+				exit(0);
+			}
+		
+			TmpNode = m3l_get_Found_node(THRStat_SFounds, 0);
+			Thread_Status = (lmint_t *)m3l_get_data_pointer(TmpNode);
+			*Thread_Status = 1;
+			
+			printf(" Status of the JOB is %d\n", *Thread_Status);
+			
 		Pthread_mutex_unlock(c->plock);
 
 
@@ -243,6 +259,13 @@ void *Data_Threads(void *arg)
 
 		n_avail_loc_theads = n_rec_proc + 1;
 		Pthread_mutex_lock(c->plock);
+/*
+ * release thread, ie. set Thread_Status = 0
+ */
+			*Thread_Status = 0;
+			printf(" Status of the JOB is %d\n", *Thread_Status);
+	 		m3l_DestroyFound(&THRStat_SFounds);
+		
 			(*c->pcounter)++;
 /*
  * if all threads were occupied, ie *Data_Threads->data_threads_availth_counter == *c->pcounter == 0

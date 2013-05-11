@@ -23,18 +23,20 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	
 	cycle=0;
 /*
- * spawn all threads
- */
-	if(  (Data_Threads = Data_Thread(Gnode)) == NULL)
-		Perror("Server_Body: Data_Threads error");
-/*
  * create buffer structure for buffering recevied data requests if needed
  */
+
 	if( (DataBuffer = Allocate_DataBuffer(Gnode)) == NULL)
 		Error("Buffering problem");
 /*
+ * spawn all threads
+ */
+// 	if(  (Data_Threads = Data_Thread(Gnode, DataBuffer)) == NULL)
+	if(  (Data_Threads = Data_Thread(DataBuffer)) == NULL)
+		Perror("Server_Body: Data_Threads error");
+/*
  * fill the initial data to data_thread_str before threads start
- */	
+ */
 	Pthread_mutex_lock(&Data_Threads->lock);
 /*
  * set the counter to number of available threads
@@ -153,7 +155,14 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 // NOTE - invoke buffer check 	
 	
 // 	Check_Request(DataBuffer, RecNode, name_of_required_data_set, SR_mode, name_of_required_data_set);
+// 		do{ check entire buffer
 
+/*
+ * if already in cycle, you need to lock mutex here
+ */
+		if(cycle > 0)
+			Pthread_mutex_lock(&Data_Threads->lock);
+		
 		switch ( Check_Request(DataBuffer, RecNode, name_of_required_data_set, SR_mode, name_of_required_data_set)) {
 
 			case 0:            /* Legal request, not in buffer, data_thread available */
@@ -167,15 +176,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			break;
 
 		}
-		
-
-// 		do{ check entire buffer
-
-/*
- * if already in cycle, you need to lock mutex here
- */
-		if(cycle > 0)
-			Pthread_mutex_lock(&Data_Threads->lock);
 // printf(" Here 1\n");
 /*
  * set number of tested threads to number of available threads
@@ -190,7 +190,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 				Pthread_cond_wait(&Data_Threads->cond, &Data_Threads->lock);
 		}
 /*
- * at least one data thread is availble:
+ * at least one data thread is available:
  *  -  set number of remainign data threads equalt to available data threads
  *  (this values is used for syncig, ie. one the data thread is checked the coutner is decremented
  * -  set number of syncing threads to number of available threads + 1 (this is used to sync all processes - both this process and 
@@ -287,6 +287,10 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	free(Data_Threads->sync_loc);
 
 	free(Data_Threads);
+	
+	if(m3l_Umount(&DataBuffer) != 1)
+		Perror("m3l_Umount DataBuffer");
+
 
 	return 1;
 }
