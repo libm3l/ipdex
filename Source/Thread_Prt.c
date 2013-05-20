@@ -269,9 +269,9 @@ void *Data_Threads(void *arg)
 			(*c->pcounter)++;
 /*
  * if all threads were occupied, ie *Data_Threads->data_threads_availth_counter == *c->pcounter == 0
- * the server is waiting for signal before the proceeding with data process identification. 
- * this is done in Server_Bodcy before syncing with data threads
- * If this happens, signal Server_Body data_thread is avaiable 
+ * the server is waiting for signal before the continuing with data process identification. 
+ * This is done in Server_Body before syncing with data threads
+ * If this happens, signal Server_Body that at least one data_thread is avaiable 
  */
 			if(*c->pcounter == 1)
 				Pthread_cond_signal(c->pcond);

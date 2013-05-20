@@ -10,13 +10,13 @@
 lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	
 	lmsize_t i, len;
-	lmint_t sockfd, newsockfd, cycle;
+	lmint_t sockfd, newsockfd, cycle, recnode_cyc;
 	struct sockaddr_in cli_addr;
 	data_thread_str_t *Data_Threads;
 	lmchar_t *name_of_required_data_set, *SR_mode;
 	
 	socklen_t clilen;
-	find_t *SFounds;
+	find_t *SFounds, *Tqst_SFounds;
 	node_t *RecNode, *List, *DataBuffer;
 
 	char str[100];
@@ -25,7 +25,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 /*
  * create buffer structure for buffering recevied data requests if needed
  */
-
 	if( (DataBuffer = Allocate_DataBuffer(Gnode)) == NULL)
 		Error("Buffering problem");
 /*
@@ -143,6 +142,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			if( m3l_Send_to_tcpipsocket(NULL, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754", "--SEOB",  (char *)NULL) < 1)
 				Error("Error during reading data from socket");
 		}
+		recnode_cyc = 0;
 /*
  * loop over - identify thread correspoding to required data thread.
  * this thread spanws n SR threads (1 Sending thread and n-1 Reading threads) which take care of data transfer,
@@ -152,10 +152,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * (ie. increment  (*Data_Threads->data_threads_availth_counter)++)
  */
 
-// NOTE - invoke buffer check 	
-	
-// 	Check_Request(DataBuffer, RecNode, name_of_required_data_set, SR_mode, name_of_required_data_set);
-// 		do{ check entire buffer
 
 /*
  * if already in cycle, you need to lock mutex here
@@ -163,19 +159,9 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 		if(cycle > 0)
 			Pthread_mutex_lock(&Data_Threads->lock);
 		
-		switch ( Check_Request(DataBuffer, RecNode, name_of_required_data_set, SR_mode, name_of_required_data_set)) {
+		switch ( Check_Request(DataBuffer, RecNode, name_of_required_data_set, SR_mode, name_of_required_data_set, 0)) {
+		case 0:            /* Legal request, not in buffer, data_thread available */
 
-			case 0:            /* Legal request, not in buffer, data_thread available */
-			break;
-			
-			case 1:            /* Legal request, not in buffer, data_thread not available */
-			break;
-
-			case -1:            /* Legal request, already in buffer */
-				printf(" Too many request from a client - Disregarding\n");
-			break;
-
-		}
 // printf(" Here 1\n");
 /*
  * set number of tested threads to number of available threads
@@ -185,10 +171,10 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * if no data threads are available, wait until at least one of them is available
  * this can happen when all threads are occupied with transferring the data
  */
-		if(*Data_Threads->data_threads_availth_counter == 0){
-			while(*Data_Threads->data_threads_availth_counter == 0)
-				Pthread_cond_wait(&Data_Threads->cond, &Data_Threads->lock);
-		}
+			if(*Data_Threads->data_threads_availth_counter == 0){
+				while(*Data_Threads->data_threads_availth_counter == 0)
+					Pthread_cond_wait(&Data_Threads->cond, &Data_Threads->lock);
+			}
 /*
  * at least one data thread is available:
  *  -  set number of remainign data threads equalt to available data threads
@@ -199,26 +185,26 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * - set data_set name, SR_Mode and socket number so that data_thread processes can start identification
  * - set the return value to 0, once the thread is identified, the value is set to 1
  */
-		*Data_Threads->data_threads_remainth_counter = *Data_Threads->data_threads_availth_counter;	
+			*Data_Threads->data_threads_remainth_counter = *Data_Threads->data_threads_availth_counter;	
 // printf(" Here 2 -- %d  %d\n", *Data_Threads->data_threads_remainth_counter, *Data_Threads->data_threads_availth_counter);
 
-		*Data_Threads->sync->nthreads  		      = *Data_Threads->data_threads_availth_counter + 1;
-		*Data_Threads->retval = 0;
-		
-		if( snprintf(Data_Threads->name_of_data_set, MAX_NAME_LENGTH,"%s",name_of_required_data_set) < 0)
-			Perror("snprintf");
-		*Data_Threads->SR_mode = *SR_mode;
-		*Data_Threads->socket  = newsockfd;
+			*Data_Threads->sync->nthreads  		      = *Data_Threads->data_threads_availth_counter + 1;
+			*Data_Threads->retval = 0;
+			
+			if( snprintf(Data_Threads->name_of_data_set, MAX_NAME_LENGTH,"%s",name_of_required_data_set) < 0)
+				Perror("snprintf");
+			*Data_Threads->SR_mode = *SR_mode;
+			*Data_Threads->socket  = newsockfd;
 
 //  		printf(" Before Broadcasting SOCKET number is %d   %c\n", *Data_Threads->socket, *Data_Threads->SR_mode);
 
-		Pthread_mutex_unlock(&Data_Threads->lock);
+			Pthread_mutex_unlock(&Data_Threads->lock);
 /*
  * once all necessary data are set, send signal to all threads to start unloc mutex
  * and release borrowed memory
  */
 // 		printf(" Waiting for gate - MAIN \n");
-		pt_sync(Data_Threads->sync);
+			pt_sync(Data_Threads->sync);
 // 		printf(" After gate - MAIN \n");
 
 // 		Pthread_cond_broadcast(&Data_Threads->cond);
@@ -232,25 +218,40 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * when all Data_Thread are finished, - the identification part, the threads are waiting on each other. 
  * the last thread unlock the semaphore so that the next loop can start
  */		
-		Sem_wait(&Data_Threads->sem);
+			Sem_wait(&Data_Threads->sem);
 // printf(" Here 6\n");
 
-		if(*Data_Threads->retval == 1){
+			if(*Data_Threads->retval == 1){
 /*
  * data set was identified
  */
-			if( m3l_Umount(&RecNode) != 1)
-				Perror("m3l_Umount");
-		}
-		else{
-			Error("Server_Body: Not valid data set");
+				if( m3l_Umount(&RecNode) != 1)
+					Perror("m3l_Umount");
+			}
+			else{
+				Error("Server_Body: Not valid data set");
+			}
+			
+		break;
+
+		case -1:            /* Legal request, already in buffer */
+			printf(" Too many request from a client - Disregarding\n");
+		break;
+
 		}
 		
 		cycle = 1;
 /*
- * upon finishing first do loop. the RecNode (received data set request) was checked, loop over the buffer and check 
- * sets which are temporarily stored there
+ * if the loop is done for the first time since receiving request from socket
+ * the RecNode (received data set request) was checked. 
+ * Loop over the buffer and check sets which are temporarily stored there
  */
+
+		if( recnode_cyc == 0) /* locate buffered requests */
+			
+			
+			
+		recnode_cyc = 1;
 
 // 		}while(still not checked entire buffer)
 
