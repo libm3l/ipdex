@@ -166,9 +166,8 @@ find_t *find_Queued_Reqst(node_t *DataBuffer){
 /*
  * find Queued_Reqst 
  */
-	if( (Tqst_SFounds = m3l_Locate(DataBuffer, "/Buffer/Queued_Reqst/Header", "/*/*/*", (lmchar_t *)NULL)) == NULL){
-		printf("Server: did not find any /Buffer/Queued_Reqst/Header\n");
-		exit(0);
-	}
+	if( (Tqst_SFounds = m3l_Locate(DataBuffer, "/Buffer/Queued_Reqst/Header", "/*/*/*", (lmchar_t *)NULL)) == NULL)
+		return (find_t *)NULL;
+	
 	return Tqst_SFounds;
 }
