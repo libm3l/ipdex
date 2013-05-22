@@ -139,7 +139,7 @@ void *Data_Threads(void *arg)
 // 			printf(" After gate - child \n");
 			
 			Pthread_mutex_lock(c->plock);
-			*c->psync_loc == 0;
+			*c->psync_loc = 0;
 /*
  * wait for data sent by main thread
  */
@@ -181,10 +181,11 @@ void *Data_Threads(void *arg)
  * the last thread, broadcast
  * indicate this is the last thread
  */
-				*c->psync_loc == 1;
+				*c->psync_loc = 1;
 				Pthread_cond_broadcast(c->pdcond);
 				if(n_avail_loc_theads == 0)(*c->pcounter)--;
 				Sem_post(c->psem);  /* later it can be replaced by the same synchronization */
+				*c->psync_loc = 0;
 /* 
  * unlock semaphore in the main program so that another loop can start
  */
@@ -200,7 +201,7 @@ void *Data_Threads(void *arg)
 			
 			Pthread_mutex_unlock(c->plock);	
 			
-// 			printf(" Unlocking semaphore \n");
+			printf(" Unlocking semaphore \n");
 
 		
 		}while(n_avail_loc_theads != 0);  /* all connecting thread arrivied, ie. one Sender and n_rec_proc Receivers */
