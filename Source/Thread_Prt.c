@@ -183,6 +183,12 @@ void *Data_Threads(void *arg)
  */
 				*c->psync_loc = 1;
 				Pthread_cond_broadcast(c->pdcond);
+				
+				printf(" NAVAIL THREADS %lu %d\n", MyThreadID, n_avail_loc_theads);
+/*
+ * if number of available SR threads is 0, ie. all S and R requests for particular data set arrived
+ * decrement number of available data sets
+ */
 				if(n_avail_loc_theads == 0)(*c->pcounter)--;
 				Sem_post(c->psem);  /* later it can be replaced by the same synchronization */
 // 				*c->psync_loc = 0;
@@ -193,20 +199,23 @@ void *Data_Threads(void *arg)
 			else{
 /*
  * still some threads working, wait for them
- * indicate this is waiting thread
- */
+ *
+ * if number of available SR threads is 0, ie. all S and R requests for particular data set arrived
+ * decrement number of available data sets
+ */				
+				if(n_avail_loc_theads == 0)(*c->pcounter)--;
 				while (*c->psync_loc == 0)
 					Pthread_cond_wait(c->pdcond, c->plock);
 			}
 			
 			Pthread_mutex_unlock(c->plock);	
 			
-			printf(" Unlocking semaphore \n");
+			printf(" %lu Unlocking semaphore \n", MyThreadID);
 
 		
 		}while(n_avail_loc_theads != 0);  /* all connecting thread arrivied, ie. one Sender and n_rec_proc Receivers */
 
-		printf(" -------------------------------   Thread %lu named as '%s' received its SOCKET\n", MyThreadID , local_set_name);
+		printf(" -------------------------------   Thread %lu named as '%s' received its SOCKET  %d\n", MyThreadID , local_set_name, *c->pcounter);
 		printf("                                   Thread name is '%s' SM_mode is '%c'\n", c->pname_of_data_set, *c->pSR_mode);
 /*
  * once all R-W threads are taken decrement counter of data_threads ie. Data_Thread->data_threads_availth_counter
@@ -236,7 +245,7 @@ void *Data_Threads(void *arg)
 			Thread_Status = (lmint_t *)m3l_get_data_pointer(TmpNode);
 			*Thread_Status = 1;
 			
-			printf(" Status of the JOB is %d\n", *Thread_Status);
+			printf(" Status of the %lu JOB is %d   '%s'   %d\n", MyThreadID, *Thread_Status, c->pname_of_data_set, *c->pcounter);
 			
 		Pthread_mutex_unlock(c->plock);
 
@@ -266,10 +275,10 @@ void *Data_Threads(void *arg)
  * release thread, ie. set Thread_Status = 0
  */
 			*Thread_Status = 0;
-			printf(" Status of the JOB is %d\n", *Thread_Status);
 	 		m3l_DestroyFound(&THRStat_SFounds);
 		
 			(*c->pcounter)++;
+			printf(" Status of the JOB is %d  %ld   %d\n", *Thread_Status , *c->pcounter, n_avail_loc_theads);
 /*
  * if all threads were occupied, ie *Data_Threads->data_threads_availth_counter == *c->pcounter == 0
  * the server is waiting for signal before the continuing with data process identification. 
