@@ -269,6 +269,9 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * Once the request is retreived from buffer it is not saved back.
  * Set recnode_cyc to 1 which means the following are stored requests not the one received from socket
  */
+
+			Pthread_mutex_lock(&Data_Threads->lock);
+
 			if( recnode_cyc == 0){ 
 				if( (Tqst_SFounds = find_Queued_Reqst(DataBuffer)) != NULL)
 					nfounds = m3l_get_Found_number(Tqst_SFounds);
@@ -281,6 +284,9 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			if(nfounds != 0)
 				if( (RecNode = m3l_get_Found_node(Tqst_SFounds, nfounds-1)) == NULL)
 					Error("Error while searching RecNode");
+				
+			Pthread_mutex_unlock(&Data_Threads->lock);
+
 /*
  * loop until all buffered requests are checked
  */

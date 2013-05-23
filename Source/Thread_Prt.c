@@ -185,7 +185,7 @@ void *Data_Threads(void *arg)
 				Pthread_cond_broadcast(c->pdcond);
 				if(n_avail_loc_theads == 0)(*c->pcounter)--;
 				Sem_post(c->psem);  /* later it can be replaced by the same synchronization */
-				*c->psync_loc = 0;
+// 				*c->psync_loc = 0;
 /* 
  * unlock semaphore in the main program so that another loop can start
  */
@@ -226,6 +226,8 @@ void *Data_Threads(void *arg)
  */
 			if( (THRStat_SFounds = m3l_Locate(c->Node, "./Data_Set/Thread_Status", "/*/*", (lmchar_t *)NULL)) == NULL){
 				printf("Thread_Status: did not find any Thread_Status\n");
+// 						if(m3l_Cat(c->Node, "--all", "-L", "-P", "*",   (lmchar_t *)NULL) != 0)
+// 			Warning("CatData");
 				m3l_DestroyFound(&THRStat_SFounds);
 				exit(0);
 			}
