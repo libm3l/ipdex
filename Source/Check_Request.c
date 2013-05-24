@@ -59,7 +59,17 @@ lmint_t Check_Request(node_t *DataBuffer, node_t *RecNode, lmchar_t *name_of_req
 				
 				len2 = strlen(name);
 				
-				if(len1 == len2 && strncmp(name, name_of_required_data_set, len1) == 0 && SR_mode == srmode){
+				if(len1 == len2 && strncmp(name, name_of_required_data_set, len1) == 0){
+/*
+ * if Sender (S) is already saved, disregard this one.
+ * only one S per session is allowed
+ */
+					if(SR_mode == srmode && SR_mode == 'S'){
+						m3l_DestroyFound(&QueuedSRm_SFounds);
+						m3l_DestroyFound(&QueuedNDS_SFounds);
+						return -1;
+					}
+					
 					m3l_DestroyFound(&QueuedSRm_SFounds);
 					m3l_DestroyFound(&QueuedNDS_SFounds);
 					return -1;

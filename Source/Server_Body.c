@@ -90,8 +90,8 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 		if( (RecNode = m3l_Receive_tcpipsocket((const char *)NULL, newsockfd, "--encoding" , "IEEE-754", (char *)NULL)) == NULL)
 			Error("Error during reading data from socket");
 		
-		if(m3l_Cat(RecNode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
-			Error("CatData");
+// 		if(m3l_Cat(RecNode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
+// 			Error("CatData");
 
 		recnode_cyc = 0;
 /*
@@ -103,7 +103,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 
 /* 
  * find Name_of_Data_Set
-	*/
+ */
 			if( (SFounds = m3l_Locate(RecNode, "/Header/Name_of_Data_Set", "/*/*",  (lmchar_t *)NULL)) != NULL){
 				if( m3l_get_Found_number(SFounds) != 1)
 					Error("Server_Body: Only one Name_of_Data_Set per Data_Set allowed");
@@ -236,7 +236,10 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 						Perror("m3l_Umount");
 				}
 				else{
-					Error("Server_Body: Not valid data set");
+					Warning("Server_Body: Not valid data set");
+					if( m3l_Umount(&RecNode) != 1)
+						Perror("m3l_Umount");
+					continue;
 				}
 			
 			break;
@@ -294,7 +297,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 
 	}      /* end of while(1) */
 	
-	if(Tqst_SFounds != NULL) m3l_DestroyFound(Tqst_SFounds);
+	if(Tqst_SFounds != NULL) m3l_DestroyFound(&Tqst_SFounds);
 /*
  * join threads and release memmory
  */

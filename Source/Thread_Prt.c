@@ -28,7 +28,7 @@ void *Data_Threads(void *arg)
 	MyThreadID = pthread_self();
 	
 	Pthread_mutex_lock(c->plock);
-		printf("\n\n In THREAD %lu\n\n", MyThreadID);
+// 		printf("\n\n In THREAD %lu\n\n", MyThreadID);
 		if(m3l_Cat(c->Node, "--all", "-L", "-P", "*",   (lmchar_t *)NULL) != 0)
 			Warning("CatData");
 /*
@@ -124,7 +124,7 @@ void *Data_Threads(void *arg)
 	
 	while(1){
 		
-		printf(" THREAD %s in while loop %d  %d  %d\n", local_set_name, (*c->prcounter), (*c->pcounter), n_avail_loc_theads);
+// 		printf(" THREAD %s in while loop %d  %d  %d\n", local_set_name, (*c->prcounter), (*c->pcounter), n_avail_loc_theads);
 		local_cntr = 0;
 /*
  * start identifying threads once identified, leave do loop
@@ -184,7 +184,7 @@ void *Data_Threads(void *arg)
 				*c->psync_loc = 1;
 				Pthread_cond_broadcast(c->pdcond);
 				
-				printf(" NAVAIL THREADS %lu %d\n", MyThreadID, n_avail_loc_theads);
+// 				printf(" NAVAIL THREADS %lu %d\n", MyThreadID, n_avail_loc_theads);
 /*
  * if number of available SR threads is 0, ie. all S and R requests for particular data set arrived
  * decrement number of available data sets
@@ -210,21 +210,19 @@ void *Data_Threads(void *arg)
 			
 			Pthread_mutex_unlock(c->plock);	
 			
-			printf(" %lu Unlocking semaphore \n", MyThreadID);
+// 			printf(" %lu Unlocking semaphore \n", MyThreadID);
 
 		
 		}while(n_avail_loc_theads != 0);  /* all connecting thread arrivied, ie. one Sender and n_rec_proc Receivers */
 
 		printf(" -------------------------------   Thread %lu named as '%s' received its SOCKET  %d\n", MyThreadID , local_set_name, *c->pcounter);
-		printf("                                   Thread name is '%s' SM_mode is '%c'\n", c->pname_of_data_set, *c->pSR_mode);
+// 		printf("                                   Thread name is '%s' SM_mode is '%c'\n", c->pname_of_data_set, *c->pSR_mode);
 /*
  * once all R-W threads are taken decrement counter of data_threads ie. Data_Thread->data_threads_availth_counter
  */
-
-// 		printf(" Number of jobs %d\n", n_rec_proc + 1);
 		
-		for (ii = 0; ii< n_rec_proc + 1; ii++)
-			printf("job %d, socket %d, mode %c\n", ii, SR_Threads->sockfd[ii], SR_Threads->SR_mode[ii]);
+// 		for (ii = 0; ii< n_rec_proc + 1; ii++)
+// 			printf("job %d, socket %d, mode %c\n", ii, SR_Threads->sockfd[ii], SR_Threads->SR_mode[ii]);
 
 
 		Pthread_mutex_lock(c->plock);	
@@ -245,7 +243,7 @@ void *Data_Threads(void *arg)
 			Thread_Status = (lmint_t *)m3l_get_data_pointer(TmpNode);
 			*Thread_Status = 1;
 			
-			printf(" Status of the %lu JOB is %d   '%s'   %d\n", MyThreadID, *Thread_Status, c->pname_of_data_set, *c->pcounter);
+// 			printf(" Status of the %lu JOB is %d   '%s'   %d\n", MyThreadID, *Thread_Status, c->pname_of_data_set, *c->pcounter);
 			
 		Pthread_mutex_unlock(c->plock);
 
@@ -278,7 +276,7 @@ void *Data_Threads(void *arg)
 	 		m3l_DestroyFound(&THRStat_SFounds);
 		
 			(*c->pcounter)++;
-			printf(" Status of the JOB is %d  %ld   %d\n", *Thread_Status , *c->pcounter, n_avail_loc_theads);
+// 			printf(" Status of the JOB is %d  %ld   %d\n", *Thread_Status , *c->pcounter, n_avail_loc_theads);
 /*
  * if all threads were occupied, ie *Data_Threads->data_threads_availth_counter == *c->pcounter == 0
  * the server is waiting for signal before the continuing with data process identification. 
@@ -294,7 +292,7 @@ void *Data_Threads(void *arg)
  * this counter will be used by each SR_Thread to get the values of the socket and SR_mode
  */		
 		*SR_Threads->thr_cntr=0;
-		printf("GOING TO NEXT LOOP\n\n\n");
+// 		printf("GOING TO NEXT LOOP\n\n\n");
 		}
 	
 	

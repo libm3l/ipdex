@@ -64,8 +64,12 @@ int main(int argc, char *argv[])
 
 	int nmax;
 	double *tmpdf;
+	
+        struct timespec tim, tim2;
+	tim.tv_sec = 0;
+	tim.tv_nsec = 150000000L;    /* 0.15 secs */
 
-	nmax = 5;
+	nmax = 100;
 /*
  * get port number
  */
@@ -79,7 +83,7 @@ int main(int argc, char *argv[])
  * we need to open socket manualy and used Send_receive function with hostname = NULL, ie. as server
  * portno is then replaced by socket number
  */
-// 	for(i=0; i<nmax; i++){
+	for(i=0; i<nmax; i++){
 
 // 		printf("\n\n--------------------------------    i = %ld\n\n", i);
 /*
@@ -104,8 +108,10 @@ int main(int argc, char *argv[])
 		if( close(sockfd) == -1)
 			Perror("close");
 		
-		
-// 	}
+		if(nanosleep(&tim , &tim2) < 0 )
+                        Error("Nano sleep system call failed \n");
+
+	}
 
 
      return 0; 
