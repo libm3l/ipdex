@@ -70,9 +70,9 @@ lmint_t Check_Request(node_t *DataBuffer, node_t *RecNode, lmchar_t *name_of_req
 						return -1;
 					}
 					
-					m3l_DestroyFound(&QueuedSRm_SFounds);
-					m3l_DestroyFound(&QueuedNDS_SFounds);
-					return -1;
+// 					m3l_DestroyFound(&QueuedSRm_SFounds);
+// 					m3l_DestroyFound(&QueuedNDS_SFounds);
+// 					return -1;
 				}
 			}
 			m3l_DestroyFound(&QueuedSRm_SFounds);
@@ -164,8 +164,6 @@ lmint_t Check_Request(node_t *DataBuffer, node_t *RecNode, lmchar_t *name_of_req
 	}
 	
 	m3l_DestroyFound(&DATA_SFounds);	
-	
-// 	exit(0);
 	
 	return status;
 }
