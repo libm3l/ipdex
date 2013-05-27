@@ -64,6 +64,10 @@ int main(int argc, char *argv[])
 
 	int nmax;
 	double *tmpdf;
+	
+	struct timespec tim, tim2;
+	tim.tv_sec = 1;
+	tim.tv_nsec = 100000000L;    /* 0.1 secs */
 
 	nmax = 100;
 /*
@@ -99,24 +103,14 @@ int main(int argc, char *argv[])
 			Perror("m3l_Umount");
 
 
-
+/*
 		if( close(sockfd) == -1)
-			Perror("close");
+			Perror("close");*/
 
 
-	}
+/*	}
 
-	printf("End of cycle\n");	
-
-
-
-
-
-
-
-
-
-
+	printf("End of cycle\n");*/	
 
 
 
@@ -148,9 +142,15 @@ int main(int argc, char *argv[])
 
 		m3l_Send_receive_tcpipsocket(Gnode,(char *)NULL, sockfd, "--encoding" , "IEEE-754",  "--REOB", (char *)NULL);
 		
+		if(m3l_Umount(&Gnode) != 1)
+			Perror("m3l_Umount");
+		
 		if( close(sockfd) == -1)
 			Perror("close");
-//  	}
+		
+		if(nanosleep(&tim , &tim2) < 0 )
+			Error("Nano sleep system call failed \n");
+ 	}
 
 
      return 0; 

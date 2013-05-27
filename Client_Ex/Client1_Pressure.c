@@ -102,22 +102,22 @@ int main(int argc, char *argv[])
 		if(m3l_Umount(&Gnode) != 1)
 			Perror("m3l_Umount");
 
-// 		if( (Gnode = m3l_Receive_tcpipsocket((char *)NULL, sockfd, "--encoding" , "IEEE-754", (char *)NULL)) == NULL)
-// 			Error("Receiving data");
+		if( (Gnode = m3l_Receive_tcpipsocket((char *)NULL, sockfd, "--encoding" , "IEEE-754", (char *)NULL)) == NULL)
+			Error("Receiving data");
 
 
-		if( close(sockfd) == -1)
-			Perror("close");
-		
+// 		if( close(sockfd) == -1)
+// 			Perror("close");
+// 		
 // 		if(m3l_Umount(&Gnode) != 1)
 // 			Perror("m3l_Umount");
-
+/*
 		if(nanosleep(&tim , &tim2) < 0 )
 			Error("Nano sleep system call failed \n");
 
 	}
 
-	printf("End of cycle\n");	
+	printf("End of cycle\n");	*/
 
 
 
@@ -143,11 +143,11 @@ int main(int argc, char *argv[])
 		if(m3l_Umount(&Gnode) != 1)
 			Perror("m3l_Umount");
 
-		if(nanosleep(&tim , &tim2) < 0 )
-			Error("Nano sleep system call failed \n");
+// 		if(nanosleep(&tim , &tim2) < 0 )
+// 			Error("Nano sleep system call failed \n");
 
 
-//  	}
+ 	}
 
 
      return 0; 

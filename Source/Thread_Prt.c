@@ -216,7 +216,6 @@ void *Data_Threads(void *arg)
 		}while(n_avail_loc_theads != 0);  /* all connecting thread arrivied, ie. one Sender and n_rec_proc Receivers */
 
 		printf(" -------------------------------   Thread %lu named as '%s' received its SOCKET  %d\n", MyThreadID , local_set_name, *c->pcounter);
-// 		printf("                                   Thread name is '%s' SM_mode is '%c'\n", c->pname_of_data_set, *c->pSR_mode);
 /*
  * once all R-W threads are taken decrement counter of data_threads ie. Data_Thread->data_threads_availth_counter
  */
@@ -233,8 +232,6 @@ void *Data_Threads(void *arg)
  */
 			if( (THRStat_SFounds = m3l_Locate(c->Node, "./Data_Set/Thread_Status", "/*/*", (lmchar_t *)NULL)) == NULL){
 				printf("Thread_Status: did not find any Thread_Status\n");
-// 						if(m3l_Cat(c->Node, "--all", "-L", "-P", "*",   (lmchar_t *)NULL) != 0)
-// 			Warning("CatData");
 				m3l_DestroyFound(&THRStat_SFounds);
 				exit(0);
 			}
@@ -243,29 +240,17 @@ void *Data_Threads(void *arg)
 			Thread_Status = (lmint_t *)m3l_get_data_pointer(TmpNode);
 			*Thread_Status = 1;
 			
-// 			printf(" Status of the %lu JOB is %d   '%s'   %d\n", MyThreadID, *Thread_Status, c->pname_of_data_set, *c->pcounter);
-			
 		Pthread_mutex_unlock(c->plock);
-
-
-// 		printf("Waiting on barrier \n");
-// 		Pthread_barrier_wait(&SR_Threads->barr);
-// 		printf("After Waiting on barrier \n\n\n");
-
-/* 
- * unlock semaphore in the main program so that another loop can start
- * broadcast codnition variable to SR_threads so that they can start 
+/*
+ * wait until all SR_threads reach barrier, then start actual transfer of the data from S to R(s)
  */
-// 		printf("Broadcasting\n");
-// 		Pthread_mutex_lock(&SR_Threads->lock_g);
-// 			Pthread_cond_broadcast(&SR_Threads->cond_g);
-// 		Pthread_mutex_unlock(&SR_Threads->lock_g);
-// 		printf("After Broadcasting\n\n\n");
+
+		Pthread_barrier_wait(&SR_Threads->barr);
 /*
  * once the data transfer is finished increase increment of available data_threads
  */
-// 		Sem_wait(&SR_Threads->sem_g);
-// 		printf("TEST_... TRANFER FINISHED\n\n\n");
+		Sem_wait(&SR_Threads->sem_g);
+		printf("TEST_... TRANFER FINISHED\n\n\n");
 
 		n_avail_loc_theads = n_rec_proc + 1;
 		Pthread_mutex_lock(c->plock);

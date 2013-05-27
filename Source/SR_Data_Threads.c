@@ -59,24 +59,17 @@ void *SR_Data_Threads(void *arg)
 
 		if(SR_mode == 'R'){
 
-// 		printf(" READER \n");
+		printf(" READER \n");
 /*
  * thread reads the data from buffer and send over TCP/IP to client
  */
 			do{
-// 				Pthread_mutex_lock(c->plock);
-// 				*c->psync == 0;
-/*
- * wait for data sent by main thread  NOTE - gate here, possible deadlock
- */
-// 				while (*c->prcounter == 0)
-// 					Pthread_cond_wait(c->pcond, c->plock);
 /*
  * gate syncing all threads
  */
 				pt_sync(c->psync_loc);
 				
-// 					printf(" READER after cond_wait \n");				
+// 				printf(" READER after syncing '%s'\n", c->pbuffer);
 				
 				if ( (n = Write(sockfd,c->pbuffer, *c->pngotten)) < *c->pngotten)
 					Perror("write()");
@@ -116,10 +109,15 @@ void *SR_Data_Threads(void *arg)
 			}while(*c->pEofBuff != 0);
 /*
  * EOFbuff received, transmition is finished
+ * 
+ * Reading process sends signal that the it received all data (ie. 
+ * 	----- m3l_Send_to_tcpipsocket(NULL,(char *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB", (char *)NULL);
+ * it is just to make sure all processes are done with transfer
+ */
+			m3l_Receive_tcpipsocket((const char *)NULL, sockfd, "--encoding" , "IEEE-754", "--REOB",  (char *)NULL);
+/*
  * close socket, and if last partition, unlock semaphore so that Thead_Prt can continue
  */
-			 m3l_Receive_tcpipsocket((const char *)NULL, sockfd, "--encoding" , "IEEE-754", "--REOB",  (char *)NULL);
-// 				printf(" REDER closing socket \n" );
 			if( close(sockfd) == -1)
 				Perror("close");
 			if(*c->prcounter == 0)
@@ -167,25 +165,15 @@ void *SR_Data_Threads(void *arg)
  * The buffer has been red from socket, send broadcast signal to all R_threads to go on
  * then unlock mutex and wait for semaphore
  */			
-// 		printf(" Sender  BROADCAST \n");
-// 				Pthread_cond_broadcast(c->pcond);  //  NOTE - gate here, possible deadlock
-
-			// NOTE GATE
-
 				Pthread_mutex_unlock(c->plock);
 				pt_sync(c->psync_loc);
-
-
-// 		printf(" Sender  UNLOCK \n");
-// 		printf(" Sender  WAIT \n");
 				Sem_wait(c->psem);
-// 		printf(" Sender  after WAIT \n");
 /*
  * if end of buffer reached, leave do cycle
  */
 			}while(eofbuffcond != 1);
 
-// 		printf(" SENDER leaving while\n");
+		printf(" SENDER leaving while\n");
 
 /*
  * sender sent payload, before closign socket send back acknowledgement
@@ -195,7 +183,6 @@ void *SR_Data_Threads(void *arg)
 
 			if( close(sockfd) == -1)
 				Perror("close");
-// 		printf(" SENDER closed sockfd\n");
 		}
 		else{
 			Error("Wrong option");
