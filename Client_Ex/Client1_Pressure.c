@@ -98,13 +98,18 @@ int main(int argc, char *argv[])
 			Error("Could not open socket");
 
 		m3l_Send_to_tcpipsocket(Gnode,(char *)NULL, sockfd, "--encoding" , "IEEE-754", (char *)NULL);
+		printf(" Sending header \n");
 		
 		if(m3l_Umount(&Gnode) != 1)
 			Perror("m3l_Umount");
 
+
+		printf(" Before Rec \n");
+
 		if( (Gnode = m3l_Receive_tcpipsocket((char *)NULL, sockfd, "--encoding" , "IEEE-754", (char *)NULL)) == NULL)
 			Error("Receiving data");
 
+		printf(" After Rec \n");
 
 // 		if( close(sockfd) == -1)
 // 			Perror("close");
@@ -133,6 +138,7 @@ int main(int argc, char *argv[])
 
 /*		if( (Gnode = m3l_Receive_send_tcpipsocket((node_t *)NULL,(char *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB",  (char *)NULL)) == NULL)
 			Error("Receiving data");	*/	
+		printf(" after sending payload \n");
 
 		if( close(sockfd) == -1)
 			Perror("close");

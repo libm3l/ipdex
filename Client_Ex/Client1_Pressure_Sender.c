@@ -99,6 +99,8 @@ int main(int argc, char *argv[])
 
 		m3l_Send_receive_tcpipsocket(Gnode,(char *)NULL, sockfd, "--encoding" , "IEEE-754",  "--REOB", (char *)NULL);
 
+		printf(" Sending header \n");
+		
 		if(m3l_Umount(&Gnode) != 1)
 			Perror("m3l_Umount");
 
@@ -141,6 +143,7 @@ int main(int argc, char *argv[])
 			Error("CatData");
 
 		m3l_Send_receive_tcpipsocket(Gnode,(char *)NULL, sockfd, "--encoding" , "IEEE-754",  "--REOB", (char *)NULL);
+		printf(" after sending payload \n");
 		
 		if(m3l_Umount(&Gnode) != 1)
 			Perror("m3l_Umount");

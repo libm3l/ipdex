@@ -17,6 +17,10 @@ lmint_t Check_Request(node_t *DataBuffer, node_t *RecNode, lmchar_t *name_of_req
 	lmint_t Thread_Status, ThrStat, status;
 	lmchar_t *name, *srmode;
 	
+	
+	printf(" In Check_Request  %d  \n", initreq);
+	
+	
 	if(initreq == 0){
 /*
  * find Queued_Reqst 
@@ -40,11 +44,14 @@ lmint_t Check_Request(node_t *DataBuffer, node_t *RecNode, lmchar_t *name_of_req
 			
 		len1 = strlen(name_of_required_data_set);
 			
-			if( (QueuedNDS_SFounds = m3l_Locate(Queued_Reqst, "./Queued_Reqst/Header/Name_of_Data_Set", "./*/*/*", (lmchar_t *)NULL)) != NULL){
+			if( (QueuedNDS_SFounds = m3l_Locate(Queued_Reqst, "./Queued_Reqst/Header/Name_of_Data_Set", "./*/*/*", (lmchar_t *)NULL)) == NULL){
 				printf("Server: did not find any ./Queued_Reqst/Header/Name_of_Data_Set\n");
+				
+				if(m3l_Cat(Queued_Reqst, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
+					Error("CatData");
 				exit(0);
 			}	
-			if( (QueuedSRm_SFounds = m3l_Locate(Queued_Reqst, "./Queued_Reqst/Header/SR_mode", "./*/*/*", (lmchar_t *)NULL)) != NULL){
+			if( (QueuedSRm_SFounds = m3l_Locate(Queued_Reqst, "./Queued_Reqst/Header/SR_mode", "./*/*/*", (lmchar_t *)NULL)) == NULL){
 				printf("Server: did not find any ./Queued_Reqst/Header/SR_mode\n");
 				exit(0);
 			}
@@ -64,15 +71,13 @@ lmint_t Check_Request(node_t *DataBuffer, node_t *RecNode, lmchar_t *name_of_req
  * if Sender (S) is already saved, disregard this one.
  * only one S per session is allowed
  */
-					if(SR_mode == srmode && SR_mode == 'S'){
+					if(SR_mode == srmode && *SR_mode == 'S'){
 						m3l_DestroyFound(&QueuedSRm_SFounds);
 						m3l_DestroyFound(&QueuedNDS_SFounds);
+
+						printf("  ----------   %p    %p  \n", RecNode, TmpNode);
 						return -1;
 					}
-					
-// 					m3l_DestroyFound(&QueuedSRm_SFounds);
-// 					m3l_DestroyFound(&QueuedNDS_SFounds);
-// 					return -1;
 				}
 			}
 			m3l_DestroyFound(&QueuedSRm_SFounds);
@@ -136,13 +141,16 @@ lmint_t Check_Request(node_t *DataBuffer, node_t *RecNode, lmchar_t *name_of_req
  * 
  *  * if initreq == 1 and Thread_Status == 0 detach RecNode from the buffer under /Buffer/Queued_Reqst
  */	
+
+	printf(" Check_Request   Thread_Status = %d \n", Thread_Status);
+
 	if(initreq == 0 && Thread_Status == 1){
 // 		m3l_Mv(&RecNode, "/Header", "/*", &DataBuffer, "/Buffer/Queued_Reqst", "/*/*", (lmchar_t *)NULL);
 		m3l_Mv(&RecNode, "/Header", "/*", &Queued_Reqst, "./*", "./*", (lmchar_t *)NULL);
 		
-			if(m3l_Cat(DataBuffer, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
-				Error("CatData");
-		
+		if(m3l_Cat(DataBuffer, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
+			Error("CatData");
+
 		status = 1;
 	}
 	else if(initreq == 1 && Thread_Status == 0){
@@ -163,7 +171,7 @@ lmint_t Check_Request(node_t *DataBuffer, node_t *RecNode, lmchar_t *name_of_req
 		status = 1;
 	}
 	
-	m3l_DestroyFound(&DATA_SFounds);	
+	m3l_DestroyFound(&DATA_SFounds);
 	
 	return status;
 }

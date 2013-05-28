@@ -107,6 +107,8 @@ void *SR_Data_Threads(void *arg)
 				Pthread_mutex_unlock(c->plock);
 
 			}while(*c->pEofBuff != 0);
+			
+			printf("READER finished, reading SEOB \n");
 /*
  * EOFbuff received, transmition is finished
  * 
@@ -118,20 +120,24 @@ void *SR_Data_Threads(void *arg)
 /*
  * close socket, and if last partition, unlock semaphore so that Thead_Prt can continue
  */
+			printf("READER closing socket after reading SEOB \n");
 			if( close(sockfd) == -1)
 				Perror("close");
 			if(*c->prcounter == 0)
 				Sem_post(c->psem_g);
+			printf("READER after Semaphore \n");
 
 		}
 		else if(SR_mode == 'S'){
 
-// 		printf(" Sender  send SEOB \n");
+		printf(" Sender  send SEOB \n");
 /*
  * sender sent its Header, before sending other data, send back acknowledgement
  */
-			if( m3l_Send_to_tcpipsocket(NULL, (const char *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB",  (char *)NULL) < 1)
+			printf(" SR_Data_Threads1 : Send_to_tcp\n");
+			if( m3l_Send_to_tcpipsocket((node_t *)NULL, (const char *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB",  (char *)NULL) < 1)
 				Error("Error during reading data from socket");
+			printf(" SR_Data_Threads1 : Send_to_tcp -- DONE\n");
 /*
  * thread reads data from TCP/IP socket sent by client and 
  * write them to buffer
@@ -178,8 +184,10 @@ void *SR_Data_Threads(void *arg)
 /*
  * sender sent payload, before closign socket send back acknowledgement
  */
-			if( m3l_Send_to_tcpipsocket(NULL, (const char *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB",  (char *)NULL) < 1)
+			printf(" SR_Data_Threads2 : Send_to_tcp\n");
+			if( m3l_Send_to_tcpipsocket((node_t *)NULL, (const char *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB",  (char *)NULL) < 1)
 				Error("Error during reading data from socket");
+			printf(" SR_Data_Threads2 : Send_to_tcp -- DONE\n");
 
 			if( close(sockfd) == -1)
 				Perror("close");
