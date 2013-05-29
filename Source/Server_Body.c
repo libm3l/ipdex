@@ -344,7 +344,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 				recnode_cyc = 1;
 			}
 			
-			printf(" RECNODE_CYC %d  %d\n", recnode_cyc, nfounds);
+// 			printf(" RECNODE_CYC %d  %d\n", recnode_cyc, nfounds);
 			
 			if(nfounds != 0){
 				if( (RecNode = m3l_get_Found_node(Tqst_SFounds, nfounds-1)) == NULL)
@@ -356,7 +356,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 
 			Pthread_mutex_unlock(&Data_Threads->lock);
 			
-			printf(" Unlocked 11  %d\n", nfounds);
+// 			printf(" Unlocked 11  %d\n", nfounds);
 
 /*
  * loop until all buffered requests are checked

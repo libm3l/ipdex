@@ -220,8 +220,8 @@ void *Data_Threads(void *arg)
  * once all R-W threads are taken decrement counter of data_threads ie. Data_Thread->data_threads_availth_counter
  */
 		
-		for (ii = 0; ii< n_rec_proc + 1; ii++)
-			printf("job %d, socket %d, mode %c\n", ii, SR_Threads->sockfd[ii], SR_Threads->SR_mode[ii]);
+// 		for (ii = 0; ii< n_rec_proc + 1; ii++)
+// 			printf("job %d, socket %d, mode %c\n", ii, SR_Threads->sockfd[ii], SR_Threads->SR_mode[ii]);
 
 
 // 		printf("Thread_Prt: lock 1\n");
@@ -241,7 +241,7 @@ void *Data_Threads(void *arg)
 			TmpNode = m3l_get_Found_node(THRStat_SFounds, 0);
 			Thread_Status = (lmint_t *)m3l_get_data_pointer(TmpNode);
 			*Thread_Status = 1;
-		printf("Thread_Prt: unlock 1\n");
+// 		printf("Thread_Prt: unlock 1\n");
 			
 		Pthread_mutex_unlock(c->plock);
 /*

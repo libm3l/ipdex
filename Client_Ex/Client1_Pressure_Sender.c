@@ -66,10 +66,11 @@ int main(int argc, char *argv[])
 	double *tmpdf;
 	
 	struct timespec tim, tim2;
-	tim.tv_sec = 1;
+// 	tim.tv_sec = 1;
+	tim.tv_sec = 0;
 	tim.tv_nsec = 100000000L;    /* 0.1 secs */
 
-	nmax = 100;
+	nmax = 10000;
 /*
  * get port number
  */

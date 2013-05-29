@@ -18,7 +18,7 @@ lmint_t Check_Request(node_t *DataBuffer, node_t *RecNode, lmchar_t *name_of_req
 	lmchar_t *name, *srmode;
 	
 	
-	printf(" In Check_Request  %d  \n", initreq);
+// 	printf(" In Check_Request  %d  \n", initreq);
 	
 	
 	if(initreq == 0){
@@ -75,7 +75,7 @@ lmint_t Check_Request(node_t *DataBuffer, node_t *RecNode, lmchar_t *name_of_req
 						m3l_DestroyFound(&QueuedSRm_SFounds);
 						m3l_DestroyFound(&QueuedNDS_SFounds);
 
-						printf("  ----------   %p    %p  \n", RecNode, TmpNode);
+// 						printf("  ----------   %p    %p  \n", RecNode, TmpNode);
 						return -1;
 					}
 				}
@@ -142,7 +142,7 @@ lmint_t Check_Request(node_t *DataBuffer, node_t *RecNode, lmchar_t *name_of_req
  *  * if initreq == 1 and Thread_Status == 0 detach RecNode from the buffer under /Buffer/Queued_Reqst
  */	
 
-	printf(" Check_Request   initreq = %d Thread_Status = %d \n", initreq, Thread_Status);
+// 	printf(" Check_Request   initreq = %d Thread_Status = %d \n", initreq, Thread_Status);
 
 	if(initreq == 0 && Thread_Status == 1){
 // 		m3l_Mv(&RecNode, "/Header", "/*", &DataBuffer, "/Buffer/Queued_Reqst", "/*/*", (lmchar_t *)NULL);
