@@ -133,10 +133,10 @@ void *Data_Threads(void *arg)
 /*
  * if already went through do loop, wait here at sync point until all threads are here
  */
-			printf(" Waiting for gate - child \n");
+// 			printf(" Waiting for gate - child \n");
 		
 			pt_sync(c->psync);
-			printf(" After gate - child \n");
+// 			printf(" After gate - child \n");
 			
 			Pthread_mutex_lock(c->plock);
 			*c->psync_loc = 0;
@@ -220,14 +220,14 @@ void *Data_Threads(void *arg)
  * once all R-W threads are taken decrement counter of data_threads ie. Data_Thread->data_threads_availth_counter
  */
 		
-// 		for (ii = 0; ii< n_rec_proc + 1; ii++)
-// 			printf("job %d, socket %d, mode %c\n", ii, SR_Threads->sockfd[ii], SR_Threads->SR_mode[ii]);
+		for (ii = 0; ii< n_rec_proc + 1; ii++)
+			printf("job %d, socket %d, mode %c\n", ii, SR_Threads->sockfd[ii], SR_Threads->SR_mode[ii]);
 
 
-		printf("Thread_Prt: lock 1\n");
+// 		printf("Thread_Prt: lock 1\n");
 		Pthread_mutex_lock(c->plock);	
 			*SR_Threads->R_availth_counter = n_rec_proc+1;
-		printf("Thread_Prt: unlock 1\n");
+// 		printf("Thread_Prt: unlock 1\n");
 /*
  * set Thread_Status to 1
  * 
@@ -247,22 +247,22 @@ void *Data_Threads(void *arg)
 /*
  * wait until all SR_threads reach barrier, then start actual transfer of the data from S to R(s)
  */
-		printf("Thread_Prt: after unlock 1\n");
+// 		printf("Thread_Prt: after unlock 1\n");
 
 		Pthread_barrier_wait(&SR_Threads->barr);
-		printf("Thread_Prt: Waiting on semaphore \n");
+// 		printf("Thread_Prt: Waiting on semaphore \n");
 /*
  * once the data transfer is finished increase increment of available data_threads
  */
 		Sem_wait(&SR_Threads->sem_g);
-		printf("TEST_... TRANFER FINISHED\n\n\n");
+// 		printf("TEST_... TRANFER FINISHED\n\n\n");
 
 		n_avail_loc_theads = n_rec_proc + 1;
 		
 		
-		printf("Thread_Prt: lock 2\n");
+// 		printf("Thread_Prt: lock 2\n");
 		Pthread_mutex_lock(c->plock);
-		printf("Thread_Prt: after lock 2\n");
+// 		printf("Thread_Prt: after lock 2\n");
 /*
  * release thread, ie. set Thread_Status = 0
  */
@@ -280,9 +280,9 @@ void *Data_Threads(void *arg)
 			if(*c->pcounter == 1)
 				Pthread_cond_signal(c->pcond);
 		
-		printf("Thread_Prt: unlock 2\n");
+// 		printf("Thread_Prt: unlock 2\n");
 		Pthread_mutex_unlock(c->plock);
-		printf("Thread_Prt: after unlock 2\n");
+// 		printf("Thread_Prt: after unlock 2\n");
 /* 
  * set the counter 0
  * this counter will be used by each SR_Thread to get the values of the socket and SR_mode

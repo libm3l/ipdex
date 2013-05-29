@@ -23,37 +23,20 @@ void *SR_Data_Threads(void *arg)
   * increase counter so that next job can grab it.
 */
 	while(1){
-
-// 		printf(" HERE \n");
 /*
  * wait until all requests (all Receiver + Sender) for a particular data_set arrived 
  * the last invoking of Pthread_barrier_wait is done in Thread_Prt.c
  */
 		Pthread_barrier_wait(c->pbarr);
-
-// 		printf(" HERE 01\n");
-		
-// 		Pthread_mutex_lock(c->plock_g);
-// 		while (*c->pcounter == 0)
-// 			Pthread_cond_wait(c->pcond_g, c->plock_g);
-// 		Pthread_mutex_unlock(c->plock_g);
-
-// 		printf(" HERE 02\n");
 /*
  * get SR_mode and socket number of each connected processes
  * protext by mutex
  */
 		Pthread_mutex_lock(c->plock);
-
-// 		printf(" HERE1 cntr is %d\n",  *c->pthr_cntr);
 			
 			SR_mode =  c->pSR_mode[*c->pthr_cntr];
 			sockfd  =  c->psockfd[*c->pthr_cntr];
- 			(*c->pthr_cntr)++; 
-
-// 		printf("job socket %d, mode %c\n", sockfd,  SR_mode);
-// 		printf("PR counter is %d \n", *c->prcounter);
-// 		printf("PTHR counter is %d \n", *c->pthr_cntr);
+			(*c->pthr_cntr)++; 
 
 		Pthread_mutex_unlock(c->plock);
 
@@ -69,12 +52,12 @@ void *SR_Data_Threads(void *arg)
  */
 				pt_sync(c->psync_loc);
 				
-// 				printf(" READER after syncing '%s'\n", c->pbuffer);
+// 				printf(" RECEIVER after syncing '%s'\n", c->pbuffer);
 				
 				if ( (n = Write(sockfd,c->pbuffer, *c->pngotten)) < *c->pngotten)
 					Perror("write()");
 
-// 				printf(" RECEIVER SENT DATA  %d\n ", *c->prcounter);
+// 				printf(" RECEIVER SENT DATA  %d\n ", n);
 
 				Pthread_mutex_lock(c->plock);
 				(*c->prcounter)--;
@@ -160,7 +143,7 @@ void *SR_Data_Threads(void *arg)
 					return;
 				}
 
-// 				printf(" Sender  EOFBUFF check   %d  '%s' \n", *c->pngotten, c->pbuffer);
+// 				printf(" SENDER  buffer   %d  '%s' \n", *c->pngotten, c->pbuffer);
 
 				eofbuffcond = Check_EOFbuff(c->pbuffer,prevbuff, strlen(c->pbuffer), EOBlen, EOFbuff);
 // 				eofbuffcond = Check_EOFbuff(c->pbuffer,prevbuff, *c->pngotten, EOBlen, EOFbuff);

@@ -142,7 +142,7 @@ lmint_t Check_Request(node_t *DataBuffer, node_t *RecNode, lmchar_t *name_of_req
  *  * if initreq == 1 and Thread_Status == 0 detach RecNode from the buffer under /Buffer/Queued_Reqst
  */	
 
-	printf(" Check_Request   Thread_Status = %d \n", Thread_Status);
+	printf(" Check_Request   initreq = %d Thread_Status = %d \n", initreq, Thread_Status);
 
 	if(initreq == 0 && Thread_Status == 1){
 // 		m3l_Mv(&RecNode, "/Header", "/*", &DataBuffer, "/Buffer/Queued_Reqst", "/*/*", (lmchar_t *)NULL);
@@ -153,7 +153,7 @@ lmint_t Check_Request(node_t *DataBuffer, node_t *RecNode, lmchar_t *name_of_req
 
 		status = 1;
 	}
-	else if(initreq == 1 && Thread_Status == 0){
+	else if(initreq > 0 && Thread_Status == 0){
 /*
  * checking data sets saved in buffer. If the data_thead is available, detach the request from buffer and return
  * status 0
@@ -164,10 +164,12 @@ lmint_t Check_Request(node_t *DataBuffer, node_t *RecNode, lmchar_t *name_of_req
 		status = 0;
 		
 	}
-	else if(initreq == 1 && Thread_Status == 1){
+	else if(initreq > 0 && Thread_Status == 1){
 /*
  * request is from buffer, the data thread is still occupied
  */
+		if(m3l_Cat(DataBuffer, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
+			Error("CatData");
 		status = 1;
 	}
 	

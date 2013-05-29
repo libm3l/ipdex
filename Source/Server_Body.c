@@ -10,18 +10,20 @@
 lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	
 	lmsize_t i, len, nfounds;
-	lmint_t sockfd, newsockfd, cycle, recnode_cyc;
+	lmint_t sockfd, newsockfd, newsockfd_tmp, cycle, recnode_cyc;
 	struct sockaddr_in cli_addr;
 	data_thread_str_t *Data_Threads;
 	lmchar_t *name_of_required_data_set, *SR_mode;
 	
 	socklen_t clilen;
 	find_t *SFounds, *Tqst_SFounds;
-	node_t *RecNode, *List, *DataBuffer;
+	node_t *RecNode, *List, *DataBuffer, *TmpNode;
+	lmsize_t dim[1];
 
 	char str[100];
 	
 	cycle=0;
+	nfounds=0;
 /*
  * create buffer structure for buffering recevied data requests if needed
  */
@@ -91,6 +93,12 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  */
 		if( (RecNode = m3l_Receive_tcpipsocket((const char *)NULL, newsockfd, "--encoding" , "IEEE-754", (char *)NULL)) == NULL)
 			Error("Error during reading data from socket");
+		
+		dim[0] = 1;
+
+		if(  (TmpNode = m3l_Mklist("socket_nr", "I", 1, dim, &RecNode, "/Header", "./", (char *)NULL)) == 0)
+			Error("m3l_Mklist");
+		TmpNode->data.i[0] = newsockfd;
 	
 		
 		printf(" Received DATA set from Socket:\n");
@@ -149,6 +157,38 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 				printf("Server_Body: Receiving_Processes not found\n");
 			}
 /*
+ * get socket number
+ */	
+			
+			if(nfounds > 0){			
+			
+				if( (SFounds = m3l_Locate(RecNode, "./Header/socket_nr", "./*/*",  (lmchar_t *)NULL)) != NULL){
+				
+					if( m3l_get_Found_number(SFounds) != 1)
+						Error("Server_Body: Only one SR_mode per Data_Set allowed");
+/* 
+ * pointer to list of found nodes
+ */
+					if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
+						Error("NULThread_Prt: Missing socket_nr");
+				
+					newsockfd_tmp = *(lmint_t *)m3l_get_data_pointer(List);
+/* 
+ * free memory allocated in m3l_Locate
+ */
+					m3l_DestroyFound(&SFounds);
+				}
+				else
+				{
+					printf("Server_Body: Receiving_Processes not found\n");
+				}
+			}
+			else{
+				newsockfd_tmp = newsockfd;
+			}
+			
+			
+/*
  * if RecNode comes from buffer, do not send SEOB, 
  * it's been sent when the RecNode was received from socket
  */
@@ -177,7 +217,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			if(cycle > 0){
 				Pthread_mutex_lock(&Data_Threads->lock);
 			}			
-			switch ( Check_Request(DataBuffer, RecNode, name_of_required_data_set, SR_mode, name_of_required_data_set, 0)) {
+			switch ( Check_Request(DataBuffer, RecNode, name_of_required_data_set, SR_mode, name_of_required_data_set, nfounds)) {
 			case 0:            
 /* 
  * Legal request, not in buffer, data_thread available 
@@ -214,7 +254,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 				if( snprintf(Data_Threads->name_of_data_set, MAX_NAME_LENGTH,"%s",name_of_required_data_set) < 0)
 					Perror("snprintf");
 				*Data_Threads->SR_mode = *SR_mode;
-				*Data_Threads->socket  = newsockfd;
+				*Data_Threads->socket  = newsockfd_tmp;
 
 //  		printf(" Before Broadcasting SOCKET number is %d   %c\n", *Data_Threads->socket, *Data_Threads->SR_mode);
 
@@ -223,9 +263,9 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * once all necessary data are set, send signal to all threads to start unloc mutex
  * and release borrowed memory
  */
-		printf(" Waiting for gate - MAIN \n");
+// 		printf(" Waiting for gate - MAIN \n");
 				pt_sync(Data_Threads->sync);
-		printf(" After gate - MAIN \n");
+// 		printf(" After gate - MAIN \n");
 // 		Pthread_cond_broadcast(&Data_Threads->cond);
 /* 
  * when all Data_Thread are finished, - the identification part, the threads are waiting on each other. 
@@ -233,7 +273,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  */		
 				Sem_wait(&Data_Threads->sem);
 				
-		printf(" After sem - MAIN \n");
+// 		printf(" After sem - MAIN \n");
 		
 				if(*Data_Threads->retval == 1){
 /*
@@ -252,7 +292,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			break;
 			
 			case 1:
-				printf(" CASE1 \n");
+				printf(" ----------------------  -------------CASE 1 \n");
 				Pthread_mutex_unlock(&Data_Threads->lock);
 				
 			break;

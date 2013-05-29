@@ -108,30 +108,11 @@ int main(int argc, char *argv[])
 
 		if( (Gnode = m3l_Receive_tcpipsocket((char *)NULL, sockfd, "--encoding" , "IEEE-754", (char *)NULL)) == NULL)
 			Error("Receiving data");
+		
+		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
+			Error("CatData");
 
 		printf(" After Rec \n");
-
-// 		if( close(sockfd) == -1)
-// 			Perror("close");
-// 		
-// 		if(m3l_Umount(&Gnode) != 1)
-// 			Perror("m3l_Umount");
-/*
-		if(nanosleep(&tim , &tim2) < 0 )
-			Error("Nano sleep system call failed \n");
-
-	}
-
-	printf("End of cycle\n");	*/
-
-
-
-
-
-
-
-
-
 
 
 		m3l_Send_to_tcpipsocket(NULL,(char *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB", (char *)NULL);
@@ -143,8 +124,6 @@ int main(int argc, char *argv[])
 		if( close(sockfd) == -1)
 			Perror("close");
 		
-		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
-			Error("CatData");
 		
 		if(m3l_Umount(&Gnode) != 1)
 			Perror("m3l_Umount");
