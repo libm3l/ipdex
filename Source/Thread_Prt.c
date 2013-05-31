@@ -101,11 +101,6 @@ void *Data_Threads(void *arg)
  */
 	Sem_wait(&SR_Threads->sem_g);
 	Sem_destroy(&SR_Threads->sem_g);
-/* 
- * set the counter 0
- * this counter will be used by each SR_Thread to get the values of the socket and SR_mode
- */
-	*SR_Threads->thr_cntr=0;
 /*
  * wait on this barrier until all threads are started
  * the barrier is called n-times (n=number of Data_Threads + 1) where the last call is made
@@ -114,6 +109,11 @@ void *Data_Threads(void *arg)
  * and waits on another barrier
  */	
 	Pthread_barrier_wait(c->pbarr);
+/* 
+ * set the counter 0
+ * this counter will be used by each SR_Thread to get the values of the socket and SR_mode
+ */
+	*SR_Threads->thr_cntr=0;
 /*
  * wait on this barrier until main thread sets value of counter and lock c->plock
  * the last call to _wait() is done in the main function after returning back from Data_Threads = Data_Thread(Gnode)

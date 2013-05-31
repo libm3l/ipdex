@@ -85,7 +85,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 				Perror("accept()");
 		}
 
-		inet_ntop(AF_INET, &(cli_addr.sin_addr), str, INET_ADDRSTRLEN);
+// 		inet_ntop(AF_INET, &(cli_addr.sin_addr), str, INET_ADDRSTRLEN);
 //    		printf("	CONNECTION --------------------   : %s:%d\n",str, ntohs(cli_addr.sin_port)); 
 
 /*
@@ -93,6 +93,8 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  */
 		if( (RecNode = m3l_Receive_tcpipsocket((const char *)NULL, newsockfd, "--encoding" , "IEEE-754", (char *)NULL)) == NULL)
 			Error("Error during reading data from socket");
+		
+		printf(" RECEIVED Recnode %p\n", RecNode);
 		
 		dim[0] = 1;
 
@@ -279,6 +281,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 /*
  * data set was identified
  */
+				printf(" UMOUNTING Recnode %p\n", RecNode);
 					if( m3l_Umount(&RecNode) != 1)
 						Perror("m3l_Umount");
 				}

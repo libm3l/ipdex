@@ -37,6 +37,8 @@ void *SR_Data_Threads(void *arg)
 			SR_mode =  c->pSR_mode[*c->pthr_cntr];
 			sockfd  =  c->psockfd[*c->pthr_cntr];
 			(*c->pthr_cntr)++; 
+			
+			printf(" +++++++++++++ '%c'  %d  %d\n", SR_mode, sockfd,  *c->pthr_cntr );
 
 		Pthread_mutex_unlock(c->plock);
 
@@ -52,7 +54,7 @@ void *SR_Data_Threads(void *arg)
  */
 				pt_sync(c->psync_loc);
 				
-// 				printf(" RECEIVER after syncing '%s'\n", c->pbuffer);
+// 				printf(" ===================================RECEIVER after syncing  %d '%s'   %d\n", sockfd, c->pbuffer, *c->pngotten);
 				
 				if ( (n = Write(sockfd,c->pbuffer, *c->pngotten)) < *c->pngotten)
 					Perror("write()");
@@ -61,7 +63,7 @@ void *SR_Data_Threads(void *arg)
 
 				Pthread_mutex_lock(c->plock);
 				(*c->prcounter)--;
-				*c->psync == 0;
+				*c->psync = 0;
 				
 				if(*c->prcounter == 0){
 /* 	
@@ -71,6 +73,15 @@ void *SR_Data_Threads(void *arg)
  */
 					*c->psync == 1;
 					Pthread_cond_broadcast(c->pdcond);
+/*
+ * clean buffer
+ */
+					bzero(c->pbuffer, sizeof(c->pbuffer));
+					*c->pngotten = 0;
+/*
+ * signal Sender that all Receivers are ready for next 
+ * round of transmition
+ */
 					Sem_post(c->psem);
 /* 
  * unlock semaphore in the main program so that another loop can start
@@ -106,8 +117,13 @@ void *SR_Data_Threads(void *arg)
 // 			printf("READER closing socket after reading SEOB \n");
 			if( close(sockfd) == -1)
 				Perror("close");
-			if(*c->prcounter == 0)
+			
+			pt_sync(c->psync_loc);
+
+			if(*c->prcounter == 0){
+				*c->pthr_cntr = 0; 
 				Sem_post(c->psem_g);
+			}
 // 			printf("READER after Semaphore \n");
 
 		}
@@ -117,10 +133,10 @@ void *SR_Data_Threads(void *arg)
 /*
  * sender sent its Header, before sending other data, send back acknowledgement
  */
-// 			printf(" SR_Data_Threads1 : Send_to_tcp\n");
+			printf(" SR_Data_Threads1 : Send_to_tcp\n");
 			if( m3l_Send_to_tcpipsocket((node_t *)NULL, (const char *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB",  (char *)NULL) < 1)
 				Error("Error during reading data from socket");
-// 			printf(" SR_Data_Threads1 : Send_to_tcp -- DONE\n");
+			printf(" SR_Data_Threads1 : Send_to_tcp -- DONE\n");
 /*
  * thread reads data from TCP/IP socket sent by client and 
  * write them to buffer
@@ -135,13 +151,14 @@ void *SR_Data_Threads(void *arg)
 // 				printf(" Sender  %d  \n", *c->prcounter);
 				*c->pEofBuff = 1;
 
-// 		printf(" Sender  READING \n");
+// 				printf(" ====================================Sender  READING %d   '%s'\n", sockfd, c->pbuffer);
 				bzero(c->pbuffer,MAXLINE+1);
 				if (  (*c->pngotten = Read(sockfd, c->pbuffer, MAXLINE)) == -1){
 					Perror("read");
 					free(c);
 					return;
 				}
+// 				printf(" ====================================Sender  after READING %d   '%s'  %d\n", sockfd, c->pbuffer, *c->pngotten);
 
 // 				printf(" SENDER  buffer   %d  '%s' \n", *c->pngotten, c->pbuffer);
 
@@ -167,16 +184,18 @@ void *SR_Data_Threads(void *arg)
 /*
  * sender sent payload, before closign socket send back acknowledgement
  */
-// 			printf(" SR_Data_Threads2 : Send_to_tcp\n");
+			printf(" SR_Data_Threads2 : Send_to_tcp\n");
 			if( m3l_Send_to_tcpipsocket((node_t *)NULL, (const char *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB",  (char *)NULL) < 1)
 				Error("Error during reading data from socket");
-// 			printf(" SR_Data_Threads2 : Send_to_tcp -- DONE\n");
+			printf(" SR_Data_Threads2 : Send_to_tcp -- DONE\n");
 
 			if( close(sockfd) == -1)
 				Perror("close");
+			
+			pt_sync(c->psync_loc);
 		}
 		else{
-			Error("Wrong option");
+			Error("111  Wrong option");
 		}
 		
 	}
@@ -211,7 +230,7 @@ lmssize_t Write(lmint_t sockfd,  lmchar_t *buffer, lmsize_t size){
 /*
  * buffer was sent, nullify it
  */
-	bzero(buffer, sizeof(buffer));
+// 	bzero(buffer, sizeof(buffer));
 	return total;
 }
 
