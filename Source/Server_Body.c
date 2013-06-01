@@ -94,7 +94,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 		if( (RecNode = m3l_Receive_tcpipsocket((const char *)NULL, newsockfd, "--encoding" , "IEEE-754", (char *)NULL)) == NULL)
 			Error("Error during reading data from socket");
 		
-		printf(" RECEIVED Recnode %p\n", RecNode);
+// 		printf(" RECEIVED Recnode %p\n", RecNode);
 		
 		dim[0] = 1;
 
@@ -199,10 +199,10 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * if process is sender, indicate Sender that header was received before receiving payload
  * - not needed if process is Receiver
  */
-// 			printf(" Server_Body : Send_to_tcp\n");
+			printf(" Server_Body : Send_to_tcp\n");
 				if( m3l_Send_to_tcpipsocket(NULL, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754", "--SEOB",  (char *)NULL) < 1)
 					Error("Error during reading data from socket");
-// 			printf(" Server_Body : Send_to_tcp  - DONE\n");
+			printf(" Server_Body : Send_to_tcp  - DONE\n");
 			}
 /*
  * loop over - identify thread correspoding to required data thread.
@@ -284,6 +284,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 				printf(" UMOUNTING Recnode %p\n", RecNode);
 					if( m3l_Umount(&RecNode) != 1)
 						Perror("m3l_Umount");
+					close(newsockfd_tmp);
 				}
 				else{
 					Warning("Server_Body: Not valid data set");

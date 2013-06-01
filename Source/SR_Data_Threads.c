@@ -38,7 +38,7 @@ void *SR_Data_Threads(void *arg)
 			sockfd  =  c->psockfd[*c->pthr_cntr];
 			(*c->pthr_cntr)++; 
 			
-			printf(" +++++++++++++ '%c'  %d  %d\n", SR_mode, sockfd,  *c->pthr_cntr );
+// 			printf(" +++++++++++++ '%c'  %d  %d\n", SR_mode, sockfd,  *c->pthr_cntr );
 
 		Pthread_mutex_unlock(c->plock);
 
@@ -110,7 +110,7 @@ void *SR_Data_Threads(void *arg)
  * 	----- m3l_Send_to_tcpipsocket(NULL,(char *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB", (char *)NULL);
  * it is just to make sure all processes are done with transfer
  */
-			m3l_Receive_tcpipsocket((const char *)NULL, sockfd, "--encoding" , "IEEE-754", "--REOB",  (char *)NULL);
+			m3l_Receive_tcpipsocket((const lmchar_t *)NULL, sockfd, "--encoding" , "IEEE-754", "--REOB",  (lmchar_t *)NULL);
 /*
  * close socket, and if last partition, unlock semaphore so that Thead_Prt can continue
  */
@@ -134,7 +134,7 @@ void *SR_Data_Threads(void *arg)
  * sender sent its Header, before sending other data, send back acknowledgement
  */
 			printf(" SR_Data_Threads1 : Send_to_tcp\n");
-			if( m3l_Send_to_tcpipsocket((node_t *)NULL, (const char *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB",  (char *)NULL) < 1)
+			if( m3l_Send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB",  (lmchar_t *)NULL) < 1)
 				Error("Error during reading data from socket");
 			printf(" SR_Data_Threads1 : Send_to_tcp -- DONE\n");
 /*
@@ -148,7 +148,6 @@ void *SR_Data_Threads(void *arg)
  * set counter of Receiving threads to number of R_threads (used in synchronizaiton of R_Threads)
  */ 		
 				*c->prcounter = *c->pcounter-1;
-// 				printf(" Sender  %d  \n", *c->prcounter);
 				*c->pEofBuff = 1;
 
 // 				printf(" ====================================Sender  READING %d   '%s'\n", sockfd, c->pbuffer);
@@ -160,11 +159,8 @@ void *SR_Data_Threads(void *arg)
 				}
 // 				printf(" ====================================Sender  after READING %d   '%s'  %d\n", sockfd, c->pbuffer, *c->pngotten);
 
-// 				printf(" SENDER  buffer   %d  '%s' \n", *c->pngotten, c->pbuffer);
 
 				eofbuffcond = Check_EOFbuff(c->pbuffer,prevbuff, strlen(c->pbuffer), EOBlen, EOFbuff);
-// 				eofbuffcond = Check_EOFbuff(c->pbuffer,prevbuff, *c->pngotten, EOBlen, EOFbuff);
-// 				printf(" Sender  after EOFBUFF check %d \n", eofbuffcond);
 				
 				if(eofbuffcond == 1)*c->pEofBuff = 0;
 /*
@@ -185,7 +181,7 @@ void *SR_Data_Threads(void *arg)
  * sender sent payload, before closign socket send back acknowledgement
  */
 			printf(" SR_Data_Threads2 : Send_to_tcp\n");
-			if( m3l_Send_to_tcpipsocket((node_t *)NULL, (const char *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB",  (char *)NULL) < 1)
+			if( m3l_Send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB",  (lmchar_t *)NULL) < 1)
 				Error("Error during reading data from socket");
 			printf(" SR_Data_Threads2 : Send_to_tcp -- DONE\n");
 
@@ -195,7 +191,7 @@ void *SR_Data_Threads(void *arg)
 			pt_sync(c->psync_loc);
 		}
 		else{
-			Error("111  Wrong option");
+			Error("Wrong option");
 		}
 		
 	}

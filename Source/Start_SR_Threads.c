@@ -71,6 +71,7 @@ SR_thread_str_t *Start_SR_Threads(lmint_t n_threads){
 	Pthread_cond_init(&SR_Data_Thread->sync_loc->last);
 	*SR_Data_Thread->sync_loc->nsync    = 0;
 	*SR_Data_Thread->sync_loc->nthreads = n_threads;
+	*SR_Data_Thread->thr_cntr = 0;
 /*
  * spawn threads
  */	

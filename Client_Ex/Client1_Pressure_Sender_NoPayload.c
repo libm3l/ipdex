@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
 	int nmax;
 	double *tmpdf;
 
-	nmax = 100;
+	nmax = 10000;
 /*
  * get port number
  */
@@ -98,7 +98,8 @@ int main(int argc, char *argv[])
 		if(m3l_Umount(&Gnode) != 1)
 			Perror("m3l_Umount");
 
-
+// 		if( m3l_Send_to_tcpipsocket(NULL, (const char *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB",  (char *)NULL) < 1)
+// 			Error("Error during reading data from socket");
 
 		if( close(sockfd) == -1)
 			Perror("close");

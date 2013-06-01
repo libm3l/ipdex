@@ -3,5 +3,8 @@ valgrind --tool=memcheck --leak-check=full --show-reachable=yes  --track-origins
 valgrind --tool=memcheck  --trace-children=yes --vex-iropt-register-updates=allregs-at-mem-access --workaround-gcc296-bugs=yes --leak-check=full --leak-check=full --show-reachable=yes  --track-origins=yes ./Server_Main.out --port 31000 --input_file Definition_File --show
 
 
+valgrind --tool=memcheck  --trace-children=yes --vex-iropt-register-updates=allregs-at-mem-access --leak-check=full --leak-resolution=high --show-reachable=yes  --track-origins=yes ./Server_Main.out --port 31000 --input_file Definition_File_P1 --show
+
+
 gdb
 set args --port 31000 --input_file Definition_File_P1 --show

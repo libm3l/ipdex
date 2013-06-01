@@ -35,7 +35,6 @@ void *Data_Threads(void *arg)
  * find name of data set
  * if it does not exist or more then one data set is found, give error message
  */
-		
 		if( (SFounds = m3l_Locate(c->Node, "./Data_Set/Name_of_Data_Set", "./*/*",  (lmchar_t *)NULL)) != NULL){
 			
 			if( m3l_get_Found_number(SFounds) != 1)
@@ -113,7 +112,7 @@ void *Data_Threads(void *arg)
  * set the counter 0
  * this counter will be used by each SR_Thread to get the values of the socket and SR_mode
  */
-	*SR_Threads->thr_cntr=0;
+// 	*SR_Threads->thr_cntr=0;
 /*
  * wait on this barrier until main thread sets value of counter and lock c->plock
  * the last call to _wait() is done in the main function after returning back from Data_Threads = Data_Thread(Gnode)
@@ -165,6 +164,9 @@ void *Data_Threads(void *arg)
 					SR_Threads->SR_mode[local_cntr] = *c->pSR_mode;
 					local_cntr++;
 					*c->pretval = 1;
+					
+					
+// 					m3l_Receive_tcpipsocket((const lmchar_t *)NULL, *c->psocket, "--encoding" , "IEEE-754", "--REOB",  (lmchar_t *)NULL);
 /* 
  * when the thread is positively identified, decrement counter of available thread for next round of identification, 
  * once n_avail_loc_theads == 0 all SR threads arrived, leave do - while loop and decrement (*c->pcounter)--
@@ -249,12 +251,12 @@ void *Data_Threads(void *arg)
  */
 // 		printf("Thread_Prt: after unlock 1\n");
 
-		Pthread_barrier_wait(&SR_Threads->barr);
-// 		printf("Thread_Prt: Waiting on semaphore \n");
-/*
- * once the data transfer is finished increase increment of available data_threads
- */
-		Sem_wait(&SR_Threads->sem_g);
+// 		Pthread_barrier_wait(&SR_Threads->barr);
+// // 		printf("Thread_Prt: Waiting on semaphore \n");
+// /*
+//  * once the data transfer is finished increase increment of available data_threads
+//  */
+// 		Sem_wait(&SR_Threads->sem_g);
 // 		printf("TEST_... TRANFER FINISHED\n\n\n");
 
 		n_avail_loc_theads = n_rec_proc + 1;
