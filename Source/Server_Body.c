@@ -284,7 +284,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 				printf(" UMOUNTING Recnode %p\n", RecNode);
 					if( m3l_Umount(&RecNode) != 1)
 						Perror("m3l_Umount");
-					close(newsockfd_tmp);
+// 					close(newsockfd_tmp);
 				}
 				else{
 					Warning("Server_Body: Not valid data set");

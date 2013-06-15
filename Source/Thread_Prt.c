@@ -251,12 +251,12 @@ void *Data_Threads(void *arg)
  */
 // 		printf("Thread_Prt: after unlock 1\n");
 
-// 		Pthread_barrier_wait(&SR_Threads->barr);
+		Pthread_barrier_wait(&SR_Threads->barr);
 // // 		printf("Thread_Prt: Waiting on semaphore \n");
 // /*
 //  * once the data transfer is finished increase increment of available data_threads
 //  */
-// 		Sem_wait(&SR_Threads->sem_g);
+		Sem_wait(&SR_Threads->sem_g);
 // 		printf("TEST_... TRANFER FINISHED\n\n\n");
 
 		n_avail_loc_theads = n_rec_proc + 1;
@@ -289,7 +289,7 @@ void *Data_Threads(void *arg)
  * set the counter 0
  * this counter will be used by each SR_Thread to get the values of the socket and SR_mode
  */		
-		*SR_Threads->thr_cntr=0;
+// 		*SR_Threads->thr_cntr=0;
 		printf("GOING TO NEXT LOOP\n\n\n");
 		}
 	

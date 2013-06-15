@@ -27,6 +27,7 @@ void *SR_Data_Threads(void *arg)
  * wait until all requests (all Receiver + Sender) for a particular data_set arrived 
  * the last invoking of Pthread_barrier_wait is done in Thread_Prt.c
  */
+		*c->pthr_cntr = 0;
 		Pthread_barrier_wait(c->pbarr);
 /*
  * get SR_mode and socket number of each connected processes
@@ -56,12 +57,15 @@ void *SR_Data_Threads(void *arg)
 				
 // 				printf(" ===================================RECEIVER after syncing  %d '%s'   %d\n", sockfd, c->pbuffer, *c->pngotten);
 				
+
+				Pthread_mutex_lock(c->plock);
+
 				if ( (n = Write(sockfd,c->pbuffer, *c->pngotten)) < *c->pngotten)
 					Perror("write()");
 
 // 				printf(" RECEIVER SENT DATA  %d\n ", n);
 
-				Pthread_mutex_lock(c->plock);
+// 				Pthread_mutex_lock(c->plock);
 				(*c->prcounter)--;
 				*c->psync = 0;
 				
@@ -76,7 +80,8 @@ void *SR_Data_Threads(void *arg)
 /*
  * clean buffer
  */
-					bzero(c->pbuffer, sizeof(c->pbuffer));
+// 					bzero(c->pbuffer, sizeof(c->pbuffer));
+					bzero(c->pbuffer, MAXLINE+1);
 					*c->pngotten = 0;
 /*
  * signal Sender that all Receivers are ready for next 
@@ -96,7 +101,7 @@ void *SR_Data_Threads(void *arg)
 						Pthread_cond_wait(c->pdcond, c->plock);
 				}
 
-// 				printf(" REDER after syncing %d\n", *c->pEofBuff );
+// 				printf(" RECEIVER after syncing %d\n", *c->pEofBuff );
 			
 				Pthread_mutex_unlock(c->plock);
 
@@ -118,32 +123,25 @@ void *SR_Data_Threads(void *arg)
 			if( close(sockfd) == -1)
 				Perror("close");
 			
-			pt_sync(c->psync_loc);
+// 			pt_sync(c->psync_loc);
 
 			if(*c->prcounter == 0){
-				*c->pthr_cntr = 0; 
+// 				*c->pthr_cntr = 0; 
 				Sem_post(c->psem_g);
 			}
 // 			printf("READER after Semaphore \n");
 
 		}
 		else if(SR_mode == 'S'){
-
-// 		printf(" Sender  send SEOB \n");
-/*
- * sender sent its Header, before sending other data, send back acknowledgement
- */
-			printf(" SR_Data_Threads1 : Send_to_tcp\n");
-			if( m3l_Send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB",  (lmchar_t *)NULL) < 1)
-				Error("Error during reading data from socket");
-			printf(" SR_Data_Threads1 : Send_to_tcp -- DONE\n");
+			
+// 		printf(" SENDER \n");
 /*
  * thread reads data from TCP/IP socket sent by client and 
  * write them to buffer
  */	
 			eofbuffcond = 0;
 			do{
-				Pthread_mutex_lock(c->plock);
+// 				Pthread_mutex_lock(c->plock);
 /*
  * set counter of Receiving threads to number of R_threads (used in synchronizaiton of R_Threads)
  */ 		
@@ -162,14 +160,20 @@ void *SR_Data_Threads(void *arg)
 
 				eofbuffcond = Check_EOFbuff(c->pbuffer,prevbuff, strlen(c->pbuffer), EOBlen, EOFbuff);
 				
-				if(eofbuffcond == 1)*c->pEofBuff = 0;
+// 				if(eofbuffcond == 1)*c->pEofBuff = 0;
 /*
  * The buffer has been red from socket, send broadcast signal to all R_threads to go on
  * then unlock mutex and wait for semaphore
  */			
-				Pthread_mutex_unlock(c->plock);
+// 				Pthread_mutex_unlock(c->plock);
+
+// 				printf(" SENDER before sync\n");
+
 				pt_sync(c->psync_loc);
+				if(eofbuffcond == 1)*c->pEofBuff = 0;
+// 				printf(" SENDER after sync\n");
 				Sem_wait(c->psem);
+// 				printf(" SENDER SEM sync\n");
 /*
  * if end of buffer reached, leave do cycle
  */
@@ -178,7 +182,7 @@ void *SR_Data_Threads(void *arg)
 // 		printf(" SENDER leaving while\n");
 
 /*
- * sender sent payload, before closign socket send back acknowledgement
+ * sender sent payload, before closign socket send back acknowledgement --SEOB, Sender receives --REOB
  */
 			printf(" SR_Data_Threads2 : Send_to_tcp\n");
 			if( m3l_Send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB",  (lmchar_t *)NULL) < 1)
@@ -188,7 +192,7 @@ void *SR_Data_Threads(void *arg)
 			if( close(sockfd) == -1)
 				Perror("close");
 			
-			pt_sync(c->psync_loc);
+// 			pt_sync(c->psync_loc);
 		}
 		else{
 			Error("Wrong option");
@@ -210,8 +214,6 @@ lmssize_t Write(lmint_t sockfd,  lmchar_t *buffer, lmsize_t size){
 	lmchar_t *buff;
 
 	buff = buffer;
-
-// 	printf(" WRITE %d  '%s'\n", sockfd, buff);
 	
 	while(size > 0) {
 		
@@ -223,18 +225,10 @@ lmssize_t Write(lmint_t sockfd,  lmchar_t *buffer, lmsize_t size){
 		total += n;
 		size  -= n;
 	}
-/*
- * buffer was sent, nullify it
- */
-// 	bzero(buffer, sizeof(buffer));
+
 	return total;
 }
 
-// 		bzero(buff,sizeof(buff));
-// 		if (  (ngotten = Read(descrpt, MAXLINE-1)) == -1){
-// 			Perror("read");
-// 			return -1;
-// 		}
 
 lmssize_t Read(lmint_t descrpt , lmchar_t *buff, lmint_t n)
 {
@@ -245,7 +239,6 @@ lmssize_t Read(lmint_t descrpt , lmchar_t *buff, lmint_t n)
 		return -1;
 	}
 	buff[ngotten] = '\0';
-// 				printf(" GOT   %d  '%s'   %d \n", ngotten, buff, descrpt);
 
 	return ngotten;
 }
