@@ -62,12 +62,12 @@ int main(int argc, char *argv[])
         struct sockaddr_in cli_addr;
 	char *name="Pressure";
 
-	int nmax;
+	int nmax, retval;
 	double *tmpdf;	
 
 	struct timespec tim, tim2;
 	tim.tv_sec = 0;
-	tim.tv_nsec = 100000000L;    /* 0.1 secs */
+	tim.tv_nsec = 300000000L;    /* 0.1 secs */
 
 	nmax = 100000;
 /*
@@ -93,15 +93,51 @@ int main(int argc, char *argv[])
 		
 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
 			Error("CatData");
+
+		
+again:
 		
 		if ( (sockfd =  m3l_cli_open_socket(argv[1], portno, (char *)NULL)) < 0)
 			Error("Could not open socket");
 
-		m3l_Send_to_tcpipsocket(Gnode,(char *)NULL, sockfd, "--encoding" , "IEEE-754", (char *)NULL);
-		printf(" Sending header \n");
+// 		m3l_Send_to_tcpipsocket(Gnode,(char *)NULL, sockfd, "--encoding" , "IEEE-754", (char *)NULL);
+// 		printf(" Sending header \n");
+		
+		if(  (TmpNode = m3l_Send_receive_tcpipsocket(Gnode,(char *)NULL, sockfd, "--encoding" , "IEEE-754", (char *)NULL)) == NULL)
+			Error("Receiving data");
+/*
+ * get the value of the /RR/val
+ */
+		retval = TmpNode->child->data.i[0];	
+		
+		printf(" Sending header %d\n", retval);
+		
+		if(retval == 0){
+	
+			if(m3l_Umount(&TmpNode) != 1)
+			Perror("m3l_Umount");
+			
+			if( close(sockfd) == -1)
+				Perror("close");			
+			if(nanosleep(&tim , &tim2) < 0 )
+				Error("Nano sleep system call failed \n");
+			
+			goto again;
+		}
+		
+		printf(" Sending --SEOB %d\n");
+
+		
+		m3l_Send_to_tcpipsocket((node_t *)NULL, (char *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB", (char *)NULL);
 		
 		if(m3l_Umount(&Gnode) != 1)
 			Perror("m3l_Umount");
+		
+		
+		
+		
+		
+		
 
 
 		printf(" Before Rec \n");
@@ -118,7 +154,8 @@ int main(int argc, char *argv[])
 		m3l_Send_to_tcpipsocket(NULL,(char *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB", (char *)NULL);
 
 /*		if( (Gnode = m3l_Receive_send_tcpipsocket((node_t *)NULL,(char *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB",  (char *)NULL)) == NULL)
-			Error("Receiving data");	*/	
+			Error("Receiving data");	*/
+
 		printf(" after sending payload \n");
 
 		if( close(sockfd) == -1)

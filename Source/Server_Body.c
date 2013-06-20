@@ -6,24 +6,30 @@
 #include "arpa/inet.h"
 #include "Allocate_DataBuffer.h"
 #include "Check_Request.h"
+#include "ACK.h"
+
 
 lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	
-	lmsize_t i, len, nfounds;
-	lmint_t sockfd, newsockfd, newsockfd_tmp, cycle, recnode_cyc;
+	lmsize_t i, len;
+	lmint_t sockfd, newsockfd, cycle;
 	struct sockaddr_in cli_addr;
 	data_thread_str_t *Data_Threads;
 	lmchar_t *name_of_required_data_set, *SR_mode;
 	
 	socklen_t clilen;
 	find_t *SFounds, *Tqst_SFounds;
-	node_t *RecNode, *List, *DataBuffer, *TmpNode;
+	node_t *RecNode, *List, *DataBuffer, *TmpNode, *RR_POS, *RR_NEG;
 	lmsize_t dim[1];
 
 	char str[100];
 	
 	cycle=0;
-	nfounds=0;
+/*
+ * create positive and negative return receipt
+ */
+	RR_POS = ret_receipt(1);
+	RR_NEG = ret_receipt(0);
 /*
  * create buffer structure for buffering recevied data requests if needed
  */
@@ -106,14 +112,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 		printf(" Received DATA set from Socket:\n");
 		if(m3l_Cat(RecNode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
 			Error("CatData");
-
-		recnode_cyc = 0;
-/*
- * do loop here is done always once when it check the RecNode from socket
- * after that it looks if there are any requests in the buffer, if they are
- * it will recheck them until recnode_cyc == 0
- */
-		do{
 /* 
  * find Name_of_Data_Set
  * make sure the ./ path is used instead of /
@@ -158,52 +156,17 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			{
 				printf("Server_Body: Receiving_Processes not found\n");
 			}
-/*
- * get socket number
- */	
-			
-			if(nfounds > 0){			
-			
-				if( (SFounds = m3l_Locate(RecNode, "./Header/socket_nr", "./*/*",  (lmchar_t *)NULL)) != NULL){
-				
-					if( m3l_get_Found_number(SFounds) != 1)
-						Error("Server_Body: Only one SR_mode per Data_Set allowed");
-/* 
- * pointer to list of found nodes
- */
-					if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
-						Error("NULThread_Prt: Missing socket_nr");
-				
-					newsockfd_tmp = *(lmint_t *)m3l_get_data_pointer(List);
-/* 
- * free memory allocated in m3l_Locate
- */
-					m3l_DestroyFound(&SFounds);
-				}
-				else
-				{
-					printf("Server_Body: Receiving_Processes not found\n");
-				}
-			}
-			else{
-				newsockfd_tmp = newsockfd;
-			}
-			
-			
-/*
- * if RecNode comes from buffer, do not send SEOB, 
- * it's been sent when the RecNode was received from socket
- */
-			if(*SR_mode == 'S' && nfounds == 0){
-/*
- * if process is sender, indicate Sender that header was received before receiving payload
- * - not needed if process is Receiver
- */
-			printf(" Server_Body : Send_to_tcp\n");
-				if( m3l_Send_to_tcpipsocket(NULL, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754", "--SEOB",  (char *)NULL) < 1)
-					Error("Error during reading data from socket");
-			printf(" Server_Body : Send_to_tcp  - DONE\n");
-			}
+
+// 			if(*SR_mode == 'S'){
+// /*
+//  * if process is sender, indicate Sender that header was received before receiving payload
+//  * - not needed if process is Receiver
+//  */
+// 			printf(" Server_Body : Send_to_tcp\n");
+// 				if( m3l_Send_to_tcpipsocket(NULL, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754", "--SEOB",  (char *)NULL) < 1)
+// 					Error("Error during reading data from socket");
+// 			printf(" Server_Body : Send_to_tcp  - DONE\n");
+// 			}
 /*
  * loop over - identify thread correspoding to required data thread.
  * this thread spanws n SR threads (1 Sending thread and n-1 Reading threads) which take care of data transfer,
@@ -219,20 +182,37 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			if(cycle > 0){
 				Pthread_mutex_lock(&Data_Threads->lock);
 			}			
-			switch ( Check_Request(DataBuffer, RecNode, name_of_required_data_set, SR_mode, name_of_required_data_set, nfounds)) {
+			switch ( Check_Request(DataBuffer, RecNode, name_of_required_data_set, SR_mode, name_of_required_data_set)) {
 			case 0:            
 /* 
  * Legal request, not in buffer, data_thread available 
  */
 				printf(" CASE0 \n");
+				
+				if(*SR_mode == 'S'){
+/*
+ * if process is sender, indicate Sender that header was received before receiving payload
+ * if process is Receiver send acknowledgment and get back REOB
+ */
+// 					printf(" Server_Body : Send_to_tcp\n");
+					if( m3l_Send_to_tcpipsocket(RR_POS, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754",  (char *)NULL) < 1)
+						Error("Error during sending data from socket");
+// 					printf(" Server_Body : Send_to_tcp  - DONE\n");
+				}
+				else if(*SR_mode == 'R'){
+// 					printf(" Server_Body : Send_to_tcp\n");
+					m3l_Send_receive_tcpipsocket(RR_POS, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754", "--REOB", (char *)NULL);
+// 					printf(" Server_Body : Send_to_tcp  - DONE\n");
+				}
+				else
+					Error("Wrong SR mode\n");
+				
+				
+// 				printf(" After handshake\n");
 /*
  * set number of tested threads to number of available threads
  * save name of data set from header, SM_Mode of the process and socket number to thread data structure
- */		
-/*
- * if no data threads are available, wait until at least one of them is available
- * this can happen when all threads are occupied with transferring the data
-	*/
+ */
 				if(*Data_Threads->data_threads_availth_counter == 0){
 					while(*Data_Threads->data_threads_availth_counter == 0)
 						Pthread_cond_wait(&Data_Threads->cond, &Data_Threads->lock);
@@ -256,7 +236,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 				if( snprintf(Data_Threads->name_of_data_set, MAX_NAME_LENGTH,"%s",name_of_required_data_set) < 0)
 					Perror("snprintf");
 				*Data_Threads->SR_mode = *SR_mode;
-				*Data_Threads->socket  = newsockfd_tmp;
+				*Data_Threads->socket  = newsockfd;
 
 //  		printf(" Before Broadcasting SOCKET number is %d   %c\n", *Data_Threads->socket, *Data_Threads->SR_mode);
 
@@ -281,7 +261,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 /*
  * data set was identified
  */
-				printf(" UMOUNTING Recnode %p\n", RecNode);
+// 				printf(" UMOUNTING Recnode %p\n", RecNode);
 					if( m3l_Umount(&RecNode) != 1)
 						Perror("m3l_Umount");
 // 					close(newsockfd_tmp);
@@ -297,6 +277,28 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			
 			case 1:
 				printf(" ----------------------  -------------CASE 1 \n");
+				
+				if(*SR_mode == 'S'){
+/*
+ * if process is sender, indicate Sender that header was received before receiving payload
+ * if process is Receiver send acknowledgment and get back REOB
+ */
+// 					printf(" Server_Body : Send_to_tcp\n");
+					if( m3l_Send_to_tcpipsocket(RR_NEG, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754",  (char *)NULL) < 1)
+						Error("Error during sending data from socket");
+// 					printf(" Server_Body : Send_to_tcp  - DONE\n");
+				}
+				else if(*SR_mode == 'R'){
+// 					printf(" Server_Body : Send_to_tcp\n");
+					m3l_Send_to_tcpipsocket(RR_NEG, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754", (char *)NULL);
+// 					printf(" Server_Body : Send_to_tcp  - DONE\n");
+				}
+				else
+					Error("Wrong SR mode\n");
+/*
+ * data_thread is occupied let the process know it and close socket
+ * process will attempt to establish connection later
+ */
 				Pthread_mutex_unlock(&Data_Threads->lock);
 				
 			break;
@@ -320,53 +322,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * the RecNode (received data set request) was checked. 
  * Loop over the buffer and check sets which are temporarily stored there
  */
-
-
-/* 
- * Locate buffered requests, if found set nfounds to number of found stored requests, 
- * otherwise set it to 0.
- * Once the request is retreived from buffer it is not saved back.
- * Set recnode_cyc to 1 which means the following are stored requests not the one received from socket
- */
-// 			printf(" Waiting for locking \n");
-/*
- * decrement number of requests retrieved from buffer by 1
- * if this is done while recnode_cyc == 0 it does not have any effect
- * as the value will be set later
- */
-			nfounds--;
-				
-			Pthread_mutex_lock(&Data_Threads->lock);
-// 			printf(" after Waiting for locking \n");
-
-			if( recnode_cyc == 0){ 
-				if( (Tqst_SFounds = find_Queued_Reqst(DataBuffer)) != NULL)
-					nfounds = m3l_get_Found_number(Tqst_SFounds);
-				else
-					nfounds = 0;
-
-				recnode_cyc = 1;
-			}
-			
-// 			printf(" RECNODE_CYC %d  %d\n", recnode_cyc, nfounds);
-			
-			if(nfounds != 0){
-				if( (RecNode = m3l_get_Found_node(Tqst_SFounds, nfounds-1)) == NULL)
-					Error("Error while searching RecNode");
-
-			}
-
-// 			printf(" Waiting for unlocking 11 \n");
-
-			Pthread_mutex_unlock(&Data_Threads->lock);
-			
-// 			printf(" Unlocked 11  %d\n", nfounds);
-
-/*
- * loop until all buffered requests are checked
- */
-		}while(nfounds != 0);
-
 	}      /* end of while(1) */
 	
 	if(Tqst_SFounds != NULL) m3l_DestroyFound(&Tqst_SFounds);

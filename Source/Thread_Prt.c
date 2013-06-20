@@ -252,24 +252,27 @@ void *Data_Threads(void *arg)
 // 		printf("Thread_Prt: after unlock 1\n");
 
 		Pthread_barrier_wait(&SR_Threads->barr);
-// // 		printf("Thread_Prt: Waiting on semaphore \n");
+		printf("Thread_Prt: Waiting on semaphore \n");
 // /*
 //  * once the data transfer is finished increase increment of available data_threads
 //  */
 		Sem_wait(&SR_Threads->sem_g);
-// 		printf("TEST_... TRANFER FINISHED\n\n\n");
+		printf("TEST_... TRANFER FINISHED\n\n\n");
 
 		n_avail_loc_theads = n_rec_proc + 1;
 		
 		
 // 		printf("Thread_Prt: lock 2\n");
 		Pthread_mutex_lock(c->plock);
-// 		printf("Thread_Prt: after lock 2\n");
+// 		printf("Thread_Prt: after lock 2, SETTING STATUS 0\n");
 /*
  * release thread, ie. set Thread_Status = 0
  */
 			*Thread_Status = 0;
-	 		m3l_DestroyFound(&THRStat_SFounds);
+		
+// 			printf("AFTER SETTING STATUS 0\n");
+	 		
+			m3l_DestroyFound(&THRStat_SFounds);
 		
 			(*c->pcounter)++;
 // 			printf(" Status of the JOB is %d  %ld   %d\n", *Thread_Status , *c->pcounter, n_avail_loc_theads);

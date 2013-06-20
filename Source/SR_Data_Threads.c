@@ -107,7 +107,7 @@ void *SR_Data_Threads(void *arg)
 
 			}while(*c->pEofBuff != 0);
 			
-// 			printf("READER finished, reading SEOB \n");
+			printf("READER finished, reading SEOB \n");
 /*
  * EOFbuff received, transmition is finished
  * 
@@ -119,22 +119,22 @@ void *SR_Data_Threads(void *arg)
 /*
  * close socket, and if last partition, unlock semaphore so that Thead_Prt can continue
  */
-// 			printf("READER closing socket after reading SEOB \n");
+			printf("READER closing socket after reading SEOB \n");
 			if( close(sockfd) == -1)
 				Perror("close");
 			
 // 			pt_sync(c->psync_loc);
 
 			if(*c->prcounter == 0){
-// 				*c->pthr_cntr = 0; 
 				Sem_post(c->psem_g);
 			}
-// 			printf("READER after Semaphore \n");
+			printf("READER after Semaphore \n");
 
 		}
 		else if(SR_mode == 'S'){
 			
 // 		printf(" SENDER \n");
+			bzero(prevbuff, EOBlen+1);
 /*
  * thread reads data from TCP/IP socket sent by client and 
  * write them to buffer
@@ -169,17 +169,21 @@ void *SR_Data_Threads(void *arg)
 
 // 				printf(" SENDER before sync\n");
 
-				pt_sync(c->psync_loc);
+// 				pt_sync(c->psync_loc);
+				
 				if(eofbuffcond == 1)*c->pEofBuff = 0;
-// 				printf(" SENDER after sync\n");
+// 				printf(" SENDER after sync  %d\n", *c->pEofBuff );
+				pt_sync(c->psync_loc);
+// 				printf(" SENDER waiting for semaphore \n");
+
 				Sem_wait(c->psem);
-// 				printf(" SENDER SEM sync\n");
+// 				printf(" SENDER SEM sync  %d\n", eofbuffcond);
 /*
  * if end of buffer reached, leave do cycle
  */
 			}while(eofbuffcond != 1);
 
-// 		printf(" SENDER leaving while\n");
+		printf(" SENDER leaving while\n");
 
 /*
  * sender sent payload, before closign socket send back acknowledgement --SEOB, Sender receives --REOB
