@@ -14,6 +14,9 @@ void *SR_Data_Threads(void *arg)
 	lmchar_t SR_mode, prevbuff[EOBlen+1];
 	lmint_t sockfd, eofbuffcond;
 	lmsize_t n;
+
+	opts_t *Popts, opts;
+
 /*
  * wait for signal broadcast
  */
@@ -123,7 +126,7 @@ void *SR_Data_Threads(void *arg)
 			if( close(sockfd) == -1)
 				Perror("close");
 			
-// 			pt_sync(c->psync_loc);
+			pt_sync(c->psync_loc);
 
 			if(*c->prcounter == 0){
 				Sem_post(c->psem_g);
@@ -189,14 +192,32 @@ void *SR_Data_Threads(void *arg)
  * sender sent payload, before closign socket send back acknowledgement --SEOB, Sender receives --REOB
  */
 			printf(" SR_Data_Threads2 : Send_to_tcp\n");
-			if( m3l_Send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB",  (lmchar_t *)NULL) < 1)
-				Error("Error during reading data from socket");
+// 			if( m3l_Send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB",  (lmchar_t *)NULL) < 1)
+// 			if( m3l_Send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, "--encoding" , "IEEE-754", "-E",  (lmchar_t *)NULL) < 1)
+// 				Error("Error during reading data from socket");
+
+			
+			opts.opt_linkscleanemptlinks = '\0';  // clean empty links
+			opts.opt_nomalloc = '\0'; // if 'm', do not malloc (used in Mklist --no_malloc
+			opts.opt_linkscleanemptrefs = '\0'; // clean empty link references
+			opts.opt_tcpencoding = 't'; // serialization and encoding when sending over TCP/IP
+			opts.opt_MEMCP = 'S';  // type of buffering
+			opts.opt_EOBseq = 'E'; // send EOFbuff sequence only
+			
+			Popts = &opts;
+	
+			if( m3l_send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, Popts) < 0){
+				Error(" PROBLEM HERE \n");
+				return NULL;
+			}
+
+			
 			printf(" SR_Data_Threads2 : Send_to_tcp -- DONE\n");
 
 			if( close(sockfd) == -1)
 				Perror("close");
 			
-// 			pt_sync(c->psync_loc);
+			pt_sync(c->psync_loc);
 		}
 		else{
 			Error("Wrong option");

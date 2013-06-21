@@ -125,7 +125,7 @@ again:
 			goto again;
 		}
 		
-		printf(" Sending --SEOB %d\n");
+		printf(" Sending --SEOB\n");
 
 		
 		m3l_Send_to_tcpipsocket((node_t *)NULL, (char *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB", (char *)NULL);
