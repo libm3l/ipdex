@@ -125,8 +125,10 @@ void *SR_Data_Threads(void *arg)
 			printf("READER closing socket after reading SEOB \n");
 			if( close(sockfd) == -1)
 				Perror("close");
+			printf("READER syncing \n");
 			
 			pt_sync(c->psync_loc);
+			printf("READER after syncing \n");
 
 			if(*c->prcounter == 0){
 				Sem_post(c->psem_g);
@@ -174,13 +176,16 @@ void *SR_Data_Threads(void *arg)
 
 // 				pt_sync(c->psync_loc);
 				
-				if(eofbuffcond == 1)*c->pEofBuff = 0;
-// 				printf(" SENDER after sync  %d\n", *c->pEofBuff );
+				if(eofbuffcond == 1){
+					*c->pEofBuff = 0;
+					printf(" eofbuff ===========    1\n");
+				}
+				if(eofbuffcond == 1) printf(" SENDER after sync  %d\n", *c->pEofBuff );
 				pt_sync(c->psync_loc);
-// 				printf(" SENDER waiting for semaphore \n");
+				if(eofbuffcond == 1) printf(" SENDER waiting for semaphore \n");
 
 				Sem_wait(c->psem);
-// 				printf(" SENDER SEM sync  %d\n", eofbuffcond);
+				if(eofbuffcond == 1) printf(" SENDER SEM sync  %d\n", eofbuffcond);
 /*
  * if end of buffer reached, leave do cycle
  */
@@ -217,7 +222,9 @@ void *SR_Data_Threads(void *arg)
 			if( close(sockfd) == -1)
 				Perror("close");
 			
+			printf("Sender syncing \n");
 			pt_sync(c->psync_loc);
+			printf("Sender after  syncing \n");
 		}
 		else{
 			Error("Wrong option");
