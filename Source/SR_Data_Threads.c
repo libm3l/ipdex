@@ -12,7 +12,7 @@ void *SR_Data_Threads(void *arg)
 	SR_thread_args_t *c = (SR_thread_args_t *)arg;
 
 	lmchar_t SR_mode, prevbuff[EOBlen+1];
-	lmint_t sockfd, eofbuffcond;
+	lmint_t sockfd, eofbuffcond, R_done;
 	lmsize_t n;
 
 	opts_t *Popts, opts;
@@ -47,6 +47,8 @@ void *SR_Data_Threads(void *arg)
 		Pthread_mutex_unlock(c->plock);
 
 		if(SR_mode == 'R'){
+			
+			R_done = 0;
 
 // 		printf(" READER \n");
 /*
@@ -54,11 +56,18 @@ void *SR_Data_Threads(void *arg)
  */
 			do{
 /*
- * gate syncing all threads
+ * gate syncing all threads, before that 
+ * check if the Sender received EOFbuff, if yes, set R_done = 1
  */
+				
 				pt_sync(c->psync_loc);
 				
-// 				printf(" ===================================RECEIVER after syncing  %d '%s'   %d\n", sockfd, c->pbuffer, *c->pngotten);
+				if(*c->pEofBuff != 0){
+					R_done = 1;}
+				else{
+					R_done = 0;}
+				
+				printf(" ===================================RECEIVER after syncing  %d '%s'   %d\n", sockfd, c->pbuffer, *c->pngotten);
 				
 
 				Pthread_mutex_lock(c->plock);
@@ -66,7 +75,7 @@ void *SR_Data_Threads(void *arg)
 				if ( (n = Write(sockfd,c->pbuffer, *c->pngotten)) < *c->pngotten)
 					Perror("write()");
 
-// 				printf(" RECEIVER SENT DATA  %d\n ", n);
+				printf(" RECEIVER SENT DATA  %d\n ", n);
 
 // 				Pthread_mutex_lock(c->plock);
 				(*c->prcounter)--;
@@ -83,7 +92,6 @@ void *SR_Data_Threads(void *arg)
 /*
  * clean buffer
  */
-// 					bzero(c->pbuffer, sizeof(c->pbuffer));
 					bzero(c->pbuffer, MAXLINE+1);
 					*c->pngotten = 0;
 /*
@@ -108,7 +116,8 @@ void *SR_Data_Threads(void *arg)
 			
 				Pthread_mutex_unlock(c->plock);
 
-			}while(*c->pEofBuff != 0);
+// 			}while(*c->pEofBuff != 0);
+			}while(R_done == 1);
 			
 			printf("READER finished, reading SEOB \n");
 /*
@@ -160,7 +169,7 @@ void *SR_Data_Threads(void *arg)
 					free(c);
 					return;
 				}
-// 				printf(" ====================================Sender  after READING %d   '%s'  %d\n", sockfd, c->pbuffer, *c->pngotten);
+				printf(" ====================================Sender  after READING %d   '%s'  %d\n", sockfd, c->pbuffer, *c->pngotten);
 
 
 				eofbuffcond = Check_EOFbuff(c->pbuffer,prevbuff, strlen(c->pbuffer), EOBlen, EOFbuff);

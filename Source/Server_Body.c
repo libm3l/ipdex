@@ -93,7 +93,8 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			
 			while(*Data_Threads->data_threads_availth_counter == 0)
 				Pthread_cond_wait(&Data_Threads->cond, &Data_Threads->lock);
-			printf(" Free Data_Thread .....\n ");
+			
+			printf(" Free Data_Thread available .....\n ");
 		}
 		
 		
@@ -194,25 +195,25 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 		printf(" Checking CASE\n");	
 			
 		switch ( Check_Request(DataBuffer, RecNode, name_of_required_data_set, SR_mode, name_of_required_data_set)) {
-		case 0:            
+			case 0:            
 /* 
  * Legal request, not in buffer, data_thread available 
  */
-			printf(" CASE0 \n");
+				printf(" CASE0 \n");
 			
-			if(*SR_mode == 'S'){
+				if(*SR_mode == 'S'){
 /*
  * if process is sender, indicate Sender that header was received before receiving payload
  * if process is Receiver send acknowledgment and get back REOB
  */
-				if( m3l_Send_to_tcpipsocket(RR_POS, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754",  (char *)NULL) < 1)
-					Error("Error during sending data from socket");
-			}
-			else if(*SR_mode == 'R'){
-				m3l_Send_receive_tcpipsocket(RR_POS, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754", "--REOB", (char *)NULL);
-			}
-			else
-				Error("Wrong SR mode\n");
+					if( m3l_Send_to_tcpipsocket(RR_POS, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754",  (char *)NULL) < 1)
+						Error("Error during sending data from socket");
+				}
+				else if(*SR_mode == 'R'){
+					m3l_Send_receive_tcpipsocket(RR_POS, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754", "--REOB", (char *)NULL);
+				}
+				else
+					Error("Wrong SR mode\n");
 			
 			
 // 			printf(" After handshake\n");
@@ -236,72 +237,72 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * - set data_set name, SR_Mode and socket number so that data_thread processes can start identification
  * - set the return value to 0, once the thread is identified, the value is set to 1
  */
-			*Data_Threads->data_threads_remainth_counter = *Data_Threads->data_threads_availth_counter;	
+				*Data_Threads->data_threads_remainth_counter = *Data_Threads->data_threads_availth_counter;	
 
-			*Data_Threads->sync->nthreads  		      = *Data_Threads->data_threads_availth_counter + 1;
-			*Data_Threads->retval = 0;
-			
-			if( snprintf(Data_Threads->name_of_data_set, MAX_NAME_LENGTH,"%s",name_of_required_data_set) < 0)
-				Perror("snprintf");
-			*Data_Threads->SR_mode = *SR_mode;
-			*Data_Threads->socket  = newsockfd;
+				*Data_Threads->sync->nthreads  		      = *Data_Threads->data_threads_availth_counter + 1;
+				*Data_Threads->retval = 0;
+				
+				if( snprintf(Data_Threads->name_of_data_set, MAX_NAME_LENGTH,"%s",name_of_required_data_set) < 0)
+					Perror("snprintf");
+				*Data_Threads->SR_mode = *SR_mode;
+				*Data_Threads->socket  = newsockfd;
 
-			Pthread_mutex_unlock(&Data_Threads->lock);
+				Pthread_mutex_unlock(&Data_Threads->lock);
 /*
  * once all necessary data are set, send signal to all threads to start unloc mutex
  * and release borrowed memory
  */
-			pt_sync(Data_Threads->sync);
+				pt_sync(Data_Threads->sync);
 /* 
  * when all Data_Thread are finished, - the identification part, the threads are waiting on each other. 
  * the last thread unlock the semaphore so that the next loop can start
  */		
-			Sem_wait(&Data_Threads->sem);
+				Sem_wait(&Data_Threads->sem);
 				
 // 		printf(" After sem - MAIN \n");
 		
-			if(*Data_Threads->retval == 1){
+				if(*Data_Threads->retval == 1){
 /*
  * data set was identified
  */
-				if( m3l_Umount(&RecNode) != 1)
-					Perror("m3l_Umount");
-			}
-			else{
-				Warning("Server_Body: Not valid data set");
-				if( m3l_Umount(&RecNode) != 1)
-					Perror("m3l_Umount");
-				continue;
-			}
+					if( m3l_Umount(&RecNode) != 1)
+						Perror("m3l_Umount");
+				}
+				else{
+					Warning("Server_Body: Not valid data set");
+					if( m3l_Umount(&RecNode) != 1)
+						Perror("m3l_Umount");
+					continue;
+				}
 			
 			break;
 			
-		case 1:
-			printf(" ----------------------  -------------CASE 1 \n");
+			case 1:
+				printf(" ----------------------  -------------CASE 1 \n");
 			
-			if(*SR_mode == 'S'){
+				if(*SR_mode == 'S'){
 /*
  * if process is sender, indicate Sender that header was received before receiving payload
  * if process is Receiver send acknowledgment and get back REOB
  */
 				if( m3l_Send_to_tcpipsocket(RR_NEG, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754",  (char *)NULL) < 1)
 					Error("Error during sending data from socket");
-			}
-			else if(*SR_mode == 'R'){
-				m3l_Send_to_tcpipsocket(RR_NEG, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754", (char *)NULL);
-			}
-			else
-				Error("Wrong SR mode\n");
+				}
+				else if(*SR_mode == 'R'){
+					m3l_Send_to_tcpipsocket(RR_NEG, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754", (char *)NULL);
+				}
+				else
+					Error("Wrong SR mode\n");
 /*
  * data_thread is occupied let the process know it and close socket
  * process will attempt to establish connection later
  */
-			Pthread_mutex_unlock(&Data_Threads->lock);
+				Pthread_mutex_unlock(&Data_Threads->lock);
 			
 			break;
 
-		case -1:            /* Legal request, already in buffer */
-			printf(" Too many request from a client - Disregarding\n");
+			case -1:            /* Legal request, already in buffer */
+				printf(" Too many request from a client - Disregarding\n");
 			break;
 
 		}
