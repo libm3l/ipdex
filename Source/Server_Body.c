@@ -20,7 +20,9 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	socklen_t clilen;
 	find_t *SFounds, *Tqst_SFounds;
 	node_t *RecNode, *List, *DataBuffer, *TmpNode, *RR_POS, *RR_NEG;
-	lmsize_t dim[1];
+	lmsize_t dim[1];	
+
+	opts_t *Popts, opts;
 
 	char str[100];
 	
@@ -89,12 +91,12 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 		
 		if(*Data_Threads->data_threads_availth_counter == 0){
 		
-			printf(" Waiting for free Data_Thread .....\n ");
+// 			printf(" Waiting for free Data_Thread .....\n ");
 			
 			while(*Data_Threads->data_threads_availth_counter == 0)
 				Pthread_cond_wait(&Data_Threads->cond, &Data_Threads->lock);
 			
-			printf(" Free Data_Thread available .....\n ");
+// 			printf(" Free Data_Thread available .....\n ");
 		}
 		
 		
@@ -112,8 +114,21 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 /*
  * receive header with solver and data set information
  */
-		if( (RecNode = m3l_Receive_tcpipsocket((const char *)NULL, newsockfd, "--encoding" , "IEEE-754", (char *)NULL)) == NULL)
+// 		if( (RecNode = m3l_Receive_tcpipsocket((const char *)NULL, newsockfd, "--encoding" , "IEEE-754", (char *)NULL)) == NULL)
+// 			Error("Error during reading data from socket");
+			opts.opt_linkscleanemptlinks = '\0';  // clean empty links
+			opts.opt_nomalloc = '\0'; // if 'm', do not malloc (used in Mklist --no_malloc
+			opts.opt_linkscleanemptrefs = '\0'; // clean empty link references
+			opts.opt_tcpencoding = 'I'; // serialization and encoding when sending over TCP/IP
+			opts.opt_MEMCP = 'S';  // type of buffering
+			opts.opt_REOBseq = '\0'; // send EOFbuff sequence only
+			opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
+
+			Popts = &opts;
+
+		if( (RecNode = m3l_receive_tcpipsocket((const char *)NULL, newsockfd, Popts)) == NULL)
 			Error("Error during reading data from socket");
+
 
 		dim[0] = 1;
 
@@ -121,9 +136,9 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			Error("m3l_Mklist");
 		TmpNode->data.i[0] = newsockfd;
 
-		printf(" Received DATA set from Socket:\n");
-		if(m3l_Cat(RecNode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
-			Error("CatData");
+// 		printf(" Received DATA set from Socket:\n");
+// 		if(m3l_Cat(RecNode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
+// 			Error("CatData");
 /* 
  * find Name_of_Data_Set
  * make sure the ./ path is used instead of /
@@ -192,14 +207,14 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 // 						Pthread_cond_wait(&Data_Threads->cond, &Data_Threads->lock);
 // 				}
 			
-		printf(" Checking CASE\n");	
+// 		printf(" Checking CASE\n");	
 			
 		switch ( Check_Request(DataBuffer, RecNode, name_of_required_data_set, SR_mode, name_of_required_data_set)) {
 			case 0:            
 /* 
  * Legal request, not in buffer, data_thread available 
  */
-				printf(" CASE0 \n");
+				printf(" CASE0   %c\n", *SR_mode);
 			
 				if(*SR_mode == 'S'){
 /*
@@ -210,7 +225,27 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 						Error("Error during sending data from socket");
 				}
 				else if(*SR_mode == 'R'){
-					m3l_Send_receive_tcpipsocket(RR_POS, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754", "--REOB", (char *)NULL);
+// 					m3l_Send_receive_tcpipsocket(RR_POS, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754", "--REOB", (char *)NULL);
+
+			opts.opt_linkscleanemptlinks = '\0';  // clean empty links
+			opts.opt_nomalloc = '\0'; // if 'm', do not malloc (used in Mklist --no_malloc
+			opts.opt_linkscleanemptrefs = '\0'; // clean empty link references
+			opts.opt_tcpencoding = 'I'; // serialization and encoding when sending over TCP/IP
+			opts.opt_MEMCP = 'S';  // type of buffering
+			opts.opt_REOBseq = 'G'; // send EOFbuff sequence only
+			opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
+			
+			Popts = &opts;
+// 			printf(" Option is %c\n", Popts->opt_REOBseq);
+	
+				if( m3l_send_receive_tcpipsocket(RR_POS, (const lmchar_t *)NULL, newsockfd, Popts) < 0){
+				Error(" PROBLEM HERE \n");
+				return NULL;
+
+			}
+
+// 			printf(" -----------   After handshake\n");
+
 				}
 				else
 					Error("Wrong SR mode\n");
@@ -278,7 +313,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			break;
 			
 			case 1:
-				printf(" ----------------------  -------------CASE 1 \n");
+				printf("-------------CASE 1 \n");
 			
 				if(*SR_mode == 'S'){
 /*
@@ -302,12 +337,13 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			break;
 
 			case -1:            /* Legal request, already in buffer */
+				printf("-------------CASE -1 \n");
 				printf(" Too many request from a client - Disregarding\n");
 			break;
 
 		}
 			
-// 			printf(" end case \n");
+			printf(" end case \n");
 		
 /*
  * initial stage was completed, server is running in while(1) loop, set cycle to 1

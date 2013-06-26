@@ -217,7 +217,7 @@ void *Data_Threads(void *arg)
 		
 		}while(n_avail_loc_theads != 0);  /* all connecting thread arrivied, ie. one Sender and n_rec_proc Receivers */
 
-		printf(" -------------------------------   Thread %lu named as '%s' received its SOCKET  %d\n", MyThreadID , local_set_name, *c->pcounter);
+// 		printf(" -------------------------------   Thread %lu named as '%s' received its SOCKET  %d\n", MyThreadID , local_set_name, *c->pcounter);
 /*
  * once all R-W threads are taken decrement counter of data_threads ie. Data_Thread->data_threads_availth_counter
  */
@@ -252,12 +252,12 @@ void *Data_Threads(void *arg)
 // 		printf("Thread_Prt: after unlock 1\n");
 
 		Pthread_barrier_wait(&SR_Threads->barr);
-		printf("Thread_Prt: Waiting on semaphore \n");
+// 		printf("Thread_Prt: Waiting on semaphore \n");
 // /*
 //  * once the data transfer is finished increase increment of available data_threads
 //  */
 		Sem_wait(&SR_Threads->sem_g);
-		printf("TEST_... TRANFER FINISHED\n\n\n");
+// 		printf("TEST_... TRANFER FINISHED\n\n\n");
 
 		n_avail_loc_theads = n_rec_proc + 1;
 		
@@ -293,7 +293,7 @@ void *Data_Threads(void *arg)
  * this counter will be used by each SR_Thread to get the values of the socket and SR_mode
  */		
 // 		*SR_Threads->thr_cntr=0;
-		printf("GOING TO NEXT LOOP\n\n\n");
+// 		printf("GOING TO NEXT LOOP\n\n\n");
 		}
 	
 	

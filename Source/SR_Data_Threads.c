@@ -67,7 +67,7 @@ void *SR_Data_Threads(void *arg)
 				else{
 					R_done = 0;}
 				
-				printf(" ===================================RECEIVER after syncing  %d '%s'   %d\n", sockfd, c->pbuffer, *c->pngotten);
+// 				printf(" ===================================RECEIVER after syncing  %d '%s'   %d\n", sockfd, c->pbuffer, *c->pngotten);
 				
 
 				Pthread_mutex_lock(c->plock);
@@ -75,7 +75,7 @@ void *SR_Data_Threads(void *arg)
 				if ( (n = Write(sockfd,c->pbuffer, *c->pngotten)) < *c->pngotten)
 					Perror("write()");
 
-				printf(" RECEIVER SENT DATA  %d\n ", n);
+// 				printf(" RECEIVER SENT DATA  %d\n ", n);
 
 // 				Pthread_mutex_lock(c->plock);
 				(*c->prcounter)--;
@@ -119,7 +119,7 @@ void *SR_Data_Threads(void *arg)
 // 			}while(*c->pEofBuff != 0);
 			}while(R_done == 1);
 			
-			printf("READER finished, reading SEOB \n");
+// 			printf("READER finished, reading SEOB \n");
 /*
  * EOFbuff received, transmition is finished
  * 
@@ -131,18 +131,18 @@ void *SR_Data_Threads(void *arg)
 /*
  * close socket, and if last partition, unlock semaphore so that Thead_Prt can continue
  */
-			printf("READER closing socket after reading SEOB \n");
+// 			printf("READER closing socket after reading SEOB \n");
 			if( close(sockfd) == -1)
 				Perror("close");
-			printf("READER syncing \n");
+// 			printf("READER syncing \n");
 			
 			pt_sync(c->psync_loc);
-			printf("READER after syncing \n");
+// 			printf("READER after syncing \n");
 
 			if(*c->prcounter == 0){
 				Sem_post(c->psem_g);
 			}
-			printf("READER after Semaphore \n");
+// 			printf("READER after Semaphore \n");
 
 		}
 		else if(SR_mode == 'S'){
@@ -169,7 +169,7 @@ void *SR_Data_Threads(void *arg)
 					free(c);
 					return;
 				}
-				printf(" ====================================Sender  after READING %d   '%s'  %d\n", sockfd, c->pbuffer, *c->pngotten);
+// 				printf(" ====================================Sender  after READING %d   '%s'  %d\n", sockfd, c->pbuffer, *c->pngotten);
 
 
 				eofbuffcond = Check_EOFbuff(c->pbuffer,prevbuff, strlen(c->pbuffer), EOBlen, EOFbuff);
@@ -187,25 +187,25 @@ void *SR_Data_Threads(void *arg)
 				
 				if(eofbuffcond == 1){
 					*c->pEofBuff = 0;
-					printf(" eofbuff ===========    1\n");
+// 					printf(" eofbuff ===========    1\n");
 				}
-				if(eofbuffcond == 1) printf(" SENDER after sync  %d\n", *c->pEofBuff );
+// 				if(eofbuffcond == 1) printf(" SENDER after sync  %d\n", *c->pEofBuff );
 				pt_sync(c->psync_loc);
-				if(eofbuffcond == 1) printf(" SENDER waiting for semaphore \n");
+// 				if(eofbuffcond == 1) printf(" SENDER waiting for semaphore \n");
 
 				Sem_wait(c->psem);
-				if(eofbuffcond == 1) printf(" SENDER SEM sync  %d\n", eofbuffcond);
+// 				if(eofbuffcond == 1) printf(" SENDER SEM sync  %d\n", eofbuffcond);
 /*
  * if end of buffer reached, leave do cycle
  */
 			}while(eofbuffcond != 1);
 
-		printf(" SENDER leaving while\n");
+// 		printf(" SENDER leaving while\n");
 
 /*
  * sender sent payload, before closign socket send back acknowledgement --SEOB, Sender receives --REOB
  */
-			printf(" SR_Data_Threads2 : Send_to_tcp\n");
+// 			printf(" SR_Data_Threads2 : Send_to_tcp\n");
 // 			if( m3l_Send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB",  (lmchar_t *)NULL) < 1)
 // 			if( m3l_Send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, "--encoding" , "IEEE-754", "-E",  (lmchar_t *)NULL) < 1)
 // 				Error("Error during reading data from socket");
@@ -226,14 +226,14 @@ void *SR_Data_Threads(void *arg)
 			}
 
 			
-			printf(" SR_Data_Threads2 : Send_to_tcp -- DONE\n");
+// 			printf(" SR_Data_Threads2 : Send_to_tcp -- DONE\n");
 
 			if( close(sockfd) == -1)
 				Perror("close");
 			
-			printf("Sender syncing \n");
+// 			printf("Sender syncing \n");
 			pt_sync(c->psync_loc);
-			printf("Sender after  syncing \n");
+// 			printf("Sender after  syncing \n");
 		}
 		else{
 			Error("Wrong option");
