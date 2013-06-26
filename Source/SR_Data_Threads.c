@@ -16,7 +16,14 @@ void *SR_Data_Threads(void *arg)
 	lmsize_t n;
 
 	opts_t *Popts, opts;
-
+	
+	opts.opt_linkscleanemptlinks = '\0';  // clean empty links
+	opts.opt_nomalloc = '\0'; // if 'm', do not malloc (used in Mklist --no_malloc
+	opts.opt_linkscleanemptrefs = '\0'; // clean empty link references
+	opts.opt_tcpencoding = 't'; // serialization and encoding when sending over TCP/IP
+	opts.opt_MEMCP = 'S';  // type of buffering
+	
+	Popts = &opts;
 /*
  * wait for signal broadcast
  */
@@ -116,7 +123,6 @@ void *SR_Data_Threads(void *arg)
 			
 				Pthread_mutex_unlock(c->plock);
 
-// 			}while(*c->pEofBuff != 0);
 			}while(R_done == 1);
 			
 // 			printf("READER finished, reading SEOB \n");
@@ -127,7 +133,13 @@ void *SR_Data_Threads(void *arg)
  * 	----- m3l_Send_to_tcpipsocket(NULL,(char *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB", (char *)NULL);
  * it is just to make sure all processes are done with transfer
  */
-			m3l_Receive_tcpipsocket((const lmchar_t *)NULL, sockfd, "--encoding" , "IEEE-754", "--REOB",  (lmchar_t *)NULL);
+// 			m3l_Receive_tcpipsocket((const lmchar_t *)NULL, sockfd, "--encoding" , "IEEE-754", "--REOB",  (lmchar_t *)NULL);
+			
+			opts.opt_REOBseq = 'G'; // send EOFbuff sequence only
+			if( m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts) < 0){
+				Error(" PROBLEM HERE \n");
+				return NULL;
+			}
 /*
  * close socket, and if last partition, unlock semaphore so that Thead_Prt can continue
  */
@@ -210,16 +222,7 @@ void *SR_Data_Threads(void *arg)
 // 			if( m3l_Send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, "--encoding" , "IEEE-754", "-E",  (lmchar_t *)NULL) < 1)
 // 				Error("Error during reading data from socket");
 
-			
-			opts.opt_linkscleanemptlinks = '\0';  // clean empty links
-			opts.opt_nomalloc = '\0'; // if 'm', do not malloc (used in Mklist --no_malloc
-			opts.opt_linkscleanemptrefs = '\0'; // clean empty link references
-			opts.opt_tcpencoding = 't'; // serialization and encoding when sending over TCP/IP
-			opts.opt_MEMCP = 'S';  // type of buffering
-			opts.opt_EOBseq = 'E'; // send EOFbuff sequence only
-			
-			Popts = &opts;
-	
+			opts.opt_EOBseq = 'E'; // send EOFbuff sequence only	
 			if( m3l_send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, Popts) < 0){
 				Error(" PROBLEM HERE \n");
 				return NULL;

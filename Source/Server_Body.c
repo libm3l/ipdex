@@ -23,8 +23,15 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	lmsize_t dim[1];	
 
 	opts_t *Popts, opts;
+	Popts = &opts;
 
 	char str[100];
+	
+	opts.opt_linkscleanemptlinks = '\0';  // clean empty links
+	opts.opt_nomalloc = '\0'; // if 'm', do not malloc (used in Mklist --no_malloc
+	opts.opt_linkscleanemptrefs = '\0'; // clean empty link references
+	opts.opt_tcpencoding = 'I'; // serialization and encoding when sending over TCP/IP
+	opts.opt_MEMCP = 'S';  // type of buffering
 	
 	cycle=0;
 /*
@@ -116,15 +123,9 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  */
 // 		if( (RecNode = m3l_Receive_tcpipsocket((const char *)NULL, newsockfd, "--encoding" , "IEEE-754", (char *)NULL)) == NULL)
 // 			Error("Error during reading data from socket");
-			opts.opt_linkscleanemptlinks = '\0';  // clean empty links
-			opts.opt_nomalloc = '\0'; // if 'm', do not malloc (used in Mklist --no_malloc
-			opts.opt_linkscleanemptrefs = '\0'; // clean empty link references
-			opts.opt_tcpencoding = 'I'; // serialization and encoding when sending over TCP/IP
-			opts.opt_MEMCP = 'S';  // type of buffering
+
 			opts.opt_REOBseq = '\0'; // send EOFbuff sequence only
 			opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
-
-			Popts = &opts;
 
 		if( (RecNode = m3l_receive_tcpipsocket((const char *)NULL, newsockfd, Popts)) == NULL)
 			Error("Error during reading data from socket");
@@ -191,24 +192,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * Once the data transfer is finished, add the data thread to the pool of available data threads
  * (ie. increment  (*Data_Threads->data_threads_availth_counter)++)
  */
-
-// /*
-//  * if already in cycle, you need to lock mutex here
-//  */
-// 		if(cycle > 0){
-// 		printf(" Checking CASE2222222222\n");	
-// 			Pthread_mutex_lock(&Data_Threads->lock);
-// 		printf(" Checking CASE33333333333\n");	
-// 		}
-			
-			
-// 				if(*Data_Threads->data_threads_availth_counter == 0){
-// 					while(*Data_Threads->data_threads_availth_counter == 0)
-// 						Pthread_cond_wait(&Data_Threads->cond, &Data_Threads->lock);
-// 				}
-			
-// 		printf(" Checking CASE\n");	
-			
 		switch ( Check_Request(DataBuffer, RecNode, name_of_required_data_set, SR_mode, name_of_required_data_set)) {
 			case 0:            
 /* 
@@ -221,28 +204,26 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * if process is sender, indicate Sender that header was received before receiving payload
  * if process is Receiver send acknowledgment and get back REOB
  */
-					if( m3l_Send_to_tcpipsocket(RR_POS, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754",  (char *)NULL) < 1)
+// 					if( m3l_Send_to_tcpipsocket(RR_POS, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754",  (char *)NULL) < 1)
+// 						Error("Error during sending data from socket");
+					
+					opts.opt_REOBseq = '\0'; // send EOFbuff sequence only
+					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
+					if( m3l_send_to_tcpipsocket(RR_POS, (const char *)NULL, newsockfd, Popts) < 1)
 						Error("Error during sending data from socket");
 				}
 				else if(*SR_mode == 'R'){
 // 					m3l_Send_receive_tcpipsocket(RR_POS, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754", "--REOB", (char *)NULL);
 
-			opts.opt_linkscleanemptlinks = '\0';  // clean empty links
-			opts.opt_nomalloc = '\0'; // if 'm', do not malloc (used in Mklist --no_malloc
-			opts.opt_linkscleanemptrefs = '\0'; // clean empty link references
-			opts.opt_tcpencoding = 'I'; // serialization and encoding when sending over TCP/IP
-			opts.opt_MEMCP = 'S';  // type of buffering
-			opts.opt_REOBseq = 'G'; // send EOFbuff sequence only
-			opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
+					opts.opt_REOBseq = 'G'; // send EOFbuff sequence only
+					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
 			
-			Popts = &opts;
 // 			printf(" Option is %c\n", Popts->opt_REOBseq);
 	
-				if( m3l_send_receive_tcpipsocket(RR_POS, (const lmchar_t *)NULL, newsockfd, Popts) < 0){
-				Error(" PROBLEM HERE \n");
-				return NULL;
-
-			}
+					if( m3l_send_receive_tcpipsocket(RR_POS, (const lmchar_t *)NULL, newsockfd, Popts) < 0){
+						Error(" PROBLEM HERE \n");
+						return -1;
+					}
 
 // 			printf(" -----------   After handshake\n");
 
@@ -320,11 +301,20 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * if process is sender, indicate Sender that header was received before receiving payload
  * if process is Receiver send acknowledgment and get back REOB
  */
-				if( m3l_Send_to_tcpipsocket(RR_NEG, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754",  (char *)NULL) < 1)
-					Error("Error during sending data from socket");
+// 				if( m3l_Send_to_tcpipsocket(RR_NEG, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754",  (char *)NULL) < 1)
+// 					Error("Error during sending data from socket");
+					opts.opt_REOBseq = '\0'; // send EOFbuff sequence only
+					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
+					if( m3l_send_to_tcpipsocket(RR_NEG, (const char *)NULL, newsockfd, Popts) < 1)
+						Error("Error during sending data from socket");
+					
 				}
 				else if(*SR_mode == 'R'){
-					m3l_Send_to_tcpipsocket(RR_NEG, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754", (char *)NULL);
+// 					m3l_Send_to_tcpipsocket(RR_NEG, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754", (char *)NULL);
+					opts.opt_REOBseq = '\0'; // send EOFbuff sequence only
+					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
+					if( m3l_send_to_tcpipsocket(RR_NEG, (const char *)NULL, newsockfd, Popts) < 1)
+						Error("Error during sending data from socket");
 				}
 				else
 					Error("Wrong SR mode\n");
