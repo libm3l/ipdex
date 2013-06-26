@@ -123,6 +123,9 @@ again:
 			if(nanosleep(&tim , &tim2) < 0 )
 				Error("Nano sleep system call failed \n");
 			
+			printf("Sender -- Attemtping to send Header data again\n");
+
+			
 			goto again;
 		}
 		

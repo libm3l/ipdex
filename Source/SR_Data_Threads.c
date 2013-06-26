@@ -143,10 +143,10 @@ void *SR_Data_Threads(void *arg)
 /*
  * close socket, and if last partition, unlock semaphore so that Thead_Prt can continue
  */
-// 			printf("READER closing socket after reading SEOB \n");
+			printf("READER closing socket after reading SEOB \n");
 			if( close(sockfd) == -1)
 				Perror("close");
-// 			printf("READER syncing \n");
+			printf("READER syncing \n");
 			
 			pt_sync(c->psync_loc);
 // 			printf("READER after syncing \n");
@@ -219,7 +219,6 @@ void *SR_Data_Threads(void *arg)
  */
 // 			printf(" SR_Data_Threads2 : Send_to_tcp\n");
 // 			if( m3l_Send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB",  (lmchar_t *)NULL) < 1)
-// 			if( m3l_Send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, "--encoding" , "IEEE-754", "-E",  (lmchar_t *)NULL) < 1)
 // 				Error("Error during reading data from socket");
 
 			opts.opt_EOBseq = 'E'; // send EOFbuff sequence only	
@@ -229,12 +228,12 @@ void *SR_Data_Threads(void *arg)
 			}
 
 			
-// 			printf(" SR_Data_Threads2 : Send_to_tcp -- DONE\n");
+			printf(" SR_Data_Threads2 : Send_to_tcp -- DONE\n");
 
 			if( close(sockfd) == -1)
 				Perror("close");
 			
-// 			printf("Sender syncing \n");
+			printf("Sender syncing \n");
 			pt_sync(c->psync_loc);
 // 			printf("Sender after  syncing \n");
 		}

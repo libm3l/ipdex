@@ -91,8 +91,10 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 /*
  * if already in cycle, you need to lock mutex here
  */
-		if(cycle > 0)
+		if(cycle > 0){
+			printf(" Server_Body locking \n");
 			Pthread_mutex_lock(&Data_Threads->lock);
+			printf(" Server_Body locked \n");}
 
 		printf(" CYCLE navail %d  \n", *Data_Threads->data_threads_availth_counter);
 		
@@ -105,10 +107,10 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			
 // 			printf(" Free Data_Thread available .....\n ");
 		}
-		
-		
-		
+	
 		clilen = sizeof(cli_addr);
+		
+		printf("Waiting for Newsock\n");
 
 		if ( (newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen)) < 0){
 			if(errno == EINTR) /* If Interrupted system call, restart - back to while ()  UNP V1 p124  */
@@ -316,8 +318,13 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 					if( m3l_send_to_tcpipsocket(RR_NEG, (const char *)NULL, newsockfd, Popts) < 1)
 						Error("Error during sending data from socket");
 				}
-				else
+				else{
 					Error("Wrong SR mode\n");
+				}
+				
+				
+					if( close(newsockfd) == -1)
+						Perror("close");
 /*
  * data_thread is occupied let the process know it and close socket
  * process will attempt to establish connection later
