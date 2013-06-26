@@ -77,14 +77,14 @@ void *SR_Data_Threads(void *arg)
 // 				printf(" ===================================RECEIVER after syncing  %d '%s'   %d\n", sockfd, c->pbuffer, *c->pngotten);
 				
 
-				Pthread_mutex_lock(c->plock);
+// 				Pthread_mutex_lock(c->plock);
 
 				if ( (n = Write(sockfd,c->pbuffer, *c->pngotten)) < *c->pngotten)
 					Perror("write()");
 
 // 				printf(" RECEIVER SENT DATA  %d\n ", n);
 
-// 				Pthread_mutex_lock(c->plock);
+				Pthread_mutex_lock(c->plock);
 				(*c->prcounter)--;
 				*c->psync = 0;
 				
