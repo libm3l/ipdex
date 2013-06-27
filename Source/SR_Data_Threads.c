@@ -12,7 +12,7 @@ void *SR_Data_Threads(void *arg)
 	SR_thread_args_t *c = (SR_thread_args_t *)arg;
 
 	lmchar_t SR_mode, prevbuff[EOBlen+1];
-	lmint_t sockfd, eofbuffcond, R_done;
+	lmint_t sockfd, eofbuffcond, R_done, last;
 	lmsize_t n;
 
 	opts_t *Popts, opts;
@@ -62,12 +62,15 @@ void *SR_Data_Threads(void *arg)
  * thread reads the data from buffer and send over TCP/IP to client
  */
 			do{
+
+				last = 0;
 /*
  * gate syncing all threads, before that 
  * check if the Sender received EOFbuff, if yes, set R_done = 1
  */
-				
+				printf(" RECEIVER before  %d\n ", *c->prcounter);
 				pt_sync(c->psync_loc);
+				printf(" RECEIVER after  %d\n ", *c->prcounter);
 				
 				if(*c->pEofBuff != 0){
 					R_done = 1;}
@@ -82,13 +85,16 @@ void *SR_Data_Threads(void *arg)
 				if ( (n = Write(sockfd,c->pbuffer, *c->pngotten)) < *c->pngotten)
 					Perror("write()");
 
-// 				printf(" RECEIVER SENT DATA  %d\n ", n);
-
 				Pthread_mutex_lock(c->plock);
 				(*c->prcounter)--;
 				*c->psync = 0;
+				printf(" RECEIVER SENT DATA  %d\n ", *c->prcounter);
 				
 				if(*c->prcounter == 0){
+/*
+ * if this is the last Receiver thread, set last to 1
+ */
+					last = 1;
 /* 	
  * the last thread, broadcast
  * set number of remaining threads equal to number of reading threads (only if reading will be repeated, otherwise keep it 0)
@@ -105,6 +111,8 @@ void *SR_Data_Threads(void *arg)
  * signal Sender that all Receivers are ready for next 
  * round of transmition
  */
+					printf("READER NULL- syncing done \n");
+					if(R_done == 1)printf("READER posting semaphore \n");
 					Sem_post(c->psem);
 /* 
  * unlock semaphore in the main program so that another loop can start
@@ -125,7 +133,7 @@ void *SR_Data_Threads(void *arg)
 
 			}while(R_done == 1);
 			
-// 			printf("READER finished, reading SEOB \n");
+			printf("READER finished, reading SEOB \n");
 /*
  * EOFbuff received, transmition is finished
  * 
@@ -143,16 +151,22 @@ void *SR_Data_Threads(void *arg)
 /*
  * close socket, and if last partition, unlock semaphore so that Thead_Prt can continue
  */
-			printf("READER closing socket after reading SEOB \n");
+// 			printf("READER closing socket after reading SEOB \n");
 			if( close(sockfd) == -1)
 				Perror("close");
 			printf("READER syncing \n");
 			
 			pt_sync(c->psync_loc);
-// 			printf("READER after syncing \n");
+			printf("READER after syncing \n");
 
-			if(*c->prcounter == 0){
+/*			if(*c->prcounter == 0){*/
+			if(last == 1){
+				printf("READER before posting sem_g Semaphore \n");
+
 				Sem_post(c->psem_g);
+
+				printf("READER after posting sem_g Semaphore \n");
+
 			}
 // 			printf("READER after Semaphore \n");
 
@@ -172,6 +186,7 @@ void *SR_Data_Threads(void *arg)
  * set counter of Receiving threads to number of R_threads (used in synchronizaiton of R_Threads)
  */ 		
 				*c->prcounter = *c->pcounter-1;
+				printf(" SENDER %d\n",   *c->prcounter  );
 				*c->pEofBuff = 1;
 
 // 				printf(" ====================================Sender  READING %d   '%s'\n", sockfd, c->pbuffer);
@@ -185,8 +200,6 @@ void *SR_Data_Threads(void *arg)
 
 
 				eofbuffcond = Check_EOFbuff(c->pbuffer,prevbuff, strlen(c->pbuffer), EOBlen, EOFbuff);
-				
-// 				if(eofbuffcond == 1)*c->pEofBuff = 0;
 /*
  * The buffer has been red from socket, send broadcast signal to all R_threads to go on
  * then unlock mutex and wait for semaphore
@@ -195,29 +208,27 @@ void *SR_Data_Threads(void *arg)
 
 // 				printf(" SENDER before sync\n");
 
-// 				pt_sync(c->psync_loc);
 				
 				if(eofbuffcond == 1){
 					*c->pEofBuff = 0;
-// 					printf(" eofbuff ===========    1\n");
+					printf(" eofbuff ===========    1\n");
 				}
-// 				if(eofbuffcond == 1) printf(" SENDER after sync  %d\n", *c->pEofBuff );
+				if(eofbuffcond == 1) printf(" SENDER after sync  %d\n", *c->pEofBuff );
 				pt_sync(c->psync_loc);
-// 				if(eofbuffcond == 1) printf(" SENDER waiting for semaphore \n");
+				if(eofbuffcond == 1) printf(" SENDER waiting for semaphore \n");
 
 				Sem_wait(c->psem);
-// 				if(eofbuffcond == 1) printf(" SENDER SEM sync  %d\n", eofbuffcond);
+				if(eofbuffcond == 1) printf(" SENDER SEM sync  %d\n", eofbuffcond);
 /*
  * if end of buffer reached, leave do cycle
  */
 			}while(eofbuffcond != 1);
 
-// 		printf(" SENDER leaving while\n");
+		printf(" SENDER leaving while\n");
 
 /*
  * sender sent payload, before closign socket send back acknowledgement --SEOB, Sender receives --REOB
  */
-// 			printf(" SR_Data_Threads2 : Send_to_tcp\n");
 // 			if( m3l_Send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB",  (lmchar_t *)NULL) < 1)
 // 				Error("Error during reading data from socket");
 

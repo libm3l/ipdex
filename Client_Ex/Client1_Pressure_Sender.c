@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
 	pid_t  childpid;
 	size_t *dim, i, j;
 
-	lmint_t sockfd, portno, n, status, ch_stat, *tmpint;
+	lmint_t sockfd, portno, n, status, ch_stat, *tmpint, *tmpi;
 
         socklen_t clilen;
         struct sockaddr_in cli_addr;
@@ -92,6 +92,14 @@ int main(int argc, char *argv[])
  * open socket, IP address of server is in argv[1], port number is in portno
  */
 		Gnode = Header("Pressure", 'S');
+
+		dim = (size_t *) malloc( 1* sizeof(size_t));
+		dim[0] = 1;
+		if(  (TmpNode = m3l_Mklist("Iteration", "I", 1, dim, &Gnode, "/Header", "./", (char *)NULL)) == 0)
+				Error("m3l_Mklist");
+		tmpi = (lmint_t *)m3l_get_data_pointer(TmpNode);
+		tmpi[0] = i;
+		free(dim);
 		
 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
 			Error("CatData");
@@ -170,8 +178,12 @@ again:
 			Error("CatData");
 
 		m3l_Send_receive_tcpipsocket(Gnode,(char *)NULL, sockfd, "--encoding" , "IEEE-754",  "--REOB", (char *)NULL);
-// 		m3l_Send_to_tcpipsocket(Gnode,(char *)NULL, sockfd, "--encoding" , "IEEE-754",  (char *)NULL);
-		printf(" after sending payload \n");
+// 		printf(" after sending payload \n");
+
+// 		m3l_Send_to_tcpipsocket(Gnode,(char *)NULL, sockfd, "--encoding" , "IEEE-754", (char *)NULL);
+// 		printf(" after sending payload \n");
+// 		m3l_Receive_tcpipsocket((char *)NULL, sockfd, "--encoding" , "IEEE-754",  "--REOB", (char *)NULL);
+// 		printf(" after --REOB \n");
 		
 		if(m3l_Umount(&Gnode) != 1)
 			Perror("m3l_Umount");

@@ -107,6 +107,8 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			
 // 			printf(" Free Data_Thread available .....\n ");
 		}
+
+		Pthread_mutex_unlock(&Data_Threads->lock);
 	
 		clilen = sizeof(cli_addr);
 		
@@ -139,9 +141,9 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			Error("m3l_Mklist");
 		TmpNode->data.i[0] = newsockfd;
 
-// 		printf(" Received DATA set from Socket:\n");
-// 		if(m3l_Cat(RecNode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
-// 			Error("CatData");
+		printf(" Received DATA set from Socket:\n");
+		if(m3l_Cat(RecNode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
+			Error("CatData");
 /* 
  * find Name_of_Data_Set
  * make sure the ./ path is used instead of /
@@ -194,8 +196,11 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * Once the data transfer is finished, add the data thread to the pool of available data threads
  * (ie. increment  (*Data_Threads->data_threads_availth_counter)++)
  */
+
+ 		Pthread_mutex_lock(&Data_Threads->lock);
+
 		switch ( Check_Request(DataBuffer, RecNode, name_of_required_data_set, SR_mode, name_of_required_data_set)) {
-			case 0:            
+			case 0:
 /* 
  * Legal request, not in buffer, data_thread available 
  */
@@ -218,33 +223,17 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 // 					m3l_Send_receive_tcpipsocket(RR_POS, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754", "--REOB", (char *)NULL);
 
 					opts.opt_REOBseq = 'G'; // send EOFbuff sequence only
-					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
-			
-// 			printf(" Option is %c\n", Popts->opt_REOBseq);
-	
+					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only	
 					if( m3l_send_receive_tcpipsocket(RR_POS, (const lmchar_t *)NULL, newsockfd, Popts) < 0){
 						Error(" PROBLEM HERE \n");
 						return -1;
 					}
-
-// 			printf(" -----------   After handshake\n");
-
 				}
 				else
 					Error("Wrong SR mode\n");
 			
 			
-				printf(" After handshake\n");
-/*
- * if no Data_Thread is available, ie. all are occupied with data tranfere wait here.
- * This conditions is signaled from Thread_Prt.c by sequence:
- * 			"if(*c->pcounter == 1)
- *				Pthread_cond_signal(c->pcond);"
- */
-// 				if(*Data_Threads->data_threads_availth_counter == 0){
-// 					while(*Data_Threads->data_threads_availth_counter == 0)
-// 						Pthread_cond_wait(&Data_Threads->cond, &Data_Threads->lock);
-// 				}
+			printf(" =============   After handshake\n");
 /*
  * at least one data thread is available:
  *  -  set number of remainign data threads equalt to available data threads
@@ -256,7 +245,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * - set the return value to 0, once the thread is identified, the value is set to 1
  */
 				*Data_Threads->data_threads_remainth_counter = *Data_Threads->data_threads_availth_counter;	
-
 				*Data_Threads->sync->nthreads  		      = *Data_Threads->data_threads_availth_counter + 1;
 				*Data_Threads->retval = 0;
 				
@@ -264,23 +252,23 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 					Perror("snprintf");
 				*Data_Threads->SR_mode = *SR_mode;
 				*Data_Threads->socket  = newsockfd;
-				
-				printf(" UNLOCKING\n");
+			printf(" =============   After handshake -- UNLOCK\n");
 
 				Pthread_mutex_unlock(&Data_Threads->lock);
-				printf(" UNLOCKed\n");
 /*
  * once all necessary data are set, send signal to all threads to start unloc mutex
  * and release borrowed memory
  */
+			printf(" =============   ServeR_body syncn");
 				pt_sync(Data_Threads->sync);
 /* 
  * when all Data_Thread are finished, - the identification part, the threads are waiting on each other. 
  * the last thread unlock the semaphore so that the next loop can start
  */		
+			printf(" =============   ServeR_body after syncn");
 				Sem_wait(&Data_Threads->sem);
 				
-// 		printf(" After sem - MAIN \n");
+		printf(" After sem - MAIN -- retval == %d\n", *Data_Threads->retval);
 		
 				if(*Data_Threads->retval == 1){
 /*

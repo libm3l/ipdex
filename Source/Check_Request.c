@@ -94,12 +94,13 @@ lmint_t Check_Request(node_t *DataBuffer, node_t *RecNode, lmchar_t *name_of_req
 				
 				break;
 			}
+			
+			m3l_DestroyFound(&THRStat_SFounds);
 		}
 /*
  * Thread_Status == 0 data thread is free
  * Thread_Status == 1 data thread is busy
  */
-		m3l_DestroyFound(&THRStat_SFounds);
 		m3l_DestroyFound(&THRName_SFounds);
 	}
 	

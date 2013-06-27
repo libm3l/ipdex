@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
 	pid_t  childpid;
 	size_t *dim, i, j;
 
-	int sockfd, portno, n, status, ch_stat, *tmpint;
+	int sockfd, portno, n, status, ch_stat, *tmpint, *tmpi;
 
         socklen_t clilen;
         struct sockaddr_in cli_addr;
@@ -90,6 +90,15 @@ int main(int argc, char *argv[])
  * open socket, IP address of server is in argv[1], port number is in portno
  */
 		Gnode = Header("Pressure", 'R');
+
+
+		dim = (size_t *) malloc( 1* sizeof(size_t));
+		dim[0] = 1;
+		if(  (TmpNode = m3l_Mklist("Iteration", "I", 1, dim, &Gnode, "/Header", "./", (char *)NULL)) == 0)
+				Error("m3l_Mklist");
+		tmpi = (lmint_t *)m3l_get_data_pointer(TmpNode);
+		tmpi[0] = i;
+		free(dim);
 		
 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
 			Error("CatData");
