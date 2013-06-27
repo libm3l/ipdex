@@ -92,11 +92,12 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * if already in cycle, you need to lock mutex here
  */
 		if(cycle > 0){
-			printf(" Server_Body locking \n");
+// 			printf(" Server_Body locking \n");
 			Pthread_mutex_lock(&Data_Threads->lock);
-			printf(" Server_Body locked \n");}
+// 			printf(" Server_Body locked \n");
+		}
 
-		printf(" CYCLE navail %d  \n", *Data_Threads->data_threads_availth_counter);
+// 		printf(" CYCLE navail %d  \n", *Data_Threads->data_threads_availth_counter);
 		
 		if(*Data_Threads->data_threads_availth_counter == 0){
 		
@@ -112,7 +113,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	
 		clilen = sizeof(cli_addr);
 		
-		printf("Waiting for Newsock\n");
+// 		printf("Waiting for Newsock\n");
 
 		if ( (newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen)) < 0){
 			if(errno == EINTR) /* If Interrupted system call, restart - back to while ()  UNP V1 p124  */
@@ -141,9 +142,9 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			Error("m3l_Mklist");
 		TmpNode->data.i[0] = newsockfd;
 
-		printf(" Received DATA set from Socket:\n");
-		if(m3l_Cat(RecNode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
-			Error("CatData");
+// 		printf(" Received DATA set from Socket:\n");
+// 		if(m3l_Cat(RecNode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
+// 			Error("CatData");
 /* 
  * find Name_of_Data_Set
  * make sure the ./ path is used instead of /
@@ -233,7 +234,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 					Error("Wrong SR mode\n");
 			
 			
-			printf(" =============   After handshake\n");
+// 			printf(" =============   After handshake\n");
 /*
  * at least one data thread is available:
  *  -  set number of remainign data threads equalt to available data threads
@@ -252,23 +253,23 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 					Perror("snprintf");
 				*Data_Threads->SR_mode = *SR_mode;
 				*Data_Threads->socket  = newsockfd;
-			printf(" =============   After handshake -- UNLOCK\n");
+// 			printf(" =============   After handshake -- UNLOCK\n");
 
 				Pthread_mutex_unlock(&Data_Threads->lock);
 /*
  * once all necessary data are set, send signal to all threads to start unloc mutex
  * and release borrowed memory
  */
-			printf(" =============   ServeR_body sync\n");
+// 			printf(" =============   ServeR_body sync\n");
 				pt_sync(Data_Threads->sync);
 /* 
  * when all Data_Thread are finished, - the identification part, the threads are waiting on each other. 
  * the last thread unlock the semaphore so that the next loop can start
  */		
-			printf(" =============   ServeR_body after sync\n");
+// 			printf(" =============   ServeR_body after sync\n");
 				Sem_wait(&Data_Threads->sem);
 				
-		printf(" After sem - MAIN -- retval == %d\n", *Data_Threads->retval);
+// 		printf(" After sem - MAIN -- retval == %d\n", *Data_Threads->retval);
 		
 				if(*Data_Threads->retval == 1){
 /*
@@ -331,7 +332,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 
 		}
 			
-			printf(" end case \n");
+// 			printf(" end case \n");
 		
 /*
  * initial stage was completed, server is running in while(1) loop, set cycle to 1

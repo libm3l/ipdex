@@ -133,7 +133,7 @@ void *SR_Data_Threads(void *arg)
 
 			}while(R_done == 1);
 			
-			printf("READER finished, reading SEOB \n");
+// 			printf("READER finished, reading SEOB \n");
 /*
  * EOFbuff received, transmition is finished
  * 
@@ -154,18 +154,18 @@ void *SR_Data_Threads(void *arg)
 // 			printf("READER closing socket after reading SEOB \n");
 			if( close(sockfd) == -1)
 				Perror("close");
-			printf("READER syncing \n");
+// 			printf("READER syncing \n");
 			
 			pt_sync(c->psync_loc);
-			printf("READER after syncing \n");
+// 			printf("READER after syncing \n");
 
 /*			if(*c->prcounter == 0){*/
 			if(last == 1){
-				printf("READER before posting sem_g Semaphore \n");
+// 				printf("READER before posting sem_g Semaphore \n");
 
 				Sem_post(c->psem_g);
 
-				printf("READER after posting sem_g Semaphore \n");
+// 				printf("READER after posting sem_g Semaphore \n");
 
 			}
 // 			printf("READER after Semaphore \n");
@@ -211,20 +211,20 @@ void *SR_Data_Threads(void *arg)
 				
 				if(eofbuffcond == 1){
 					*c->pEofBuff = 0;
-					printf(" eofbuff ===========    1\n");
+// 					printf(" eofbuff ===========    1\n");
 				}
-				if(eofbuffcond == 1) printf(" SENDER after sync  %d\n", *c->pEofBuff );
+// 				if(eofbuffcond == 1) printf(" SENDER after sync  %d\n", *c->pEofBuff );
 				pt_sync(c->psync_loc);
-				if(eofbuffcond == 1) printf(" SENDER waiting for semaphore \n");
+// 				if(eofbuffcond == 1) printf(" SENDER waiting for semaphore \n");
 
 				Sem_wait(c->psem);
-				if(eofbuffcond == 1) printf(" SENDER SEM sync  %d\n", eofbuffcond);
+// 				if(eofbuffcond == 1) printf(" SENDER SEM sync  %d\n", eofbuffcond);
 /*
  * if end of buffer reached, leave do cycle
  */
 			}while(eofbuffcond != 1);
 
-		printf(" SENDER leaving while\n");
+// 		printf(" SENDER leaving while\n");
 
 /*
  * sender sent payload, before closign socket send back acknowledgement --SEOB, Sender receives --REOB
@@ -239,12 +239,12 @@ void *SR_Data_Threads(void *arg)
 			}
 
 			
-			printf(" SR_Data_Threads2 : Send_to_tcp -- DONE\n");
+// 			printf(" SR_Data_Threads2 : Send_to_tcp -- DONE\n");
 
 			if( close(sockfd) == -1)
 				Perror("close");
 			
-			printf("Sender syncing \n");
+// 			printf("Sender syncing \n");
 			pt_sync(c->psync_loc);
 // 			printf("Sender after  syncing \n");
 		}

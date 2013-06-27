@@ -163,7 +163,7 @@ void *Data_Threads(void *arg)
 					local_cntr++;
 					*c->pretval = 1;
 					
-					printf("Data_Thread %s char %c is identified - socket # %d \n",c->pname_of_data_set,*c->pSR_mode, *c->psocket  );
+// 					printf("Data_Thread %s char %c is identified - socket # %d \n",c->pname_of_data_set,*c->pSR_mode, *c->psocket  );
 /* 
  * when the thread is positively identified, decrement counter of available thread for next round of identification, 
  * once n_avail_loc_theads == 0 all SR threads arrived, leave do - while loop and decrement (*c->pcounter)--
@@ -171,7 +171,7 @@ void *Data_Threads(void *arg)
  */
 					n_avail_loc_theads--;
 					
-					printf("Data_Thread %s char %c is identified - socket # %d  %d \n",c->pname_of_data_set,*c->pSR_mode, *c->psocket , n_avail_loc_theads );
+// 					printf("Data_Thread %s char %c is identified - socket # %d  %d \n",c->pname_of_data_set,*c->pSR_mode, *c->psocket , n_avail_loc_theads );
 
 					
 					/*
@@ -202,9 +202,9 @@ void *Data_Threads(void *arg)
 						*Thread_Status = 1;
 						
 						
-						printf("Thread_Prt1: %s    %lu setting ThreadStatus to 1\n", data_set_name, MyThreadID);
-						printf("Thread_Prt1: %p n", Thread_Status);
-						printf("Thread_Prt1: %d n", *Thread_Status);
+// 						printf("Thread_Prt1: %s    %lu setting ThreadStatus to 1\n", data_set_name, MyThreadID);
+// 						printf("Thread_Prt1: %p n", Thread_Status);
+// 						printf("Thread_Prt1: %d n", *Thread_Status);
 						m3l_DestroyFound(&THRStat_SFounds);
 					}
 				}
@@ -246,7 +246,7 @@ void *Data_Threads(void *arg)
 
 		}while(n_avail_loc_theads != 0);  /* all connecting thread arrivied, ie. one Sender and n_rec_proc Receivers */
 
-		printf(" -------------------------------   Thread %lu named as '%s' received its SOCKET  %d\n", MyThreadID , local_set_name, *c->pcounter);
+// 		printf(" -------------------------------   Thread %lu named as '%s' received its SOCKET  %d\n", MyThreadID , local_set_name, *c->pcounter);
 /*
  * once all R-W threads are taken decrement counter of data_threads ie. Data_Thread->data_threads_availth_counter
  */
@@ -264,16 +264,16 @@ void *Data_Threads(void *arg)
  * once the data transfer is finished increase increment of available data_threads
 */
 		Sem_wait(&SR_Threads->sem_g);
-		printf("TEST_... TRANFER FINISHED\n\n\n");
+// 		printf("TEST_... TRANFER FINISHED\n\n\n");
 
 		n_avail_loc_theads = n_rec_proc + 1;
 		
 		
 // 		printf("Thread_Prt: lock 2\n");
 		Pthread_mutex_lock(c->plock);
-		printf("Thread_Prt: %s    %lu setting ThreadStatus\n", data_set_name, MyThreadID);
-		printf("Thread_Prt: %p n", Thread_Status);
-		printf("Thread_Prt: %d n", *Thread_Status);
+// 		printf("Thread_Prt: %s    %lu setting ThreadStatus\n", data_set_name, MyThreadID);
+// 		printf("Thread_Prt: %p n", Thread_Status);
+// 		printf("Thread_Prt: %d n", *Thread_Status);
 /*
  * release thread, ie. set Thread_Status = 0
  */
