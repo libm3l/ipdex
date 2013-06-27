@@ -68,9 +68,9 @@ void *SR_Data_Threads(void *arg)
  * gate syncing all threads, before that 
  * check if the Sender received EOFbuff, if yes, set R_done = 1
  */
-				printf(" RECEIVER before  %d\n ", *c->prcounter);
+// 				printf(" RECEIVER before  %d\n ", *c->prcounter);
 				pt_sync(c->psync_loc);
-				printf(" RECEIVER after  %d\n ", *c->prcounter);
+// 				printf(" RECEIVER after  %d\n ", *c->prcounter);
 				
 				if(*c->pEofBuff != 0){
 					R_done = 1;}
@@ -88,7 +88,7 @@ void *SR_Data_Threads(void *arg)
 				Pthread_mutex_lock(c->plock);
 				(*c->prcounter)--;
 				*c->psync = 0;
-				printf(" RECEIVER SENT DATA  %d\n ", *c->prcounter);
+// 				printf(" RECEIVER SENT DATA  %d\n ", *c->prcounter);
 				
 				if(*c->prcounter == 0){
 /*
@@ -111,8 +111,8 @@ void *SR_Data_Threads(void *arg)
  * signal Sender that all Receivers are ready for next 
  * round of transmition
  */
-					printf("READER NULL- syncing done \n");
-					if(R_done == 1)printf("READER posting semaphore \n");
+// 					printf("READER NULL- syncing done \n");
+// 					if(R_done == 1)printf("READER posting semaphore \n");
 					Sem_post(c->psem);
 /* 
  * unlock semaphore in the main program so that another loop can start
@@ -186,7 +186,7 @@ void *SR_Data_Threads(void *arg)
  * set counter of Receiving threads to number of R_threads (used in synchronizaiton of R_Threads)
  */ 		
 				*c->prcounter = *c->pcounter-1;
-				printf(" SENDER %d\n",   *c->prcounter  );
+// 				printf(" SENDER %d\n",   *c->prcounter  );
 				*c->pEofBuff = 1;
 
 // 				printf(" ====================================Sender  READING %d   '%s'\n", sockfd, c->pbuffer);

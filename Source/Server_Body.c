@@ -199,7 +199,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 
  		Pthread_mutex_lock(&Data_Threads->lock);
 
-		switch ( Check_Request(DataBuffer, RecNode, name_of_required_data_set, SR_mode, name_of_required_data_set)) {
+		switch ( Check_Request(DataBuffer, name_of_required_data_set, SR_mode, name_of_required_data_set)) {
 			case 0:
 /* 
  * Legal request, not in buffer, data_thread available 
@@ -259,13 +259,13 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * once all necessary data are set, send signal to all threads to start unloc mutex
  * and release borrowed memory
  */
-			printf(" =============   ServeR_body syncn");
+			printf(" =============   ServeR_body sync\n");
 				pt_sync(Data_Threads->sync);
 /* 
  * when all Data_Thread are finished, - the identification part, the threads are waiting on each other. 
  * the last thread unlock the semaphore so that the next loop can start
  */		
-			printf(" =============   ServeR_body after syncn");
+			printf(" =============   ServeR_body after sync\n");
 				Sem_wait(&Data_Threads->sem);
 				
 		printf(" After sem - MAIN -- retval == %d\n", *Data_Threads->retval);

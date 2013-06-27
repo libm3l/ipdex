@@ -3,7 +3,7 @@
 #include "Server_Header.h"
 #include "Check_Request.h"
 
-lmint_t Check_Request(node_t *DataBuffer, node_t *RecNode, lmchar_t *name_of_required_data_set, lmchar_t *SR_mode, lmchar_t *Name_Of_SRProc){
+lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, lmchar_t *SR_mode, lmchar_t *Name_Of_SRProc){
 /*
  * function compares data in RecNode to what is in DataBuffer
  * looking specifically on name_of_required_data_set and SR_mode
@@ -85,17 +85,11 @@ lmint_t Check_Request(node_t *DataBuffer, node_t *RecNode, lmchar_t *name_of_req
 			TmpNode = m3l_get_Found_node(THRStat_SFounds, 0);
 			Thread_Status = *(lmint_t *)m3l_get_data_pointer(TmpNode);
 			
-			if(Thread_Status == 1){
-				
-				status = 1;
-				
-				m3l_DestroyFound(&THRStat_SFounds);
-				m3l_DestroyFound(&THRName_SFounds);
-				
-				break;
-			}
+			if(Thread_Status == 1)status = 1;
 			
 			m3l_DestroyFound(&THRStat_SFounds);
+			m3l_DestroyFound(&THRName_SFounds);
+			break;
 		}
 /*
  * Thread_Status == 0 data thread is free

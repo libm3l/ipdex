@@ -163,13 +163,50 @@ void *Data_Threads(void *arg)
 					local_cntr++;
 					*c->pretval = 1;
 					
-// 					printf("Data_Thread %s char %c is identified - socket # %d \n",c->pname_of_data_set,*c->pSR_mode, *c->psocket  );
+					printf("Data_Thread %s char %c is identified - socket # %d \n",c->pname_of_data_set,*c->pSR_mode, *c->psocket  );
 /* 
  * when the thread is positively identified, decrement counter of available thread for next round of identification, 
  * once n_avail_loc_theads == 0 all SR threads arrived, leave do - while loop and decrement (*c->pcounter)--
  * ie. next arriving threads will not use this thread because it is alrady used
  */
 					n_avail_loc_theads--;
+					
+					printf("Data_Thread %s char %c is identified - socket # %d  %d \n",c->pname_of_data_set,*c->pSR_mode, *c->psocket , n_avail_loc_theads );
+
+					
+					/*
+ * if number of available SR threads is 0, ie. all S and R requests for particular data set arrived
+ * decrement number of available data sets
+ */
+					if(n_avail_loc_theads == 0){
+/*
+ * decrement number of available Data_Thread sets
+ */
+						(*c->pcounter)--;
+/*
+ * set number of available processes for SR_Thread to  n_rec_proc+1 = number of Receivers + Sender
+ */
+						*SR_Threads->R_availth_counter = n_rec_proc+1;
+/*
+ * set Thread_Status to 1
+ * 
+ */
+						if( (THRStat_SFounds = m3l_Locate(c->Node, "./Data_Set/Thread_Status", "/*/*", (lmchar_t *)NULL)) == NULL){
+							printf("Thread_Status: did not find any Thread_Status\n");
+							m3l_DestroyFound(&THRStat_SFounds);
+							exit(0);
+						}
+							
+						TmpNode = m3l_get_Found_node(THRStat_SFounds, 0);
+						Thread_Status = (lmint_t *)m3l_get_data_pointer(TmpNode);
+						*Thread_Status = 1;
+						
+						
+						printf("Thread_Prt1: %s    %lu setting ThreadStatus to 1\n", data_set_name, MyThreadID);
+						printf("Thread_Prt1: %p n", Thread_Status);
+						printf("Thread_Prt1: %d n", *Thread_Status);
+						m3l_DestroyFound(&THRStat_SFounds);
+					}
 				}
 			}
 /*
@@ -184,34 +221,6 @@ void *Data_Threads(void *arg)
 				Pthread_cond_broadcast(c->pdcond);
 				
 // 				printf(" NAVAIL THREADS %lu %d\n", MyThreadID, n_avail_loc_theads);
-/*
- * if number of available SR threads is 0, ie. all S and R requests for particular data set arrived
- * decrement number of available data sets
- */
-				if(n_avail_loc_theads == 0){
-/*
- * decrement number of available Data_Thread sets
- */
-					(*c->pcounter)--;
-/*
- * set number of available processes for SR_Thread to  n_rec_proc+1 = number of Receivers + Sender
- */
-					*SR_Threads->R_availth_counter = n_rec_proc+1;
-/*
- * set Thread_Status to 1
- * 
- */
-					if( (THRStat_SFounds = m3l_Locate(c->Node, "./Data_Set/Thread_Status", "/*/*", (lmchar_t *)NULL)) == NULL){
-						printf("Thread_Status: did not find any Thread_Status\n");
-						m3l_DestroyFound(&THRStat_SFounds);
-						exit(0);
-					}
-						
-					TmpNode = m3l_get_Found_node(THRStat_SFounds, 0);
-					Thread_Status = (lmint_t *)m3l_get_data_pointer(TmpNode);
-					*Thread_Status = 1;
-					m3l_DestroyFound(&THRStat_SFounds);
-				}
 
 				Sem_post(c->psem);  /* later it can be replaced by the same synchronization */
 // 				*c->psync_loc = 0;
@@ -226,7 +235,7 @@ void *Data_Threads(void *arg)
  * if number of available SR threads is 0, ie. all S and R requests for particular data set arrived
  * decrement number of available data sets
  */				
-				if(n_avail_loc_theads == 0)(*c->pcounter)--;
+// 				if(n_avail_loc_theads == 0)(*c->pcounter)--;
 				while (*c->psync_loc == 0)
 					Pthread_cond_wait(c->pdcond, c->plock);
 			}
@@ -262,7 +271,9 @@ void *Data_Threads(void *arg)
 		
 // 		printf("Thread_Prt: lock 2\n");
 		Pthread_mutex_lock(c->plock);
-// 		printf("Thread_Prt: after lock 2, SETTING STATUS 0\n");
+		printf("Thread_Prt: %s    %lu setting ThreadStatus\n", data_set_name, MyThreadID);
+		printf("Thread_Prt: %p n", Thread_Status);
+		printf("Thread_Prt: %d n", *Thread_Status);
 /*
  * release thread, ie. set Thread_Status = 0
  */
