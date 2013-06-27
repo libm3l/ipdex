@@ -165,7 +165,7 @@ void *Data_Threads(void *arg)
 					local_cntr++;
 					*c->pretval = 1;
 					
-// 					printf("Data_Thread %s char %c is identified - socket # %d \n",c->pname_of_data_set,*c->pSR_mode, *c->psocket  );
+					printf("Data_Thread %s char %c is identified - socket # %d \n",c->pname_of_data_set,*c->pSR_mode, *c->psocket  );
 /* 
  * when the thread is positively identified, decrement counter of available thread for next round of identification, 
  * once n_avail_loc_theads == 0 all SR threads arrived, leave do - while loop and decrement (*c->pcounter)--

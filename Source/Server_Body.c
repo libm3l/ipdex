@@ -234,7 +234,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 					Error("Wrong SR mode\n");
 			
 			
-// 			printf(" After handshake\n");
+				printf(" After handshake\n");
 /*
  * if no Data_Thread is available, ie. all are occupied with data tranfere wait here.
  * This conditions is signaled from Thread_Prt.c by sequence:
@@ -264,8 +264,11 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 					Perror("snprintf");
 				*Data_Threads->SR_mode = *SR_mode;
 				*Data_Threads->socket  = newsockfd;
+				
+				printf(" UNLOCKING\n");
 
 				Pthread_mutex_unlock(&Data_Threads->lock);
+				printf(" UNLOCKed\n");
 /*
  * once all necessary data are set, send signal to all threads to start unloc mutex
  * and release borrowed memory
