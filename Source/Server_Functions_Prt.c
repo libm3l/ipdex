@@ -174,10 +174,11 @@ node_t *sender_identification(lmchar_t *Sender_data_set, lmchar_t RWmode)
 
 void pt_sync(pt_sync_t *sync)
 {
-
-// 	printf(" in gate %d\n", *sync->pnthreads);
+/*   
+ *	*sync->pnthreads contains the values of number of threads which will be synchronized
+ *	this value must be specified before this function is invoked
+ */
 	if (*sync->pnthreads<2) {
-// 		sleep(1000); 
 		return;};           /* trivial case            */
 /*
  * lock the block and mutex
@@ -188,6 +189,9 @@ void pt_sync(pt_sync_t *sync)
 /*
  * find if the job is last or not  NOTE: *sync->pnsync has to be intialized to 0
  */
+
+	printf("SINCIIIIIIING       %ld   %ld  \n ", *sync->pnsync,  *sync->pnthreads);
+
 	if (++(*sync->pnsync) < *sync->pnthreads) { 
 /*
  * no, unlock block and 
@@ -206,7 +210,6 @@ void pt_sync(pt_sync_t *sync)
 /*
  * wake up all waiting processes
  */
-// 	printf(" GATE - LAST\n");
 	Pthread_cond_broadcast(sync->pcondvar);
 /* 
  * got to sleep till they are all awake, then release block
@@ -217,8 +220,7 @@ void pt_sync(pt_sync_t *sync)
 /*
  * if next to last one out, wake up the last one
  */
-	if (--(*sync->pnsync)==1){
-// 		printf(" GATE - NEXT TO LAST\n");
+	if (--(*sync->pnsync) == 1){
 // 		Pthread_cond_broadcast(sync->plast);
  		Pthread_cond_signal(sync->plast);
 	}

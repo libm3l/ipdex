@@ -14,7 +14,7 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
 	size_t n_data_threads, i, n_queue_reqst, len1, len2;
 	node_t *TmpNode, *Queued_Reqst;
 	lmint_t Thread_Status, ThrStat, status;
-	lmchar_t *name, *srmode;
+	lmchar_t *name;
 	
 	status = 0;
 	
@@ -58,8 +58,6 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
 		
 		TmpNode = m3l_get_Found_node(THRName_SFounds, 0);
 		name = (lmchar_t *)m3l_get_data_pointer(TmpNode);
-// 		TmpNode = m3l_get_Found_node(QueuedSRm_SFounds, i);
-// 		srmode = (lmchar_t *)m3l_get_data_pointer(TmpNode);
 		
 		len2 = strlen(name);
 /*

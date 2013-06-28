@@ -137,8 +137,11 @@ void *Data_Threads(void *arg)
  * if already went through do loop, wait here at sync point until all threads are here
  */
 // 			printf(" Waiting for gate - child \n");
+			printf(" THREAD before sync %s in while loop %d  %d  %d  nsync %d socket %d\n", local_set_name, (*c->prcounter), (*c->pcounter), n_avail_loc_theads, *c->psync->pnthreads, *c->psocket);
 		
 			pt_sync(c->psync);
+// 			printf(" THREAD after sync %s in while loop %d  %d  %d  nsync %d\n", local_set_name, (*c->prcounter), (*c->pcounter), n_avail_loc_theads, *c->psync->pnthreads);
+
 // 			printf(" %lu After gate - child \n", MyThreadID);
 			
 			Pthread_mutex_lock(c->plock);
@@ -163,7 +166,7 @@ void *Data_Threads(void *arg)
 					local_cntr++;
 					*c->pretval = 1;
 					
-// 					printf("Data_Thread %s char %c is identified - socket # %d \n",c->pname_of_data_set,*c->pSR_mode, *c->psocket  );
+					printf("Data_Thread %s char %c is identified - socket # %d \n",c->pname_of_data_set,*c->pSR_mode, *c->psocket  );
 /* 
  * when the thread is positively identified, decrement counter of available thread for next round of identification, 
  * once n_avail_loc_theads == 0 all SR threads arrived, leave do - while loop and decrement (*c->pcounter)--
@@ -218,10 +221,10 @@ void *Data_Threads(void *arg)
  * indicate this is the last thread
  */
 				*c->psync_loc = 1;
+// 				*c->psync->pnsync = 1;
 				Pthread_cond_broadcast(c->pdcond);
 				
 // 				printf(" NAVAIL THREADS %lu %d\n", MyThreadID, n_avail_loc_theads);
-
 				Sem_post(c->psem);  /* later it can be replaced by the same synchronization */
 // 				*c->psync_loc = 0;
 /* 
@@ -235,7 +238,6 @@ void *Data_Threads(void *arg)
  * if number of available SR threads is 0, ie. all S and R requests for particular data set arrived
  * decrement number of available data sets
  */				
-// 				if(n_avail_loc_theads == 0)(*c->pcounter)--;
 				while (*c->psync_loc == 0)
 					Pthread_cond_wait(c->pdcond, c->plock);
 			}
@@ -246,13 +248,13 @@ void *Data_Threads(void *arg)
 
 		}while(n_avail_loc_theads != 0);  /* all connecting thread arrivied, ie. one Sender and n_rec_proc Receivers */
 
-// 		printf(" -------------------------------   Thread %lu named as '%s' received its SOCKET  %d\n", MyThreadID , local_set_name, *c->pcounter);
+		printf(" -------------------------------   Thread %lu named as '%s' received its SOCKET  %d\n", MyThreadID , local_set_name, *c->pcounter);
 /*
  * once all R-W threads are taken decrement counter of data_threads ie. Data_Thread->data_threads_availth_counter
  */
 		
 // 		for (ii = 0; ii< n_rec_proc + 1; ii++)
-// 			printf("job %d, socket %d, mode %c\n", ii, SR_Threads->sockfd[ii], SR_Threads->SR_mode[ii]);
+// 			printf("job %d, socket %d, mode %s  %c\n", ii, SR_Threads->sockfd[ii],  local_set_name, *c->pcounter, SR_Threads->SR_mode[ii]);
 
 /*
  * wait until all SR_threads reach barrier, then start actual transfer of the data from S to R(s)
@@ -300,7 +302,7 @@ void *Data_Threads(void *arg)
  * this counter will be used by each SR_Thread to get the values of the socket and SR_mode
  */		
 // 		*SR_Threads->thr_cntr=0;
-// 		printf("GOING TO NEXT LOOP\n\n\n");
+		printf("GOING TO NEXT LOOP   %lu   %s  %d\n\n\n", MyThreadID , local_set_name, *c->pcounter);
 		}
 	
 	

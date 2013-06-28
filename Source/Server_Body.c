@@ -92,35 +92,30 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * if already in cycle, you need to lock mutex here
  */
 		if(cycle > 0){
-// 			printf(" Server_Body locking \n");
 			Pthread_mutex_lock(&Data_Threads->lock);
-// 			printf(" Server_Body locked \n");
 		}
-
-// 		printf(" CYCLE navail %d  \n", *Data_Threads->data_threads_availth_counter);
 		
 		if(*Data_Threads->data_threads_availth_counter == 0){
-		
-// 			printf(" Waiting for free Data_Thread .....\n ");
-			
+					
 			while(*Data_Threads->data_threads_availth_counter == 0)
 				Pthread_cond_wait(&Data_Threads->cond, &Data_Threads->lock);
-			
-// 			printf(" Free Data_Thread available .....\n ");
 		}
 
 		Pthread_mutex_unlock(&Data_Threads->lock);
 	
 		clilen = sizeof(cli_addr);
-		
-// 		printf("Waiting for Newsock\n");
 
+		printf(" \n\nWaiting for new socket \n");
+		
 		if ( (newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen)) < 0){
 			if(errno == EINTR) /* If Interrupted system call, restart - back to while ()  UNP V1 p124  */
 				continue;
 			else
 				Perror("accept()");
 		}
+
+// 		printf(" ... .arrived \n");
+
 // 		inet_ntop(AF_INET, &(cli_addr.sin_addr), str, INET_ADDRSTRLEN);
 //    		printf("	CONNECTION --------------------   : %s:%d\n",str, ntohs(cli_addr.sin_port)); 
 /*
@@ -202,11 +197,13 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 
 		switch ( Check_Request(DataBuffer, name_of_required_data_set, SR_mode, name_of_required_data_set)) {
 			case 0:
+
+
+// 				printf(" Case 0 --- %s   %c\n", name_of_required_data_set, *SR_mode);
+
 /* 
  * Legal request, not in buffer, data_thread available 
- */
-				printf(" CASE0   %c\n", *SR_mode);
-			
+ */			
 				if(*SR_mode == 'S'){
 /*
  * if process is sender, indicate Sender that header was received before receiving payload
@@ -232,9 +229,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 				}
 				else
 					Error("Wrong SR mode\n");
-			
-			
-// 			printf(" =============   After handshake\n");
 /*
  * at least one data thread is available:
  *  -  set number of remainign data threads equalt to available data threads
@@ -245,40 +239,49 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * - set data_set name, SR_Mode and socket number so that data_thread processes can start identification
  * - set the return value to 0, once the thread is identified, the value is set to 1
  */
-				*Data_Threads->data_threads_remainth_counter = *Data_Threads->data_threads_availth_counter;	
-				*Data_Threads->sync->nthreads  		      = *Data_Threads->data_threads_availth_counter + 1;
+
+// 				printf(" Case 0 setting values --- %s   %c\n", name_of_required_data_set, *SR_mode);
+
+
+
+				*Data_Threads->data_threads_remainth_counter 	= *Data_Threads->data_threads_availth_counter;	
+				*Data_Threads->sync->nthreads				= *Data_Threads->data_threads_availth_counter + 1;
 				*Data_Threads->retval = 0;
 				
 				if( snprintf(Data_Threads->name_of_data_set, MAX_NAME_LENGTH,"%s",name_of_required_data_set) < 0)
 					Perror("snprintf");
 				*Data_Threads->SR_mode = *SR_mode;
 				*Data_Threads->socket  = newsockfd;
-// 			printf(" =============   After handshake -- UNLOCK\n");
+
+
+// 				printf(" Case 0 unlocking --- %s   %c\n", name_of_required_data_set, *SR_mode);
 
 				Pthread_mutex_unlock(&Data_Threads->lock);
 /*
  * once all necessary data are set, send signal to all threads to start unloc mutex
  * and release borrowed memory
  */
-// 			printf(" =============   ServeR_body sync\n");
+				printf(" Case 0 syncing --- %s   %c   socket %d\n", name_of_required_data_set, *SR_mode, newsockfd);
 				pt_sync(Data_Threads->sync);
 /* 
  * when all Data_Thread are finished, - the identification part, the threads are waiting on each other. 
  * the last thread unlock the semaphore so that the next loop can start
  */		
-// 			printf(" =============   ServeR_body after sync\n");
+// 				printf(" Case 0 sem wait --- %s   %c\n", name_of_required_data_set, *SR_mode);
 				Sem_wait(&Data_Threads->sem);
-				
-// 		printf(" After sem - MAIN -- retval == %d\n", *Data_Threads->retval);
 		
 				if(*Data_Threads->retval == 1){
 /*
  * data set was identified
  */
+				printf(" Case 0 retval (%d)  --- %s   %c\n", *Data_Threads->retval, name_of_required_data_set, *SR_mode);
+
+
 					if( m3l_Umount(&RecNode) != 1)
 						Perror("m3l_Umount");
 				}
 				else{
+					printf(" Case 0 retval (%d)  --- %s   %c\n", *Data_Threads->retval, name_of_required_data_set, *SR_mode);
 					Warning("Server_Body: Not valid data set");
 					if( m3l_Umount(&RecNode) != 1)
 						Perror("m3l_Umount");
@@ -288,7 +291,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			break;
 			
 			case 1:
-				printf("-------------CASE 1 \n");
+				printf(" Case 1 --- %s   %c\n", name_of_required_data_set, *SR_mode);
 			
 				if(*SR_mode == 'S'){
 /*
@@ -326,7 +329,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			break;
 
 			case -1:            /* Legal request, already in buffer */
-				printf("-------------CASE -1 \n");
+				printf(" Case -1  --- %s   %c\n", name_of_required_data_set, *SR_mode);
 				printf(" Too many request from a client - Disregarding\n");
 			break;
 

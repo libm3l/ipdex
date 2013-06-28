@@ -48,10 +48,6 @@ node_t *Allocate_DataBuffer(node_t *Gnode){
 	if(  (TmpNode = m3l_Mklist("N_data_sets", "ST", 1, dim, &BuffNode, "/Buffer", "./", (char *)NULL)) == 0)
 		Error("m3l_Mklist");
 	TmpNode->data.st[0] = n_data_threads;
-	
-// 	if(  (TmpNode = m3l_Mklist("Buff_Status", "I", 1, dim, &BuffNode, "/Buffer", "./", (char *)NULL))  == 0)
-// 		Error("m3l_Mklist");
-// 	TmpNode->data.i[0] = 0;
 /*
  * move Data_Set lists to buffer 
  * and add Thread_Status integer
@@ -67,10 +63,6 @@ node_t *Allocate_DataBuffer(node_t *Gnode){
 		tmpint[0] = 0;
 		
 	}
-	
-// 	if(  (TmpNode = m3l_Mklist("Queued_Reqst", "DIR", 0, dim, &BuffNode, "/Buffer", "./", (char *)NULL)) == 0)
-// 		Error("m3l_Mklist");
-// 	
 	
 	if(m3l_Cat(BuffNode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
 		Error("CatData");
