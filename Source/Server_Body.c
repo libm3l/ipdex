@@ -105,7 +105,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	
 		clilen = sizeof(cli_addr);
 
-		printf(" \n\nWaiting for new socket \n");
+// 		printf(" \n\nWaiting for new socket \n");
 		
 		if ( (newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen)) < 0){
 			if(errno == EINTR) /* If Interrupted system call, restart - back to while ()  UNP V1 p124  */
@@ -252,9 +252,18 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 					Perror("snprintf");
 				*Data_Threads->SR_mode = *SR_mode;
 				*Data_Threads->socket  = newsockfd;
-
-
-// 				printf(" Case 0 unlocking --- %s   %c\n", name_of_required_data_set, *SR_mode);
+/*
+ * before entering the synchronization, make sure the data_thread which was busy 
+ * and is about to finish, will not increase the number of available 
+ * data_threads once some of the data_threads or Server_body enters synchronizer.
+ * If at least one of these processes is entering the synchronizer, the 
+ * Data_Thread which is about to increase a number of available Data_Threads and will become available
+ * wait until this synchronziation is over.
+ * 
+ * NOTE: The problem was that some of the processes entered the synchronizer and the 
+ * number of syncrhonized jobs were then increased. Dead-lock
+ */
+*Data_Threads->t_sync_protect = 1;
 
 				Pthread_mutex_unlock(&Data_Threads->lock);
 /*
@@ -262,7 +271,14 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * and release borrowed memory
  */
 				printf(" Case 0 syncing --- %s   %c   socket %d\n", name_of_required_data_set, *SR_mode, newsockfd);
-				pt_sync(Data_Threads->sync);
+				pt_sync(Data_Threads->sync, 1, "Ser_B");
+
+Pthread_mutex_lock(&Data_Threads->lock);
+	if(*Data_Threads->t_sync_protect == 1){
+		Pthread_cond_signal(&Data_Threads->t_sync_cond_protect);
+		*Data_Threads->t_sync_protect = 0;
+	}	
+Pthread_mutex_unlock(&Data_Threads->lock);
 /* 
  * when all Data_Thread are finished, - the identification part, the threads are waiting on each other. 
  * the last thread unlock the semaphore so that the next loop can start
@@ -274,7 +290,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 /*
  * data set was identified
  */
-				printf(" Case 0 retval (%d)  --- %s   %c\n", *Data_Threads->retval, name_of_required_data_set, *SR_mode);
+// 				printf(" Case 0 retval (%d)  --- %s   %c\n", *Data_Threads->retval, name_of_required_data_set, *SR_mode);
 
 
 					if( m3l_Umount(&RecNode) != 1)
@@ -327,15 +343,9 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 				Pthread_mutex_unlock(&Data_Threads->lock);
 			
 			break;
-
-			case -1:            /* Legal request, already in buffer */
-				printf(" Case -1  --- %s   %c\n", name_of_required_data_set, *SR_mode);
-				printf(" Too many request from a client - Disregarding\n");
-			break;
-
 		}
 			
-// 			printf(" end case \n");
+			printf(" after handshake \n");
 		
 /*
  * initial stage was completed, server is running in while(1) loop, set cycle to 1
@@ -370,6 +380,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	free(Data_Threads->data_threads_remainth_counter);
 	free(Data_Threads->socket);
 	free(Data_Threads->retval);
+	free(Data_Threads->t_sync_protect);
 	
 	free(Data_Threads->sync->nsync);
 	free(Data_Threads->sync->nthreads);
@@ -377,6 +388,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	Pthread_mutex_destroy(&Data_Threads->sync->block);
 	Pthread_cond_destroy(&Data_Threads->sync->condvar);
 	Pthread_cond_destroy(&Data_Threads->sync->last);
+	Pthread_cond_destroy(&Data_Threads->t_sync_cond_protect);
 	
 	free(Data_Threads->sync);
 	free(Data_Threads->sync_loc);

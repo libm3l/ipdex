@@ -132,20 +132,43 @@ void *Data_Threads(void *arg)
 /*
  * start identifying threads once identified, leave do loop
  */
-	do{
+		do{
 /*
  * if already went through do loop, wait here at sync point until all threads are here
  */
-// 			printf(" Waiting for gate - child \n");
 			printf(" THREAD before sync %s in while loop %d  %d  %d  nsync %d socket %d\n", local_set_name, (*c->prcounter), (*c->pcounter), n_avail_loc_theads, *c->psync->pnthreads, *c->psocket);
-		
-			pt_sync(c->psync);
+/*
+ * before entering the synchronization, make sure the data_thread which was busy 
+ * and is about to finish, will not increase the number of available 
+ * data_threads once some of the data_threads or Server_body enters synchronizer.
+ * If at least one of these processes is entering the synchronizer, the 
+ * Data_Thread which is about to increase a number of available Data_Threads and will become available
+ * wait until this synchronziation is over.
+ * 
+ * NOTE: The problem was that some of the processes entered the synchronizer and the 
+ * number of syncrhonized jobs were then increased. Dead-lock
+ */
+			Pthread_mutex_lock(c->plock);
+				*c->pt_sync_protect = 1;
+			Pthread_mutex_unlock(c->plock);
+/*
+ * signal to the recently occupied thread which is about to be 
+ * back in pool of available threads that it can increase number
+ * of available threads
+ */
+			pt_sync(c->psync, 1, local_set_name);
+			
 // 			printf(" THREAD after sync %s in while loop %d  %d  %d  nsync %d\n", local_set_name, (*c->prcounter), (*c->pcounter), n_avail_loc_theads, *c->psync->pnthreads);
 
-// 			printf(" %lu After gate - child \n", MyThreadID);
-			
 			Pthread_mutex_lock(c->plock);
-			*c->psync_loc = 0;
+/*
+ * signal waiting data_Threads which just finished transferring data 
+ * that they can enter pool of available threads
+ */
+			if(*c->pt_sync_protect == 1){ 
+				Pthread_cond_signal(c->pt_sync_cond_protect);
+				*c->psync_loc = 0;
+			}
  /* 
   * decrement counter of thread  which will check condition, used for syncing all threads before 
   * going back to caller function
@@ -203,11 +226,7 @@ void *Data_Threads(void *arg)
 						TmpNode = m3l_get_Found_node(THRStat_SFounds, 0);
 						Thread_Status = (lmint_t *)m3l_get_data_pointer(TmpNode);
 						*Thread_Status = 1;
-						
-						
-// 						printf("Thread_Prt1: %s    %lu setting ThreadStatus to 1\n", data_set_name, MyThreadID);
-// 						printf("Thread_Prt1: %p n", Thread_Status);
-// 						printf("Thread_Prt1: %d n", *Thread_Status);
+
 						m3l_DestroyFound(&THRStat_SFounds);
 					}
 				}
@@ -269,22 +288,23 @@ void *Data_Threads(void *arg)
 // 		printf("TEST_... TRANFER FINISHED\n\n\n");
 
 		n_avail_loc_theads = n_rec_proc + 1;
-		
-		
-// 		printf("Thread_Prt: lock 2\n");
+
+// 		printf("Thread_Prt: %s lock 2\n", local_set_name);
+
 		Pthread_mutex_lock(c->plock);
-// 		printf("Thread_Prt: %s    %lu setting ThreadStatus\n", data_set_name, MyThreadID);
-// 		printf("Thread_Prt: %p n", Thread_Status);
-// 		printf("Thread_Prt: %d n", *Thread_Status);
+/*
+ * if any other Data_Threads or Server_Body already entered 
+ * synchronization at the beginning of do loop (identification), wait until it is finished
+ */
+			if(*c->pt_sync_protect == 1 && *c->pcounter > 0)
+				while(*c->pt_sync_protect != 0)
+					Pthread_cond_wait(c->pt_sync_cond_protect, c->plock);
+			*c->pt_sync_protect = 0;
 /*
  * release thread, ie. set Thread_Status = 0
  */
 			*Thread_Status = 0;
-		
-// 			printf("AFTER SETTING STATUS 0\n");
-		
 			(*c->pcounter)++;
-// 			printf(" Status of the JOB is %d  %ld   %d\n", *Thread_Status , *c->pcounter, n_avail_loc_theads);
 /*
  * if all threads were occupied, ie *Data_Threads->data_threads_availth_counter == *c->pcounter == 0
  * the server is waiting for signal before the continuing with data process identification. 
@@ -294,21 +314,12 @@ void *Data_Threads(void *arg)
 			if(*c->pcounter == 1)
 				Pthread_cond_signal(c->pcond);
 		
-// 		printf("Thread_Prt: unlock 2\n");
-		Pthread_mutex_unlock(c->plock);
-// 		printf("Thread_Prt: after unlock 2\n");
-/* 
- * set the counter 0
- * this counter will be used by each SR_Thread to get the values of the socket and SR_mode
- */		
-// 		*SR_Threads->thr_cntr=0;
-		printf("GOING TO NEXT LOOP   %lu   %s  %d\n\n\n", MyThreadID , local_set_name, *c->pcounter);
+// 			printf("Thread_Prt: %s unlock 2\n", local_set_name);
+			Pthread_mutex_unlock(c->plock);
+// 			printf("Thread_Prt: after unlock 2\n");
+
+			printf("GOING TO NEXT LOOP   %lu   %s  %d\n\n\n", MyThreadID , local_set_name, *c->pcounter);
 		}
-	
-	
-// 	printf(" Leaving WHILE \n");
-	
-	
 /*
  * join threads and release memmory
  */

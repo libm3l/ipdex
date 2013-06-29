@@ -32,6 +32,10 @@ typedef struct data_thread_args{
 	lmsize_t		*pcounter, *psync_loc, *prcounter;         		/* number of available threads, sync variable, number of remaining threads = *pcounter - taken threads */
 	lmchar_t 		*pname_of_data_set, *pSR_mode;	/* stores data_set name which is then compared in data_thread and SM_mode */
 	pt_sync_t		*psync;
+	
+	pthread_cond_t   	*pt_sync_cond_protect;
+	lmint_t			*pt_sync_protect;
+	
 }data_thread_args_t;
 
 
@@ -50,6 +54,9 @@ typedef struct data_thread_str{
 	lmchar_t 		*name_of_data_set, *SR_mode;							/* stores data_set name which is then compared in data_thread  and SM_moode*/
 	lmint_t  		*socket,  *retval;			 							/* socket ID passed to data_Thread, message upon receiving it */
 	pt_sync_t		*sync;
+	
+	pthread_cond_t   	t_sync_cond_protect;
+	lmint_t			*t_sync_protect;
 }data_thread_str_t;
 
 

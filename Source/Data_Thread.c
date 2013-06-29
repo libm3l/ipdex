@@ -63,28 +63,31 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 		Perror("Data_Thread: Data_Thread->data_threads_remainth_counter");
 	if( (Data_Thread->socket = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
 		Perror("Data_Thread: Data_Thread->socket");
-	if( (Data_Thread->sync_loc = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
+	if( (Data_Thread->sync_loc = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
 		Perror("Data_Thread: Data_Thread->sync_loc");
 	if( (Data_Thread->retval = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
 		Perror("Data_Thread: Data_Thread->retval");
 	if ( (Data_Thread->name_of_data_set  = (lmchar_t *)malloc(MAX_NAME_LENGTH* sizeof(lmchar_t))) == NULL)
 		Perror("Data_Thread: Data_Thread->name_of_data_set");	
 	if ( (Data_Thread->SR_mode  = (lmchar_t *)malloc(sizeof(lmchar_t))) == NULL)
-		Perror("Data_Thread: Data_Thread->SR_mode");	
+		Perror("Data_Thread: Data_Thread->SR_mode");
+	if( (Data_Thread->t_sync_protect = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
+		Perror("Data_Thread: Data_Thread->retval");
 /*
  * initialize sync 
  */
 	if ( (Data_Thread->sync  = (pt_sync_t *)malloc(sizeof(pt_sync_t))) == NULL)
 		Perror("Data_Thread: Data_Thread->sync");
-	if ( (Data_Thread->sync->nsync  = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
+	if ( (Data_Thread->sync->nsync  = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
 		Perror("Data_Thread: Data_Thread->sybc->nsync");	
-	if ( (Data_Thread->sync->nthreads  = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
+	if ( (Data_Thread->sync->nthreads  = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
 		Perror("Data_Thread: Data_Thread->sybc->nthreads");
 
 	Pthread_mutex_init(&Data_Thread->sync->mutex);
 	Pthread_mutex_init(&Data_Thread->sync->block);
 	Pthread_cond_init(&Data_Thread->sync->condvar);
 	Pthread_cond_init(&Data_Thread->sync->last);
+	Pthread_cond_init(&Data_Thread->t_sync_cond_protect);
 /*
  * plus the values of the syncing - ie. nsync = 0 and nthreads = n_data_threads + 1
  * during the run, the *Data_Thread->sync->nsync should not be never reset
@@ -123,6 +126,9 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 		DataArgs->prcounter    		=  Data_Thread->data_threads_remainth_counter;
 		DataArgs->pname_of_data_set   	=  Data_Thread->name_of_data_set;
 		DataArgs->pSR_mode	    	=  Data_Thread->SR_mode;
+
+		DataArgs->pt_sync_cond_protect	=  &Data_Thread->t_sync_cond_protect;	
+		DataArgs->pt_sync_protect    	=   Data_Thread->t_sync_protect;	
 		
 		
 		DataArgs->psync 		= Data_Thread->sync;

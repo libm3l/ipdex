@@ -69,7 +69,7 @@ void *SR_Data_Threads(void *arg)
  * check if the Sender received EOFbuff, if yes, set R_done = 1
  */
 // 				printf(" RECEIVER before  %d\n ", *c->prcounter);
-				pt_sync(c->psync_loc);
+				pt_sync(c->psync_loc, 0, "SR");
 // 				printf(" RECEIVER after  %d\n ", *c->prcounter);
 				
 				if(*c->pEofBuff != 0){
@@ -156,7 +156,7 @@ void *SR_Data_Threads(void *arg)
 				Perror("close");
 // 			printf("READER syncing \n");
 			
-			pt_sync(c->psync_loc);
+			pt_sync(c->psync_loc, 0, "SR");
 // 			printf("READER after syncing \n");
 
 /*			if(*c->prcounter == 0){*/
@@ -214,7 +214,7 @@ void *SR_Data_Threads(void *arg)
 // 					printf(" eofbuff ===========    1\n");
 				}
 // 				if(eofbuffcond == 1) printf(" SENDER after sync  %d\n", *c->pEofBuff );
-				pt_sync(c->psync_loc);
+				pt_sync(c->psync_loc, 0, "SR");
 // 				if(eofbuffcond == 1) printf(" SENDER waiting for semaphore \n");
 
 				Sem_wait(c->psem);
@@ -245,7 +245,7 @@ void *SR_Data_Threads(void *arg)
 				Perror("close");
 			
 // 			printf("Sender syncing \n");
-			pt_sync(c->psync_loc);
+			pt_sync(c->psync_loc, 0, "SR");
 // 			printf("Sender after  syncing \n");
 		}
 		else{

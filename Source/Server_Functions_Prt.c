@@ -172,7 +172,7 @@ node_t *sender_identification(lmchar_t *Sender_data_set, lmchar_t RWmode)
  * this is a synchronizer programmed according to " POSIX Threads Tutorial  by Mark Hays, www. http://math.arizona.edu/~swig/documentation/pthreads/
  */
 
-void pt_sync(pt_sync_t *sync)
+void pt_sync(pt_sync_t *sync, int wr, char *name)
 {
 /*   
  *	*sync->pnthreads contains the values of number of threads which will be synchronized
@@ -187,10 +187,10 @@ void pt_sync(pt_sync_t *sync)
 
 	Pthread_mutex_lock(sync->pmutex);
 /*
- * find if the job is last or not  NOTE: *sync->pnsync has to be intialized to 0
+ * find if the job is last or not  NOTE: *sync->pnsync has to be intialized to 0 before 
+ * syncing starts
  */
-
-	printf("SINCIIIIIIING       %ld   %ld  \n ", *sync->pnsync,  *sync->pnthreads);
+// 	if(wr == 1)printf("SINCIIIIIIING       %ld   %ld  %s\n ", *sync->pnsync,  *sync->pnthreads, name);
 
 	if (++(*sync->pnsync) < *sync->pnthreads) { 
 /*
