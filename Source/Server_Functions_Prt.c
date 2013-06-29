@@ -190,7 +190,7 @@ void pt_sync(pt_sync_t *sync, int wr, char *name)
  * find if the job is last or not  NOTE: *sync->pnsync has to be intialized to 0 before 
  * syncing starts
  */
-// 	if(wr == 1)printf("SINCIIIIIIING       %ld   %ld  %s\n ", *sync->pnsync,  *sync->pnthreads, name);
+	if(wr == 1)printf("SINCIIIIIIING       %ld   %ld  %s\n ", *sync->pnsync,  *sync->pnthreads, name);
 
 	if (++(*sync->pnsync) < *sync->pnthreads) { 
 /*
@@ -227,5 +227,7 @@ void pt_sync(pt_sync_t *sync, int wr, char *name)
 /*
  * release mutex
  */
+	if(wr == 1)printf("SINCIIIIIIING  LEFT      %ld   %ld  %s\n ", *sync->pnsync,  *sync->pnthreads, name);
+
 	Pthread_mutex_unlock(sync->pmutex);
 }

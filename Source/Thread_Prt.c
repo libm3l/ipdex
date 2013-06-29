@@ -158,7 +158,7 @@ void *Data_Threads(void *arg)
  */
 			pt_sync(c->psync, 1, local_set_name);
 			
-// 			printf(" THREAD after sync %s in while loop %d  %d  %d  nsync %d\n", local_set_name, (*c->prcounter), (*c->pcounter), n_avail_loc_theads, *c->psync->pnthreads);
+			printf(" THREAD after sync %s in while loop %d  %d  %d  nsync %d\n", local_set_name, (*c->prcounter), (*c->pcounter), n_avail_loc_theads, *c->psync->pnthreads);
 
 			Pthread_mutex_lock(c->plock);
 /*
@@ -166,9 +166,13 @@ void *Data_Threads(void *arg)
  * that they can enter pool of available threads
  */
 			if(*c->pt_sync_protect == 1){ 
+				printf(" THREAD %s BROADCASTING\n", local_set_name);
+				*c->pt_sync_protect = 0;
 				Pthread_cond_signal(c->pt_sync_cond_protect);
-				*c->psync_loc = 0;
 			}
+			
+			*c->psync_loc = 0;
+
  /* 
   * decrement counter of thread  which will check condition, used for syncing all threads before 
   * going back to caller function
@@ -189,7 +193,7 @@ void *Data_Threads(void *arg)
 					local_cntr++;
 					*c->pretval = 1;
 					
-					printf("Data_Thread %s char %c is identified - socket # %d \n",c->pname_of_data_set,*c->pSR_mode, *c->psocket  );
+					printf("    ===============    ===============  Data_Thread %s char %c is identified - socket # %d \n",c->pname_of_data_set,*c->pSR_mode, *c->psocket  );
 /* 
  * when the thread is positively identified, decrement counter of available thread for next round of identification, 
  * once n_avail_loc_theads == 0 all SR threads arrived, leave do - while loop and decrement (*c->pcounter)--
@@ -296,10 +300,14 @@ void *Data_Threads(void *arg)
  * if any other Data_Threads or Server_Body already entered 
  * synchronization at the beginning of do loop (identification), wait until it is finished
  */
-			if(*c->pt_sync_protect == 1 && *c->pcounter > 0)
+			if(*c->pt_sync_protect == 1 && *c->pcounter > 0){
+				
+				printf(" !!!!!!!!!!!  DATA Thread %s waiting at condition \n", local_set_name);
+				
 				while(*c->pt_sync_protect != 0)
 					Pthread_cond_wait(c->pt_sync_cond_protect, c->plock);
 			*c->pt_sync_protect = 0;
+			}
 /*
  * release thread, ie. set Thread_Status = 0
  */

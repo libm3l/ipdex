@@ -275,8 +275,9 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 
 Pthread_mutex_lock(&Data_Threads->lock);
 	if(*Data_Threads->t_sync_protect == 1){
-		Pthread_cond_signal(&Data_Threads->t_sync_cond_protect);
+		printf(" THREAD SerBodey  BROADCASTING\n");
 		*Data_Threads->t_sync_protect = 0;
+		Pthread_cond_broadcast(&Data_Threads->t_sync_cond_protect);
 	}	
 Pthread_mutex_unlock(&Data_Threads->lock);
 /* 
@@ -340,6 +341,14 @@ Pthread_mutex_unlock(&Data_Threads->lock);
  * data_thread is occupied let the process know it and close socket
  * process will attempt to establish connection later
  */
+
+	if(*Data_Threads->t_sync_protect == 1){
+		printf(" THREAD SerBodey  BROADCASTING\n");
+		*Data_Threads->t_sync_protect = 0;
+		Pthread_cond_broadcast(&Data_Threads->t_sync_cond_protect);
+	}	
+
+
 				Pthread_mutex_unlock(&Data_Threads->lock);
 			
 			break;
