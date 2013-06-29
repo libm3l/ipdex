@@ -244,12 +244,10 @@ void *Data_Threads(void *arg)
  * indicate this is the last thread
  */
 				*c->psync_loc = 1;
-// 				*c->psync->pnsync = 1;
 				Pthread_cond_broadcast(c->pdcond);
 				
 // 				printf(" NAVAIL THREADS %lu %d\n", MyThreadID, n_avail_loc_theads);
 				Sem_post(c->psem);  /* later it can be replaced by the same synchronization */
-// 				*c->psync_loc = 0;
 /* 
  * unlock semaphore in the main program so that another loop can start
  */
@@ -264,9 +262,23 @@ void *Data_Threads(void *arg)
 				while (*c->psync_loc == 0)
 					Pthread_cond_wait(c->pdcond, c->plock);
 			}
+
+
+// 			*c->pt_sync_protect = 1;
+			
 			
 			Pthread_mutex_unlock(c->plock);	
-			
+
+
+// 			pt_sync(c->psync, 1, local_set_name);
+// 
+// 			Pthread_mutex_lock(c->plock);	
+// 			if(*c->pt_sync_protect == 1){ 
+// 				printf(" THREAD %s BROADCASTING\n", local_set_name);
+// 				*c->pt_sync_protect = 0;
+// 				Pthread_cond_signal(c->pt_sync_cond_protect);
+// 			}			
+// 			Pthread_mutex_unlock(c->plock);	
 // 			printf(" %lu Unlocking semaphore \n", MyThreadID);
 
 		}while(n_avail_loc_theads != 0);  /* all connecting thread arrivied, ie. one Sender and n_rec_proc Receivers */

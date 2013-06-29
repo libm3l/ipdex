@@ -284,8 +284,22 @@ Pthread_mutex_unlock(&Data_Threads->lock);
  * when all Data_Thread are finished, - the identification part, the threads are waiting on each other. 
  * the last thread unlock the semaphore so that the next loop can start
  */		
-// 				printf(" Case 0 sem wait --- %s   %c\n", name_of_required_data_set, *SR_mode);
 				Sem_wait(&Data_Threads->sem);
+
+
+// Pthread_mutex_lock(&Data_Threads->lock);
+// 	*Data_Threads->t_sync_protect = 1;
+// Pthread_mutex_unlock(&Data_Threads->lock);
+// 
+// 				pt_sync(Data_Threads->sync, 1, "Ser_B1");
+// 
+// Pthread_mutex_lock(&Data_Threads->lock);
+// 	if(*Data_Threads->t_sync_protect == 1){
+// 		printf(" THREAD SerBodey  BROADCASTING\n");
+// 		*Data_Threads->t_sync_protect = 0;
+// 		Pthread_cond_broadcast(&Data_Threads->t_sync_cond_protect);
+// 	}	
+// Pthread_mutex_unlock(&Data_Threads->lock);
 		
 				if(*Data_Threads->retval == 1){
 /*
