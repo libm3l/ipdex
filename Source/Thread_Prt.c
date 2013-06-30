@@ -245,8 +245,6 @@ void *Data_Threads(void *arg)
  */
 				*c->psync_loc = 1;
 				Pthread_cond_broadcast(c->pdcond);
-				
-// 				printf(" NAVAIL THREADS %lu %d\n", MyThreadID, n_avail_loc_theads);
 				Sem_post(c->psem);  /* later it can be replaced by the same synchronization */
 /* 
  * unlock semaphore in the main program so that another loop can start

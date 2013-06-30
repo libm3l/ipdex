@@ -275,7 +275,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 
 Pthread_mutex_lock(&Data_Threads->lock);
 	if(*Data_Threads->t_sync_protect == 1){
-		printf(" THREAD SerBodey  BROADCASTING\n");
+		printf(" THREAD SerBody  BROADCASTING\n");
 		*Data_Threads->t_sync_protect = 0;
 		Pthread_cond_broadcast(&Data_Threads->t_sync_cond_protect);
 	}	
