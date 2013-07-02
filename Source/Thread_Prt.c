@@ -3,7 +3,6 @@
 #include "Server_Header.h"
 #include "Server_Functions_Prt.h"
 #include "Start_SR_Threads.h"
-
 #include "Thread_Prt.h"
 
 void *Data_Threads(void *arg)
@@ -28,7 +27,6 @@ void *Data_Threads(void *arg)
 	MyThreadID = pthread_self();
 	
 	Pthread_mutex_lock(c->plock);
-// 		printf("\n\n In THREAD %lu\n\n", MyThreadID);
 		if(m3l_Cat(c->Node, "--all", "-L", "-P", "*",   (lmchar_t *)NULL) != 0)
 			Warning("CatData");
 /*
@@ -84,14 +82,12 @@ void *Data_Threads(void *arg)
 		{
 			printf("Thread_Prt: Receiving_Processes not found\n");
 		}
-		
-/*	Pthread_mutex_unlock(c->plock);*/
 /*
  * set number of available local thread equal to number of readers + 1 writing
  */
 	n_avail_loc_theads = n_rec_proc + 1;
 /*
- * spawn SR_thread, wait until all ST_threads for this data set are spawned. Use semafore for syncing
+ * spawn SR_thread, wait until all SR_threads for this data set are spawned. Use semafore for syncing
  */
 	if(  (SR_Threads = Start_SR_Threads(n_avail_loc_theads)) == NULL)
 		Perror("Thread_Prt: Start_SR_Threads error");
@@ -112,13 +108,23 @@ void *Data_Threads(void *arg)
  * and waits on another barrier
  */	
 	Pthread_barrier_wait(c->pbarr);
-/* 
- * set the counter 0
- * this counter will be used by each SR_Thread to get the values of the socket and SR_mode
- */
-// 	*SR_Threads->thr_cntr=0;
+
+
+
 /*
- * wait on this barrier until main thread sets value of counter and lock c->plock
+ * start SR_hub thread, do it before signalling the Server body signals that it is ready 
+ * to go on
+ */
+
+
+
+
+
+
+
+
+/*
+ * wait on this barrier until main thread *Server_Body) sets value of counter and lock c->plock
  * the last call to _wait() is done in the main function after returning back from Data_Threads = Data_Thread(Gnode)
  * Once this barrier is reached, the main threads starts accepting requests from client
  * This barrier makes sure the initial start is properly done
@@ -138,20 +144,6 @@ void *Data_Threads(void *arg)
  */
 			printf(" THREAD before sync %s in while loop %d  %d  %d  nsync %d socket %d\n", local_set_name, (*c->prcounter), (*c->pcounter), n_avail_loc_theads, *c->psync->pnthreads, *c->psocket);
 /*
- * before entering the synchronization, make sure the data_thread which was busy 
- * and is about to finish, will not increase the number of available 
- * data_threads once some of the data_threads or Server_body enters synchronizer.
- * If at least one of these processes is entering the synchronizer, the 
- * Data_Thread which is about to increase a number of available Data_Threads and will become available
- * wait until this synchronziation is over.
- * 
- * NOTE: The problem was that some of the processes entered the synchronizer and the 
- * number of syncrhonized jobs were then increased. Dead-lock
- */
-			Pthread_mutex_lock(c->plock);
-				*c->pt_sync_protect = 1;
-			Pthread_mutex_unlock(c->plock);
-/*
  * signal to the recently occupied thread which is about to be 
  * back in pool of available threads that it can increase number
  * of available threads
@@ -161,18 +153,8 @@ void *Data_Threads(void *arg)
 			printf(" THREAD after sync %s in while loop %d  %d  %d  nsync %d\n", local_set_name, (*c->prcounter), (*c->pcounter), n_avail_loc_theads, *c->psync->pnthreads);
 
 			Pthread_mutex_lock(c->plock);
-/*
- * signal waiting data_Threads which just finished transferring data 
- * that they can enter pool of available threads
- */
-			if(*c->pt_sync_protect == 1){ 
-				printf(" THREAD %s BROADCASTING\n", local_set_name);
-				*c->pt_sync_protect = 0;
-				Pthread_cond_signal(c->pt_sync_cond_protect);
-			}
 			
 			*c->psync_loc = 0;
-
  /* 
   * decrement counter of thread  which will check condition, used for syncing all threads before 
   * going back to caller function
@@ -229,9 +211,17 @@ void *Data_Threads(void *arg)
 							
 						TmpNode = m3l_get_Found_node(THRStat_SFounds, 0);
 						Thread_Status = (lmint_t *)m3l_get_data_pointer(TmpNode);
-						*Thread_Status = 1;
 
+						*Thread_Status = 1;
 						m3l_DestroyFound(&THRStat_SFounds);
+/*
+ * post semaphore, the semaphore will be posted by SR_hub once the dta transfer is finished
+ */
+// 						Sem_post();
+/*
+ * Wait for succesfull SR_hub Sem_wait()
+ */
+// 						Sem_wait()
 					}
 				}
 			}
@@ -261,85 +251,57 @@ void *Data_Threads(void *arg)
 					Pthread_cond_wait(c->pdcond, c->plock);
 			}
 
-
-// 			*c->pt_sync_protect = 1;
-			
-			
 			Pthread_mutex_unlock(c->plock);	
-
-
-// 			pt_sync(c->psync, 1, local_set_name);
-// 
-// 			Pthread_mutex_lock(c->plock);	
-// 			if(*c->pt_sync_protect == 1){ 
-// 				printf(" THREAD %s BROADCASTING\n", local_set_name);
-// 				*c->pt_sync_protect = 0;
-// 				Pthread_cond_signal(c->pt_sync_cond_protect);
-// 			}			
-// 			Pthread_mutex_unlock(c->plock);	
-// 			printf(" %lu Unlocking semaphore \n", MyThreadID);
 
 		}while(n_avail_loc_theads != 0);  /* all connecting thread arrivied, ie. one Sender and n_rec_proc Receivers */
 
-		printf(" -------------------------------   Thread %lu named as '%s' received its SOCKET  %d\n", MyThreadID , local_set_name, *c->pcounter);
-/*
- * once all R-W threads are taken decrement counter of data_threads ie. Data_Thread->data_threads_availth_counter
- */
-		
-// 		for (ii = 0; ii< n_rec_proc + 1; ii++)
-// 			printf("job %d, socket %d, mode %s  %c\n", ii, SR_Threads->sockfd[ii],  local_set_name, *c->pcounter, SR_Threads->SR_mode[ii]);
-
-/*
- * wait until all SR_threads reach barrier, then start actual transfer of the data from S to R(s)
- */
-// 		printf("Thread_Prt: after unlock 1\n");
-		Pthread_barrier_wait(&SR_Threads->barr);
-// 		printf("Thread_Prt: Waiting on semaphore \n");
-/*
- * once the data transfer is finished increase increment of available data_threads
-*/
-		Sem_wait(&SR_Threads->sem_g);
-// 		printf("TEST_... TRANFER FINISHED\n\n\n");
-
-		n_avail_loc_theads = n_rec_proc + 1;
-
-// 		printf("Thread_Prt: %s lock 2\n", local_set_name);
-
-		Pthread_mutex_lock(c->plock);
-/*
- * if any other Data_Threads or Server_Body already entered 
- * synchronization at the beginning of do loop (identification), wait until it is finished
- */
-			if(*c->pt_sync_protect == 1 && *c->pcounter > 0){
-				
-				printf(" !!!!!!!!!!!  DATA Thread %s waiting at condition \n", local_set_name);
-				
-				while(*c->pt_sync_protect != 0)
-					Pthread_cond_wait(c->pt_sync_cond_protect, c->plock);
-			*c->pt_sync_protect = 0;
-			}
-/*
- * release thread, ie. set Thread_Status = 0
- */
-			*Thread_Status = 0;
-			(*c->pcounter)++;
-/*
- * if all threads were occupied, ie *Data_Threads->data_threads_availth_counter == *c->pcounter == 0
- * the server is waiting for signal before the continuing with data process identification. 
- * This is done in Server_Body before syncing with data threads
- * If this happens, signal Server_Body that at least one data_thread is avaiable 
- */
-			if(*c->pcounter == 1)
-				Pthread_cond_signal(c->pcond);
-		
-// 			printf("Thread_Prt: %s unlock 2\n", local_set_name);
-			Pthread_mutex_unlock(c->plock);
-// 			printf("Thread_Prt: after unlock 2\n");
+// 		printf(" -------------------------------   Thread %lu named as '%s' received its SOCKET  %d\n", MyThreadID , local_set_name, *c->pcounter);
+// /*
+//  * once all R-W threads are taken decrement counter of data_threads ie. Data_Thread->data_threads_availth_counter
+//  */
+// 		
+// // 		for (ii = 0; ii< n_rec_proc + 1; ii++)
+// // 			printf("job %d, socket %d, mode %s  %c\n", ii, SR_Threads->sockfd[ii],  local_set_name, *c->pcounter, SR_Threads->SR_mode[ii]);
+// 
+// /*
+//  * wait until all SR_threads reach barrier, then start actual transfer of the data from S to R(s)
+//  */
+// // 		printf("Thread_Prt: after unlock 1\n");
+// 		Pthread_barrier_wait(&SR_Threads->barr);
+// // 		printf("Thread_Prt: Waiting on semaphore \n");
+// /*
+//  * once the data transfer is finished increase increment of available data_threads
+// */
+// 		Sem_wait(&SR_Threads->sem_g);
+// // 		printf("TEST_... TRANFER FINISHED\n\n\n");
+// 
+// 		n_avail_loc_theads = n_rec_proc + 1;
+// 
+// // 		printf("Thread_Prt: %s lock 2\n", local_set_name);
+// 
+// 		Pthread_mutex_lock(c->plock);
+// /*
+//  * release thread, ie. set Thread_Status = 0
+//  */
+// 			*Thread_Status = 0;
+// 			(*c->pcounter)++;
+// /*
+//  * if all threads were occupied, ie *Data_Threads->data_threads_availth_counter == *c->pcounter == 0
+//  * the server is waiting for signal before the continuing with data process identification. 
+//  * This is done in Server_Body before syncing with data threads
+//  * If this happens, signal Server_Body that at least one data_thread is avaiable 
+//  */
+// 			if(*c->pcounter == 1)
+// 				Pthread_cond_signal(c->pcond);
+// 		
+// // 			printf("Thread_Prt: %s unlock 2\n", local_set_name);
+// 			Pthread_mutex_unlock(c->plock);
+// // 			printf("Thread_Prt: after unlock 2\n");
 
 			printf("GOING TO NEXT LOOP   %lu   %s  %d\n\n\n", MyThreadID , local_set_name, *c->pcounter);
 		}
 /*
- * join threads and release memmory
+ * join SR_Threads and release memory
  */
 		for(i=0; i< n_avail_loc_theads; i++)
 			if( pthread_join(SR_Threads->data_threads[i], NULL) != 0)
@@ -369,8 +331,14 @@ void *Data_Threads(void *arg)
 		Pthread_cond_destroy(&SR_Threads->sync_loc->last);
 		free(SR_Threads->sync_loc);
 		
-		
 		free(SR_Threads);
+
+/*
+ * join SR_hub and release memory
+ */
+
+	join()
+
 
 /*
  * release borrowed memory, malloced before starting thread in Data_Thread()

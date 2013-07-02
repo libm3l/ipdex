@@ -252,18 +252,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 					Perror("snprintf");
 				*Data_Threads->SR_mode = *SR_mode;
 				*Data_Threads->socket  = newsockfd;
-/*
- * before entering the synchronization, make sure the data_thread which was busy 
- * and is about to finish, will not increase the number of available 
- * data_threads once some of the data_threads or Server_body enters synchronizer.
- * If at least one of these processes is entering the synchronizer, the 
- * Data_Thread which is about to increase a number of available Data_Threads and will become available
- * wait until this synchronziation is over.
- * 
- * NOTE: The problem was that some of the processes entered the synchronizer and the 
- * number of syncrhonized jobs were then increased. Dead-lock
- */
-*Data_Threads->t_sync_protect = 1;
 
 				Pthread_mutex_unlock(&Data_Threads->lock);
 /*
@@ -272,14 +260,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  */
 				printf(" Case 0 syncing --- %s   %c   socket %d\n", name_of_required_data_set, *SR_mode, newsockfd);
 				pt_sync(Data_Threads->sync, 1, "Ser_B");
-
-Pthread_mutex_lock(&Data_Threads->lock);
-	if(*Data_Threads->t_sync_protect == 1){
-		printf(" THREAD SerBody  BROADCASTING\n");
-		*Data_Threads->t_sync_protect = 0;
-		Pthread_cond_broadcast(&Data_Threads->t_sync_cond_protect);
-	}	
-Pthread_mutex_unlock(&Data_Threads->lock);
 /* 
  * when all Data_Thread are finished, - the identification part, the threads are waiting on each other. 
  * the last thread unlock the semaphore so that the next loop can start
@@ -355,14 +335,6 @@ Pthread_mutex_unlock(&Data_Threads->lock);
  * data_thread is occupied let the process know it and close socket
  * process will attempt to establish connection later
  */
-
-	if(*Data_Threads->t_sync_protect == 1){
-		printf(" THREAD SerBodey  BROADCASTING\n");
-		*Data_Threads->t_sync_protect = 0;
-		Pthread_cond_broadcast(&Data_Threads->t_sync_cond_protect);
-	}	
-
-
 				Pthread_mutex_unlock(&Data_Threads->lock);
 			
 			break;
@@ -403,7 +375,6 @@ Pthread_mutex_unlock(&Data_Threads->lock);
 	free(Data_Threads->data_threads_remainth_counter);
 	free(Data_Threads->socket);
 	free(Data_Threads->retval);
-	free(Data_Threads->t_sync_protect);
 	
 	free(Data_Threads->sync->nsync);
 	free(Data_Threads->sync->nthreads);
@@ -411,7 +382,6 @@ Pthread_mutex_unlock(&Data_Threads->lock);
 	Pthread_mutex_destroy(&Data_Threads->sync->block);
 	Pthread_cond_destroy(&Data_Threads->sync->condvar);
 	Pthread_cond_destroy(&Data_Threads->sync->last);
-	Pthread_cond_destroy(&Data_Threads->t_sync_cond_protect);
 	
 	free(Data_Threads->sync);
 	free(Data_Threads->sync_loc);
