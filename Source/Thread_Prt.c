@@ -213,7 +213,7 @@ void *Data_Threads(void *arg)
   */
 			(*c->prcounter)--;
 
-			if(*c->pretval == 0){
+			if(*c->pretval == 0 && *Thread_Status == 0){
 /* 
  * if the data thread was not identified yet
  */
@@ -275,9 +275,9 @@ void *Data_Threads(void *arg)
  * post semaphore, the semaphore will be posted by SR_hub once the dta transfer is finished
  */
 
-						printf(" POSTING SEMAPHORE \n");
+// 						printf(" POSTING SEMAPHORE \n");
 
-						Sem_post(&loc_sem);
+// 						Sem_post(&loc_sem);
 /*
  * Wait for succesfull SR_hub Sem_wait()
  */
@@ -314,6 +314,8 @@ void *Data_Threads(void *arg)
 			Pthread_mutex_unlock(c->plock);	
 
 		}while(n_avail_loc_theads != 0);  /* all connecting thread arrivied, ie. one Sender and n_rec_proc Receivers */
+		
+		Sem_post(&loc_sem);
 
 // 		printf(" -------------------------------   Thread %lu named as '%s' received its SOCKET  %d\n", MyThreadID , local_set_name, *c->pcounter);
 // /*

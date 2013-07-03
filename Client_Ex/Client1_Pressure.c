@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 	tim.tv_sec = 0;
 	tim.tv_nsec = 100000000L;    /* 0.1 secs */
 	tim.tv_sec = 0;
-	tim.tv_nsec = 10000000L;    /* 0.01 secs */
+	tim.tv_nsec = 100000L;    /* 0.01 secs */
 
 	nmax = 100000;
 /*
