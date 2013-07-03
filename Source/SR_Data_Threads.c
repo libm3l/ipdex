@@ -49,7 +49,7 @@ void *SR_Data_Threads(void *arg)
 			sockfd  =  c->psockfd[*c->pthr_cntr];
 			(*c->pthr_cntr)++; 
 			
-// 			printf(" +++++++++++++ '%c'  %d  %d\n", SR_mode, sockfd,  *c->pthr_cntr );
+			printf(" SR_Data_Threads         +++++++++++++ '%c'  socket NR is %d  %d\n", SR_mode, sockfd,  *c->pthr_cntr );
 
 		Pthread_mutex_unlock(c->plock);
 

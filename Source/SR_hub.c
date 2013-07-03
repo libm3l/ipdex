@@ -25,7 +25,7 @@ void *SR_hub(void *arg)
  * wait for semaphore from Thread_Prt that 
  * all requests arrived
  */
-		printf(" -------------------------------   SR_Hub waiting for semaphoret  %d\n", *c->pcounter);
+// 		printf(" -------------------------------   SR_Hub waiting for semaphor  %d\n", *c->pcounter);
 		Sem_wait(c->psem);
 /*
  * confirm succesfull Sem_wait()
@@ -36,7 +36,7 @@ void *SR_hub(void *arg)
  * go to last barrier, all others are already taken by SR_Threads, Once
  * the thread arrives on this barried, the data tranfer between Sender and all Receivers start
  */
-		printf(" -------------------------------   SR_Hub got green light  %d\n", *c->pcounter);
+// 		printf(" -------------------------------   SR_Hub got green light  %d\n", *c->pcounter);
 /*
  * once all R-W threads are taken decrement counter of data_threads ie. Data_Thread->data_threads_availth_counter
  */		
@@ -49,7 +49,7 @@ void *SR_hub(void *arg)
 		Pthread_barrier_wait(c->pbarr);
 // 		printf("Thread_Prt: Waiting on semaphore \n");
 /*
- * once the data transfer is finished increase increment of available data_threads
+ * once the data transfer is finished wait until all data is tranferred and S and R threads close their socket
 */
 		Sem_wait(c->psem_g);
 // 		printf("TEST_... TRANFER FINISHED\n\n\n");
@@ -63,7 +63,7 @@ void *SR_hub(void *arg)
  * release thread, ie. set Thread_Status = 0
  */
 		*c->pThread_Status = 0;
-		(*c->pcounter)++;
+// 		(*c->pcounter)++;
 /*
  * if all threads were occupied, ie *Data_Threads->data_threads_availth_counter == *c->pcounter == 0
  * the server is waiting for signal before the continuing with data process identification. 
@@ -77,7 +77,7 @@ void *SR_hub(void *arg)
 		Pthread_mutex_unlock(c->plock);
 // 			printf("Thread_Prt: after unlock 2\n");
 
-		printf("SR_HUB    -    GOING TO NEXT LOOP   %d   %d\n\n\n",  *c->pcounter, *c->pThread_Status);
+		printf("SR_HUB    -    GOING TO NEXT LOOP   %d \n\n\n",  *c->pcounter);
 	}
 /*
  * release borrowed memory, malloced before starting thread in Data_Thread()

@@ -96,20 +96,11 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 		}
 
 
-		printf(" COUNTER is   %d \n", *Data_Threads->data_threads_availth_counter);
+// 		printf(" COUNTER is   %d \n", *Data_Threads->data_threads_availth_counter);
 		
 		if(*Data_Threads->data_threads_availth_counter == 0){
-
-					printf(" Server_BODY waiting for condition \n");
-		
-
-					
 			while(*Data_Threads->data_threads_availth_counter == 0)
 				Pthread_cond_wait(&Data_Threads->cond, &Data_Threads->lock);
-
-
-					printf(" Server_BODY after  condition \n");
-
 		}
 
 		Pthread_mutex_unlock(&Data_Threads->lock);
@@ -275,7 +266,8 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * when all Data_Thread are finished, - the identification part, the threads are waiting on each other. 
  * the last thread unlock the semaphore so that the next loop can start
  */		
-				Sem_wait(&Data_Threads->sem);
+// 				Sem_wait(&Data_Threads->sem);
+				pt_sync(Data_Threads->sync, 1, "Ser_B");
 
 
 // Pthread_mutex_lock(&Data_Threads->lock);
