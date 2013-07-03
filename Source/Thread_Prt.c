@@ -3,6 +3,8 @@
 #include "Server_Header.h"
 #include "Server_Functions_Prt.h"
 #include "Start_SR_Threads.h"
+#include "Start_SR_HubThread.h"
+#include "SR_hub.h"
 #include "Thread_Prt.h"
 
 void *Data_Threads(void *arg)
@@ -21,6 +23,10 @@ void *Data_Threads(void *arg)
 	lmint_t ii, *Thread_Status;
 	
 	SR_thread_str_t *SR_Threads;
+	SR_hub_thread_str_t  *SR_Hub_Thread;
+
+	sem_t 		  	loc_sem;
+	lmint_t pth_err;
 /*
  * get my thread ID
  */
@@ -86,6 +92,20 @@ void *Data_Threads(void *arg)
  * set number of available local thread equal to number of readers + 1 writing
  */
 	n_avail_loc_theads = n_rec_proc + 1;
+
+
+		if( (THRStat_SFounds = m3l_Locate(c->Node, "./Data_Set/Thread_Status", "/*/*", (lmchar_t *)NULL)) == NULL){
+			printf("Thread_Status: did not find any Thread_Status\n");
+			m3l_DestroyFound(&THRStat_SFounds);
+			exit(0);
+		}
+							
+		TmpNode = m3l_get_Found_node(THRStat_SFounds, 0);
+		Thread_Status = (lmint_t *)m3l_get_data_pointer(TmpNode);
+
+		*Thread_Status = 0;
+		m3l_DestroyFound(&THRStat_SFounds);
+
 /*
  * spawn SR_thread, wait until all SR_threads for this data set are spawned. Use semafore for syncing
  */
@@ -108,16 +128,48 @@ void *Data_Threads(void *arg)
  * and waits on another barrier
  */	
 	Pthread_barrier_wait(c->pbarr);
+/*
+ * start SR_hub thread, do it before signaling the Server body signals that it is ready 
+ * to go on. Before that, initialize local semaphore
+ */
+	Sem_init(&loc_sem, 0);
+
+// 	if(  (SR_Hub_Thread = Start_SR_HubThread(SR_Threads, c, &n_avail_loc_theads, &n_rec_proc, Thread_Status, loc_sem)) == NULL)
+// 		Perror("Thread_Prt: Start_SR_HubThreads error");
+
 
 
 
 /*
- * start SR_hub thread, do it before signalling the Server body signals that it is ready 
- * to go on
+ * malloc the main node
  */
+	if( (SR_Hub_Thread = (SR_hub_thread_str_t *)malloc(sizeof(SR_hub_thread_str_t))) == NULL)
+		Perror("SR_Start_SR_Threads: SR_Hub_Thread malloc");
+/* 
+ * malloc data in heap, will be used to share data between threads
+ */
+	if( (SR_Hub_Thread->data_thread = (pthread_t *)malloc(sizeof(pthread_t) )) == NULL)
+		Perror("Start_SR_Threads: SR_Hub_Thread->data_thread malloc");
 
 
+/*
+ * associate values in SR_Hub_Thread 
+ */
+	SR_Hub_Thread->pbarr 	= &SR_Threads->barr;		/* wait until all SR_threads reach barrier, then start actual transfer of the data from S to R(s) */
+	SR_Hub_Thread->psem 	= &loc_sem;
+	SR_Hub_Thread->psem_g	=&SR_Threads->sem_g;	/* once the data transfer is finished increase increment of available data_threads */
+	SR_Hub_Thread->plock	=c->plock;	
+	SR_Hub_Thread->pcond	=c->pcond;
+	SR_Hub_Thread->pcounter	=c->pcounter;
+	SR_Hub_Thread->pn_avail_loc_theads	=&n_avail_loc_theads;
+	SR_Hub_Thread->pn_rec_proc		=&n_rec_proc;
+	SR_Hub_Thread->pThread_Status 	= Thread_Status;
+	SR_Hub_Thread->pThread_Status 	= Thread_Status;
 
+
+	while ( (pth_err = pthread_create(&SR_Hub_Thread->data_thread[0], NULL, &SR_hub,  SR_Hub_Thread)) != 0 && errno == EAGAIN);
+	if(pth_err != 0)
+		Perror("pthread_create()"); 
 
 
 
@@ -186,7 +238,7 @@ void *Data_Threads(void *arg)
 // 					printf("Data_Thread %s char %c is identified - socket # %d  %d \n",c->pname_of_data_set,*c->pSR_mode, *c->psocket , n_avail_loc_theads );
 
 					
-					/*
+/*
  * if number of available SR threads is 0, ie. all S and R requests for particular data set arrived
  * decrement number of available data sets
  */
@@ -195,6 +247,8 @@ void *Data_Threads(void *arg)
  * decrement number of available Data_Thread sets
  */
 						(*c->pcounter)--;
+
+						printf(" -------------------------------   Thread %lu named as '%s' received its SOCKET  %d\n", MyThreadID , local_set_name, *c->pcounter);
 /*
  * set number of available processes for SR_Thread to  n_rec_proc+1 = number of Receivers + Sender
  */
@@ -203,21 +257,27 @@ void *Data_Threads(void *arg)
  * set Thread_Status to 1
  * 
  */
-						if( (THRStat_SFounds = m3l_Locate(c->Node, "./Data_Set/Thread_Status", "/*/*", (lmchar_t *)NULL)) == NULL){
-							printf("Thread_Status: did not find any Thread_Status\n");
-							m3l_DestroyFound(&THRStat_SFounds);
-							exit(0);
-						}
-							
-						TmpNode = m3l_get_Found_node(THRStat_SFounds, 0);
-						Thread_Status = (lmint_t *)m3l_get_data_pointer(TmpNode);
-
+// 						if( (THRStat_SFounds = m3l_Locate(c->Node, "./Data_Set/Thread_Status", "/*/*", (lmchar_t *)NULL)) == NULL){
+// 							printf("Thread_Status: did not find any Thread_Status\n");
+// 							m3l_DestroyFound(&THRStat_SFounds);
+// 							exit(0);
+// 						}
+// 							
+// 						TmpNode = m3l_get_Found_node(THRStat_SFounds, 0);
+// 						Thread_Status = (lmint_t *)m3l_get_data_pointer(TmpNode);
+// 
 						*Thread_Status = 1;
-						m3l_DestroyFound(&THRStat_SFounds);
+// 						m3l_DestroyFound(&THRStat_SFounds);
+// 
+// 						SR_Hub_Thread->pThread_Status 	= Thread_Status;
+
 /*
  * post semaphore, the semaphore will be posted by SR_hub once the dta transfer is finished
  */
-// 						Sem_post();
+
+						printf(" POSTING SEMAPHORE \n");
+
+						Sem_post(&loc_sem);
 /*
  * Wait for succesfull SR_hub Sem_wait()
  */
@@ -334,12 +394,14 @@ void *Data_Threads(void *arg)
 		free(SR_Threads);
 
 /*
+ * free local semaphore
+ */
+ 		Sem_destroy(&loc_sem);
+/*
  * join SR_hub and release memory
  */
-
-	join()
-
-
+		if( pthread_join(SR_Hub_Thread->data_thread[0], NULL) != 0)
+			Error(" Joining thread failed");
 /*
  * release borrowed memory, malloced before starting thread in Data_Thread()
  */

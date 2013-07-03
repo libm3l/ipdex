@@ -249,7 +249,7 @@ void *SR_Data_Threads(void *arg)
 // 			printf("Sender after  syncing \n");
 		}
 		else{
-			Error("Wrong option");
+			Error("SR_Data_Threads: Wrong SR_mode");
 		}
 		
 	}

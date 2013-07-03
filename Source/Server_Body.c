@@ -94,11 +94,22 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 		if(cycle > 0){
 			Pthread_mutex_lock(&Data_Threads->lock);
 		}
+
+
+		printf(" COUNTER is   %d \n", *Data_Threads->data_threads_availth_counter);
 		
 		if(*Data_Threads->data_threads_availth_counter == 0){
+
+					printf(" Server_BODY waiting for condition \n");
+		
+
 					
 			while(*Data_Threads->data_threads_availth_counter == 0)
 				Pthread_cond_wait(&Data_Threads->cond, &Data_Threads->lock);
+
+
+					printf(" Server_BODY after  condition \n");
+
 		}
 
 		Pthread_mutex_unlock(&Data_Threads->lock);

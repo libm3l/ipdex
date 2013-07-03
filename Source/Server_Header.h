@@ -21,6 +21,7 @@
 
 
 
+
 typedef struct data_thread_args{
 	pthread_mutex_t   	*plock;	 	/* mutex */
 	pthread_barrier_t 	*pbarr;  		/* barrier */
@@ -34,7 +35,6 @@ typedef struct data_thread_args{
 	pt_sync_t		*psync;
 	
 }data_thread_args_t;
-
 
 
 typedef struct data_thread_str{
@@ -77,6 +77,7 @@ typedef struct SR_thread_args{
 	pt_sync_t		*psync_loc;
 }SR_thread_args_t;
 
+
 typedef struct SR_thread_str{
  	pthread_barrier_t 	barr;  								/* barrier */
 	pthread_mutex_t   	lock;									/* mutex */
@@ -90,6 +91,28 @@ typedef struct SR_thread_str{
 	lmsize_t 		*R_availth_counter, *R_remainth_counter, *ngotten; 	/* number of available and free threads, length of buffer from TCP/IP   */
 	pt_sync_t		*sync_loc;
 }SR_thread_str_t;
+
+
+
+
+
+
+
+typedef struct SR_hub_thread_str{
+	pthread_barrier_t 	*pbarr;
+	sem_t 		  	*psem, *psem_g;
+	pthread_mutex_t   	*plock;	
+	pthread_cond_t    	*pcond;
+	lmsize_t  			*pcounter, *pn_avail_loc_theads, *pn_rec_proc;
+	lmint_t 			*pThread_Status;
+	pthread_t 			*data_thread;				/* thread ID */
+}SR_hub_thread_str_t;
+
+
+
+
+
+
 
 
 
