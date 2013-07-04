@@ -67,9 +67,9 @@ int main(int argc, char *argv[])
 	
 	struct timespec tim, tim2;
 // 	tim.tv_sec = 1;
-	tim.tv_sec = 1;
+	tim.tv_sec = 0;
 // 	tim.tv_nsec = 300000000L;    /* 0.1 secs */
-	tim.tv_nsec = 000000000L;    /* 0.1 secs */
+	tim.tv_nsec = 10000000L;    /* 0.1 secs */
 
 	nmax = 100000;
 /*

@@ -116,7 +116,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 				Perror("accept()");
 		}
 
-// 		printf(" ... .arrived \n");
+// 		printf(" ... .arrived   %d \n", newsockfd);
 
 // 		inet_ntop(AF_INET, &(cli_addr.sin_addr), str, INET_ADDRSTRLEN);
 //    		printf("	CONNECTION --------------------   : %s:%d\n",str, ntohs(cli_addr.sin_port)); 
@@ -132,6 +132,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 		if( (RecNode = m3l_receive_tcpipsocket((const char *)NULL, newsockfd, Popts)) == NULL)
 			Error("Error during reading data from socket");
 
+// 		printf(" ... .Header arrived  %d \n", newsockfd);
 
 		dim[0] = 1;
 
@@ -244,8 +245,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 
 // 				printf(" Case 0 setting values --- %s   %c\n", name_of_required_data_set, *SR_mode);
 
-
-
 				*Data_Threads->data_threads_remainth_counter 	= *Data_Threads->data_threads_availth_counter;	
 				*Data_Threads->sync->nthreads				= *Data_Threads->data_threads_availth_counter + 1;
 				*Data_Threads->retval = 0;
@@ -260,14 +259,14 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * once all necessary data are set, send signal to all threads to start unloc mutex
  * and release borrowed memory
  */
-				printf(" Case 0 syncing --- %s   %c   socket %d\n", name_of_required_data_set, *SR_mode, newsockfd);
-				pt_sync(Data_Threads->sync, 1, "Ser_B");
+// 				printf(" Case 0 syncing --- %s   %c   socket %d\n", name_of_required_data_set, *SR_mode, newsockfd);
+				pt_sync(Data_Threads->sync);
 /* 
  * when all Data_Thread are finished, - the identification part, the threads are waiting on each other. 
  * the last thread unlock the semaphore so that the next loop can start
  */		
 // 				Sem_wait(&Data_Threads->sem);
-				pt_sync(Data_Threads->sync, 1, "Ser_B");
+				pt_sync(Data_Threads->sync);
 
 
 // Pthread_mutex_lock(&Data_Threads->lock);
@@ -305,7 +304,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			break;
 			
 			case 1:
-				printf(" Case 1 --- %s   %c\n", name_of_required_data_set, *SR_mode);
+// 				printf(" Case 1 --- %s   %c\n", name_of_required_data_set, *SR_mode);
 			
 				if(*SR_mode == 'S'){
 /*
@@ -343,7 +342,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			break;
 		}
 			
-			printf(" after handshake \n");
+// 			printf(" after handshake \n");
 		
 /*
  * initial stage was completed, server is running in while(1) loop, set cycle to 1

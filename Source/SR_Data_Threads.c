@@ -15,6 +15,9 @@ void *SR_Data_Threads(void *arg)
 	lmint_t sockfd, eofbuffcond, R_done, last;
 	lmsize_t n;
 
+
+	pthread_t  MyThreadID;
+
 	opts_t *Popts, opts;
 	
 	opts.opt_linkscleanemptlinks = '\0';  // clean empty links
@@ -24,6 +27,8 @@ void *SR_Data_Threads(void *arg)
 	opts.opt_MEMCP = 'S';  // type of buffering
 	
 	Popts = &opts;
+
+	MyThreadID = pthread_self();
 /*
  * wait for signal broadcast
  */
@@ -38,6 +43,7 @@ void *SR_Data_Threads(void *arg)
  * the last invoking of Pthread_barrier_wait is done in Thread_Prt.c
  */
 		*c->pthr_cntr = 0;
+
 		Pthread_barrier_wait(c->pbarr);
 /*
  * get SR_mode and socket number of each connected processes
@@ -49,7 +55,7 @@ void *SR_Data_Threads(void *arg)
 			sockfd  =  c->psockfd[*c->pthr_cntr];
 			(*c->pthr_cntr)++; 
 			
-			printf(" SR_Data_Threads         +++++++++++++ '%c'  socket NR is %d  %d\n", SR_mode, sockfd,  *c->pthr_cntr );
+// 			printf(" SR_Data_Threads       %lu   +++++++++++++ '%c'  socket NR is %d  %d\n", MyThreadID, SR_mode, sockfd,  *c->pthr_cntr );
 
 		Pthread_mutex_unlock(c->plock);
 
@@ -69,7 +75,7 @@ void *SR_Data_Threads(void *arg)
  * check if the Sender received EOFbuff, if yes, set R_done = 1
  */
 // 				printf(" RECEIVER before  %d\n ", *c->prcounter);
-				pt_sync(c->psync_loc, 0, "SR");
+				pt_sync(c->psync_loc);
 // 				printf(" RECEIVER after  %d\n ", *c->prcounter);
 				
 				if(*c->pEofBuff != 0){
@@ -77,7 +83,7 @@ void *SR_Data_Threads(void *arg)
 				else{
 					R_done = 0;}
 				
-// 				printf(" ===================================RECEIVER after syncing  %d '%s'   %d\n", sockfd, c->pbuffer, *c->pngotten);
+// 				printf(" ===================================RECEIVER after syncing  %d '%s'   %d  - SOCKET %d\n", sockfd, c->pbuffer, *c->pngotten, sockfd);
 				
 
 // 				Pthread_mutex_lock(c->plock);
@@ -151,15 +157,14 @@ void *SR_Data_Threads(void *arg)
 /*
  * close socket, and if last partition, unlock semaphore so that Thead_Prt can continue
  */
-// 			printf("READER closing socket after reading SEOB \n");
+// 			printf("READER closing socket after reading SEOB %lu  %d\n", MyThreadID, sockfd);
 			if( close(sockfd) == -1)
 				Perror("close");
 // 			printf("READER syncing \n");
 			
-			pt_sync(c->psync_loc, 0, "SR");
+			pt_sync(c->psync_loc);
 // 			printf("READER after syncing \n");
 
-/*			if(*c->prcounter == 0){*/
 			if(last == 1){
 // 				printf("READER before posting sem_g Semaphore \n");
 
@@ -189,14 +194,14 @@ void *SR_Data_Threads(void *arg)
 // 				printf(" SENDER %d\n",   *c->prcounter  );
 				*c->pEofBuff = 1;
 
-// 				printf(" ====================================Sender  READING %d   '%s'\n", sockfd, c->pbuffer);
+// 				printf(" ====================================Sender  READING %lu, %d   '%s'    - SOCKET %d\n", MyThreadID, sockfd, c->pbuffer, sockfd);
 				bzero(c->pbuffer,MAXLINE+1);
 				if (  (*c->pngotten = Read(sockfd, c->pbuffer, MAXLINE)) == -1){
 					Perror("read");
 					free(c);
 					return;
 				}
-// 				printf(" ====================================Sender  after READING %d   '%s'  %d\n", sockfd, c->pbuffer, *c->pngotten);
+// 				printf(" ====================================Sender  after READING %lu, %d   '%s'  %d\n", MyThreadID, sockfd, c->pbuffer, *c->pngotten);
 
 
 				eofbuffcond = Check_EOFbuff(c->pbuffer,prevbuff, strlen(c->pbuffer), EOBlen, EOFbuff);
@@ -214,7 +219,7 @@ void *SR_Data_Threads(void *arg)
 // 					printf(" eofbuff ===========    1\n");
 				}
 // 				if(eofbuffcond == 1) printf(" SENDER after sync  %d\n", *c->pEofBuff );
-				pt_sync(c->psync_loc, 0, "SR");
+				pt_sync(c->psync_loc);
 // 				if(eofbuffcond == 1) printf(" SENDER waiting for semaphore \n");
 
 				Sem_wait(c->psem);
@@ -224,7 +229,7 @@ void *SR_Data_Threads(void *arg)
  */
 			}while(eofbuffcond != 1);
 
-// 		printf(" SENDER leaving while\n");
+// 		printf(" %lu SENDER leaving while\n", MyThreadID);
 
 /*
  * sender sent payload, before closign socket send back acknowledgement --SEOB, Sender receives --REOB
@@ -239,13 +244,13 @@ void *SR_Data_Threads(void *arg)
 			}
 
 			
-// 			printf(" SR_Data_Threads2 : Send_to_tcp -- DONE\n");
+// 			printf(" SR_Data_Threads2 : %lu Sender closing socket %d\n", MyThreadID, sockfd);
 
 			if( close(sockfd) == -1)
 				Perror("close");
 			
 // 			printf("Sender syncing \n");
-			pt_sync(c->psync_loc, 0, "SR");
+			pt_sync(c->psync_loc);
 // 			printf("Sender after  syncing \n");
 		}
 		else{
@@ -289,7 +294,7 @@ lmssize_t Read(lmint_t descrpt , lmchar_t *buff, lmint_t n)
 	lmsize_t ngotten;
 
 	if (  (ngotten = read(descrpt,buff,n)) == -1){
-		Perror("read");
+		Perror("read here");
 		return -1;
 	}
 	buff[ngotten] = '\0';

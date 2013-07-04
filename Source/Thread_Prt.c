@@ -119,27 +119,21 @@ void *Data_Threads(void *arg)
 
 	*SR_Threads->R_availth_counter = n_rec_proc+1;
 
-	Pthread_mutex_unlock(c->plock);
-/*
- * wait on this barrier until all threads are started
- * the barrier is called n-times (n=number of Data_Threads + 1) where the last call is made
- * from Data_Thread which spawns this thread
- * Once this barrier is reached, the main threads initializes some variables
- * and waits on another barrier
- */	
-	Pthread_barrier_wait(c->pbarr);
+
+
+
+
 /*
  * start SR_hub thread, do it before signaling the Server body signals that it is ready 
  * to go on. Before that, initialize local semaphore
  */
+
+// 	Pthread_mutex_lock(c->plock);
+
 	Sem_init(&loc_sem, 0);
 
 // 	if(  (SR_Hub_Thread = Start_SR_HubThread(SR_Threads, c, &n_avail_loc_theads, &n_rec_proc, Thread_Status, loc_sem)) == NULL)
 // 		Perror("Thread_Prt: Start_SR_HubThreads error");
-
-
-
-
 /*
  * malloc the main node
  */
@@ -150,8 +144,6 @@ void *Data_Threads(void *arg)
  */
 	if( (SR_Hub_Thread->data_thread = (pthread_t *)malloc(sizeof(pthread_t) )) == NULL)
 		Perror("Start_SR_Threads: SR_Hub_Thread->data_thread malloc");
-
-
 /*
  * associate values in SR_Hub_Thread 
  */
@@ -171,6 +163,15 @@ void *Data_Threads(void *arg)
 	if(pth_err != 0)
 		Perror("pthread_create()"); 
 
+	Pthread_mutex_unlock(c->plock);
+/*
+ * wait on this barrier until all threads are started
+ * the barrier is called n-times (n=number of Data_Threads + 1) where the last call is made
+ * from Data_Thread which spawns this thread
+ * Once this barrier is reached, the main threads initializes some variables
+ * and waits on another barrier
+ */	
+	Pthread_barrier_wait(c->pbarr);
 /*
  * wait on this barrier until main thread *Server_Body) sets value of counter and lock c->plock
  * the last call to _wait() is done in the main function after returning back from Data_Threads = Data_Thread(Gnode)
@@ -192,9 +193,7 @@ void *Data_Threads(void *arg)
  */
 // 			printf(" THREAD before sync %s in while loop %d  %d  %d  nsync %d socket %d\n", local_set_name, (*c->prcounter), (*c->pcounter), n_avail_loc_theads, *c->psync->pnthreads, *c->psocket);
 
-			pt_sync(c->psync, 1, local_set_name);
-			
-// 			printf(" THREAD after sync %s in while loop %d  %d  %d  nsync %d\n", local_set_name, (*c->prcounter), (*c->pcounter), n_avail_loc_theads, *c->psync->pnthreads);
+			pt_sync(c->psync);
 
 			Pthread_mutex_lock(c->plock);
 			
@@ -219,7 +218,7 @@ void *Data_Threads(void *arg)
 					local_cntr++;
 					*c->pretval = 1;
 					
-					printf("    ===============    ===============  Data_Thread %s char %c is identified - socket # %d \n",c->pname_of_data_set,*c->pSR_mode, *c->psocket  );
+// 					printf("    ===============    ===============  Data_Thread %s char %c is identified - socket # %d \n",c->pname_of_data_set,*c->pSR_mode, *c->psocket  );
 /* 
  * when the thread is positively identified, decrement counter of available thread for next round of identification, 
  * once n_avail_loc_theads == 0 all SR threads arrived, leave do - while loop and decrement (*c->pcounter)--
@@ -236,7 +235,7 @@ void *Data_Threads(void *arg)
  */
 					if(n_avail_loc_theads == 0){
 
-						printf(" -------------------------------   Thread %lu named as '%s' received all REQUESTS  %d\n", MyThreadID , local_set_name, *c->pcounter);
+// 						printf(" -------------------------------   Thread %lu named as '%s' received all REQUESTS  %d\n", MyThreadID , local_set_name, *c->pcounter);
 /*
  * set number of available processes for SR_Thread to  n_rec_proc+1 = number of Receivers + Sender
  */
@@ -277,13 +276,16 @@ void *Data_Threads(void *arg)
 
 			Pthread_mutex_unlock(c->plock);	
 
-			pt_sync(c->psync, 1, local_set_name);
+			pt_sync(c->psync);
 
 		}while(n_avail_loc_theads != 0);  /* all connecting thread arrivied, ie. one Sender and n_rec_proc Receivers */
 		
+
+// 		printf(" -------------------------------   Thread %lu named as '%s' posting semaphore  \n", MyThreadID , local_set_name);
+		n_avail_loc_theads = n_rec_proc + 1;		
 		Sem_post(&loc_sem);
 
-// 		printf(" -------------------------------   Thread %lu named as '%s' received its SOCKET  %d\n", MyThreadID , local_set_name, *c->pcounter);
+// 		printf(" -------------------------------   Thread %lu named as '%s' posted semaphore  \n", MyThreadID , local_set_name);
 // /*
 //  * once all R-W threads are taken decrement counter of data_threads ie. Data_Thread->data_threads_availth_counter
 //  */

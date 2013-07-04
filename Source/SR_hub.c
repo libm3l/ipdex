@@ -7,6 +7,10 @@
 
 void *SR_hub(void *arg)
 {
+
+	pthread_t  MyThreadID;
+	MyThreadID = pthread_self();
+
 /*
  * function signals SR_Threads that all requests (one Sender and n_rec_proc Receivers) arrived and 
  * that it can start data transfer
@@ -25,13 +29,8 @@ void *SR_hub(void *arg)
  * wait for semaphore from Thread_Prt that 
  * all requests arrived
  */
-// 		printf(" -------------------------------   SR_Hub waiting for semaphor  %d\n", *c->pcounter);
+// 		printf(" -------------------------------   SR_Hub %lu  waiting for semaphor  %d\n",MyThreadID,  *c->pcounter);
 		Sem_wait(c->psem);
-/*
- * confirm succesfull Sem_wait()
- */
-// 		Sem_post(c->sem)
-
 /*
  * go to last barrier, all others are already taken by SR_Threads, Once
  * the thread arrives on this barried, the data tranfer between Sender and all Receivers start
@@ -51,19 +50,19 @@ void *SR_hub(void *arg)
 /*
  * once the data transfer is finished wait until all data is tranferred and S and R threads close their socket
 */
+		Pthread_mutex_lock(c->plock);
 		Sem_wait(c->psem_g);
-// 		printf("TEST_... TRANFER FINISHED\n\n\n");
+// 		printf("TEST_... TRANFER FINISHED  %lu\n\n\n", MyThreadID);
 
 		*c->pn_avail_loc_theads = *c->pn_rec_proc + 1;
 
 // 		printf("Thread_Prt: %s lock 2\n", local_set_name);
 
-		Pthread_mutex_lock(c->plock);
+/*		Pthread_mutex_lock(c->plock);*/
 /*
  * release thread, ie. set Thread_Status = 0
  */
 		*c->pThread_Status = 0;
-// 		(*c->pcounter)++;
 /*
  * if all threads were occupied, ie *Data_Threads->data_threads_availth_counter == *c->pcounter == 0
  * the server is waiting for signal before the continuing with data process identification. 
@@ -77,7 +76,7 @@ void *SR_hub(void *arg)
 		Pthread_mutex_unlock(c->plock);
 // 			printf("Thread_Prt: after unlock 2\n");
 
-		printf("SR_HUB    -    GOING TO NEXT LOOP   %d \n\n\n",  *c->pcounter);
+// 		printf("SR_HUB    -    GOING TO NEXT LOOP   %d   %lu \n\n\n",  *c->pcounter,  MyThreadID);
 	}
 /*
  * release borrowed memory, malloced before starting thread in Data_Thread()
