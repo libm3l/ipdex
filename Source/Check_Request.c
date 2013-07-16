@@ -8,8 +8,6 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
  * function compares data in RecNode to what is in DataBuffer
  * looking specifically on name_of_required_data_set and SR_mode
  */
-// 	find_t *DATA_SFounds, *SRproc_Founds, *THRStat_SFounds, *Tqst_SFounds, *QueuedNDS_SFounds, *QueuedSRm_SFounds;
-
 	find_t *DATA_SFounds,*THRStat_SFounds, *THRName_SFounds;
 	size_t n_data_threads, i, n_queue_reqst, len1, len2;
 	node_t *TmpNode, *Queued_Reqst;

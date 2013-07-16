@@ -25,7 +25,7 @@ void *Data_Threads(void *arg)
 	SR_thread_str_t *SR_Threads;
 	SR_hub_thread_str_t  *SR_Hub_Thread;
 
-	sem_t 		  	loc_sem;
+	sem_t	loc_sem;
 	lmint_t pth_err;
 /*
  * get my thread ID
@@ -33,8 +33,8 @@ void *Data_Threads(void *arg)
 	MyThreadID = pthread_self();
 	
 	Pthread_mutex_lock(c->plock);
-		if(m3l_Cat(c->Node, "--all", "-L", "-P", "*",   (lmchar_t *)NULL) != 0)
-			Warning("CatData");
+// 		if(m3l_Cat(c->Node, "--all", "-L", "-P", "*",   (lmchar_t *)NULL) != 0)
+// 			Warning("CatData");
 /*
  * find name of data set
  * if it does not exist or more then one data set is found, give error message
@@ -118,11 +118,6 @@ void *Data_Threads(void *arg)
 	Sem_destroy(&SR_Threads->sem_g);
 
 	*SR_Threads->R_availth_counter = n_rec_proc+1;
-
-
-
-
-
 /*
  * start SR_hub thread, do it before signaling the Server body signals that it is ready 
  * to go on. Before that, initialize local semaphore
@@ -149,14 +144,17 @@ void *Data_Threads(void *arg)
  */
 	SR_Hub_Thread->pbarr 	= &SR_Threads->barr;		/* wait until all SR_threads reach barrier, then start actual transfer of the data from S to R(s) */
 	SR_Hub_Thread->psem 	= &loc_sem;
-	SR_Hub_Thread->psem_g	=&SR_Threads->sem_g;	/* once the data transfer is finished increase increment of available data_threads */
-	SR_Hub_Thread->plock	=c->plock;	
-	SR_Hub_Thread->pcond	=c->pcond;
-	SR_Hub_Thread->pcounter	=c->pcounter;
-	SR_Hub_Thread->pn_avail_loc_theads	=&n_avail_loc_theads;
-	SR_Hub_Thread->pn_rec_proc		=&n_rec_proc;
+	SR_Hub_Thread->psem_g	= &SR_Threads->sem_g;	/* once the data transfer is finished increase increment of available data_threads */
+	SR_Hub_Thread->plock	= c->plock;	
+	SR_Hub_Thread->pcond	= c->pcond;
+	SR_Hub_Thread->pcounter	= c->pcounter;
+	SR_Hub_Thread->pn_avail_loc_theads	= &n_avail_loc_theads;
+	SR_Hub_Thread->pn_rec_proc		= &n_rec_proc;
 	SR_Hub_Thread->pThread_Status 	= Thread_Status;
 	SR_Hub_Thread->pThread_Status 	= Thread_Status;
+	SR_Hub_Thread->prcounter 	= c->prcounter;
+	SR_Hub_Thread->psockfd		= SR_Threads->sockfd;
+	SR_Hub_Thread->pList		= c->Node;
 
 
 	while ( (pth_err = pthread_create(&SR_Hub_Thread->data_thread[0], NULL, &SR_hub,  SR_Hub_Thread)) != 0 && errno == EAGAIN);
@@ -182,7 +180,6 @@ void *Data_Threads(void *arg)
 	
 	while(1){
 		
-// 		printf(" THREAD %s in while loop %d  %d  %d\n", local_set_name, (*c->prcounter), (*c->pcounter), n_avail_loc_theads);
 		local_cntr = 0;
 /*
  * start identifying threads once identified, leave do loop
@@ -191,20 +188,14 @@ void *Data_Threads(void *arg)
 /*
  * if already went through do loop, wait here at sync point until all threads are here
  */
-// 			printf(" THREAD before sync %s in while loop %d  %d  %d  nsync %d socket %d\n", local_set_name, (*c->prcounter), (*c->pcounter), n_avail_loc_theads, *c->psync->pnthreads, *c->psocket);
-
 			pt_sync(c->psync);
 
 			Pthread_mutex_lock(c->plock);
-			
-			*c->psync_loc = 0;
- /* 
-  * decrement counter of thread  which will check condition, used for syncing all threads before 
-  * going back to caller function
-  */
-			(*c->prcounter)--;
+/*
+ * if pretval == 0 and Thread_Status == 0 (thread available for pooling)
+ */
 
-			if(*c->pretval == 0 && *Thread_Status == 0){
+			if(*Thread_Status == 0 && *c->pretval == 0){
 /* 
  * if the data thread was not identified yet
  */
@@ -217,117 +208,45 @@ void *Data_Threads(void *arg)
 					SR_Threads->SR_mode[local_cntr] = *c->pSR_mode;
 					local_cntr++;
 					*c->pretval = 1;
-					
-// 					printf("    ===============    ===============  Data_Thread %s char %c is identified - socket # %d \n",c->pname_of_data_set,*c->pSR_mode, *c->psocket  );
 /* 
  * when the thread is positively identified, decrement counter of available thread for next round of identification, 
  * once n_avail_loc_theads == 0 all SR threads arrived, leave do - while loop and decrement (*c->pcounter)--
  * ie. next arriving threads will not use this thread because it is alrady used
  */
 					n_avail_loc_theads--;
-					
-// 					printf("Data_Thread %s char %c is identified - socket # %d  %d \n",c->pname_of_data_set,*c->pSR_mode, *c->psocket , n_avail_loc_theads );
-
-					
 /*
  * if number of available SR threads is 0, ie. all S and R requests for particular data set arrived
  * decrement number of available data sets
  */
 					if(n_avail_loc_theads == 0){
-
-// 						printf(" -------------------------------   Thread %lu named as '%s' received all REQUESTS  %d\n", MyThreadID , local_set_name, *c->pcounter);
 /*
  * set number of available processes for SR_Thread to  n_rec_proc+1 = number of Receivers + Sender
  */
 						*SR_Threads->R_availth_counter = n_rec_proc+1;
 /*
  * set Thread_Status to 1
- * 
  */
 						*Thread_Status = 1;
+ /* 
+  * decrement counter of thread  which will check condition, used for syncing all threads before 
+  * going back to caller function
+  */
+						(*c->prcounter)--;
 					}
 				}
 			}
 /*
  * synchronized all threads at the end, the last thread will broadcast
  */	
-// 			if(*c->prcounter == 0){
-// /* 	
-//  * the last thread, broadcast
-//  * indicate this is the last thread
-//  */
-// 				*c->psync_loc = 1;
-// 				Pthread_cond_broadcast(c->pdcond);
-// 				Sem_post(c->psem);  /* later it can be replaced by the same synchronization */
-// /* 
-//  * unlock semaphore in the main program so that another loop can start
-//  */
-// 			}
-// 			else{
-// /*
-//  * still some threads working, wait for them
-//  *
-//  * if number of available SR threads is 0, ie. all S and R requests for particular data set arrived
-//  * decrement number of available data sets
-//  */				
-// 				while (*c->psync_loc == 0)
-// 					Pthread_cond_wait(c->pdcond, c->plock);
-// 			}
-
 			Pthread_mutex_unlock(c->plock);	
 
 			pt_sync(c->psync);
 
 		}while(n_avail_loc_theads != 0);  /* all connecting thread arrivied, ie. one Sender and n_rec_proc Receivers */
 		
-
-// 		printf(" -------------------------------   Thread %lu named as '%s' posting semaphore  \n", MyThreadID , local_set_name);
-		n_avail_loc_theads = n_rec_proc + 1;		
+		n_avail_loc_theads = n_rec_proc + 1;
 		Sem_post(&loc_sem);
 
-// 		printf(" -------------------------------   Thread %lu named as '%s' posted semaphore  \n", MyThreadID , local_set_name);
-// /*
-//  * once all R-W threads are taken decrement counter of data_threads ie. Data_Thread->data_threads_availth_counter
-//  */
-// 		
-// // 		for (ii = 0; ii< n_rec_proc + 1; ii++)
-// // 			printf("job %d, socket %d, mode %s  %c\n", ii, SR_Threads->sockfd[ii],  local_set_name, *c->pcounter, SR_Threads->SR_mode[ii]);
-// 
-// /*
-//  * wait until all SR_threads reach barrier, then start actual transfer of the data from S to R(s)
-//  */
-// // 		printf("Thread_Prt: after unlock 1\n");
-// 		Pthread_barrier_wait(&SR_Threads->barr);
-// // 		printf("Thread_Prt: Waiting on semaphore \n");
-// /*
-//  * once the data transfer is finished increase increment of available data_threads
-// */
-// 		Sem_wait(&SR_Threads->sem_g);
-// // 		printf("TEST_... TRANFER FINISHED\n\n\n");
-// 
-// 		n_avail_loc_theads = n_rec_proc + 1;
-// 
-// // 		printf("Thread_Prt: %s lock 2\n", local_set_name);
-// 
-// 		Pthread_mutex_lock(c->plock);
-// /*
-//  * release thread, ie. set Thread_Status = 0
-//  */
-// 			*Thread_Status = 0;
-// 			(*c->pcounter)++;
-// /*
-//  * if all threads were occupied, ie *Data_Threads->data_threads_availth_counter == *c->pcounter == 0
-//  * the server is waiting for signal before the continuing with data process identification. 
-//  * This is done in Server_Body before syncing with data threads
-//  * If this happens, signal Server_Body that at least one data_thread is avaiable 
-//  */
-// 			if(*c->pcounter == 1)
-// 				Pthread_cond_signal(c->pcond);
-// 		
-// // 			printf("Thread_Prt: %s unlock 2\n", local_set_name);
-// 			Pthread_mutex_unlock(c->plock);
-// // 			printf("Thread_Prt: after unlock 2\n");
-// 			printf("GOING TO NEXT LOOP   %lu   %s  %d\n\n\n", MyThreadID , local_set_name, *c->pcounter);
 		}
 /*
  * join SR_Threads and release memory

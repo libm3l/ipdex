@@ -54,47 +54,44 @@ void *SR_Data_Threads(void *arg)
 			SR_mode =  c->pSR_mode[*c->pthr_cntr];
 			sockfd  =  c->psockfd[*c->pthr_cntr];
 			(*c->pthr_cntr)++; 
-			
-// 			printf(" SR_Data_Threads       %lu   +++++++++++++ '%c'  socket NR is %d  %d\n", MyThreadID, SR_mode, sockfd,  *c->pthr_cntr );
-
+	
 		Pthread_mutex_unlock(c->plock);
 
 		if(SR_mode == 'R'){
-			
+/*
+ * Receiver threads, set R_done = 0, once the 
+ * transfer of entire message is done (ie. Sender sends EOMB sequence
+ * set R_done = 1
+ */			
 			R_done = 0;
-
-// 		printf(" READER \n");
 /*
  * thread reads the data from buffer and send over TCP/IP to client
  */
 			do{
-
+/*
+ * last thread will set last = 1 
+ */
 				last = 0;
 /*
- * gate syncing all threads, before that 
- * check if the Sender received EOFbuff, if yes, set R_done = 1
+ * gate syncing all threads, syncing for Sender is done after reading from socket
+ * after sycning, check that the Sender received EOFbuff, if yes, set R_done = 1
  */
-// 				printf(" RECEIVER before  %d\n ", *c->prcounter);
 				pt_sync(c->psync_loc);
-// 				printf(" RECEIVER after  %d\n ", *c->prcounter);
 				
 				if(*c->pEofBuff != 0){
 					R_done = 1;}
 				else{
 					R_done = 0;}
-				
-// 				printf(" ===================================RECEIVER after syncing  %d '%s'   %d  - SOCKET %d\n", sockfd, c->pbuffer, *c->pngotten, sockfd);
-				
-
-// 				Pthread_mutex_lock(c->plock);
-
+/*
+ * the mutex was locked here to protect writing to each individual sockets
+ * but I think it is  not needed, moved lock after 
+ */
 				if ( (n = Write(sockfd,c->pbuffer, *c->pngotten)) < *c->pngotten)
 					Perror("write()");
 
 				Pthread_mutex_lock(c->plock);
 				(*c->prcounter)--;
 				*c->psync = 0;
-// 				printf(" RECEIVER SENT DATA  %d\n ", *c->prcounter);
 				
 				if(*c->prcounter == 0){
 /*
@@ -117,8 +114,6 @@ void *SR_Data_Threads(void *arg)
  * signal Sender that all Receivers are ready for next 
  * round of transmition
  */
-// 					printf("READER NULL- syncing done \n");
-// 					if(R_done == 1)printf("READER posting semaphore \n");
 					Sem_post(c->psem);
 /* 
  * unlock semaphore in the main program so that another loop can start
@@ -133,13 +128,10 @@ void *SR_Data_Threads(void *arg)
 						Pthread_cond_wait(c->pdcond, c->plock);
 				}
 
-// 				printf(" RECEIVER after syncing %d\n", *c->pEofBuff );
 			
 				Pthread_mutex_unlock(c->plock);
 
 			}while(R_done == 1);
-			
-// 			printf("READER finished, reading SEOB \n");
 /*
  * EOFbuff received, transmition is finished
  * 
@@ -154,31 +146,23 @@ void *SR_Data_Threads(void *arg)
 				Error(" PROBLEM HERE \n");
 				return NULL;
 			}
-/*
- * close socket, and if last partition, unlock semaphore so that Thead_Prt can continue
- */
-// 			printf("READER closing socket after reading SEOB %lu  %d\n", MyThreadID, sockfd);
-			if( close(sockfd) == -1)
-				Perror("close");
-// 			printf("READER syncing \n");
-			
-			pt_sync(c->psync_loc);
-// 			printf("READER after syncing \n");
+// /*
+//  * close socket, and if last partition, unlock semaphore so that Thead_Prt can continue
+//  */
+// 			if( close(sockfd) == -1)
+// 				Perror("close");
+// /*
+//  * synck here so that after that it is sure all threads closed their socket
+//  */
+// 			pt_sync(c->psync_loc);
 
-			if(last == 1){
-// 				printf("READER before posting sem_g Semaphore \n");
-
+			if(last == 1)
 				Sem_post(c->psem_g);
-
-// 				printf("READER after posting sem_g Semaphore \n");
-
-			}
-// 			printf("READER after Semaphore \n");
-
 		}
 		else if(SR_mode == 'S'){
-			
-// 		printf(" SENDER \n");
+/*
+ * Sender thread
+ */
 			bzero(prevbuff, EOBlen+1);
 /*
  * thread reads data from TCP/IP socket sent by client and 
@@ -186,51 +170,40 @@ void *SR_Data_Threads(void *arg)
  */	
 			eofbuffcond = 0;
 			do{
-// 				Pthread_mutex_lock(c->plock);
 /*
  * set counter of Receiving threads to number of R_threads (used in synchronizaiton of R_Threads)
  */ 		
 				*c->prcounter = *c->pcounter-1;
-// 				printf(" SENDER %d\n",   *c->prcounter  );
 				*c->pEofBuff = 1;
 
-// 				printf(" ====================================Sender  READING %lu, %d   '%s'    - SOCKET %d\n", MyThreadID, sockfd, c->pbuffer, sockfd);
 				bzero(c->pbuffer,MAXLINE+1);
 				if (  (*c->pngotten = Read(sockfd, c->pbuffer, MAXLINE)) == -1){
 					Perror("read");
 					free(c);
 					return;
 				}
-// 				printf(" ====================================Sender  after READING %lu, %d   '%s'  %d\n", MyThreadID, sockfd, c->pbuffer, *c->pngotten);
-
 
 				eofbuffcond = Check_EOFbuff(c->pbuffer,prevbuff, strlen(c->pbuffer), EOBlen, EOFbuff);
 /*
  * The buffer has been red from socket, send broadcast signal to all R_threads to go on
  * then unlock mutex and wait for semaphore
  */			
-// 				Pthread_mutex_unlock(c->plock);
-
-// 				printf(" SENDER before sync\n");
-
 				
-				if(eofbuffcond == 1){
+				if(eofbuffcond == 1)
 					*c->pEofBuff = 0;
-// 					printf(" eofbuff ===========    1\n");
-				}
-// 				if(eofbuffcond == 1) printf(" SENDER after sync  %d\n", *c->pEofBuff );
+/*
+ * wait on synchronization point, the syncing for Receivers is done before writing the 
+ * bffer to socket
+ */
 				pt_sync(c->psync_loc);
-// 				if(eofbuffcond == 1) printf(" SENDER waiting for semaphore \n");
-
+/*
+ * wait until all Receivers sent the data to the socket
+ */
 				Sem_wait(c->psem);
-// 				if(eofbuffcond == 1) printf(" SENDER SEM sync  %d\n", eofbuffcond);
 /*
  * if end of buffer reached, leave do cycle
  */
 			}while(eofbuffcond != 1);
-
-// 		printf(" %lu SENDER leaving while\n", MyThreadID);
-
 /*
  * sender sent payload, before closign socket send back acknowledgement --SEOB, Sender receives --REOB
  */
@@ -243,15 +216,12 @@ void *SR_Data_Threads(void *arg)
 				return NULL;
 			}
 
-			
-// 			printf(" SR_Data_Threads2 : %lu Sender closing socket %d\n", MyThreadID, sockfd);
-
-			if( close(sockfd) == -1)
-				Perror("close");
-			
-// 			printf("Sender syncing \n");
-			pt_sync(c->psync_loc);
-// 			printf("Sender after  syncing \n");
+// 			if( close(sockfd) == -1)
+// 				Perror("close");
+// /*
+//  * synck here so that after that it is sure all threads closed their socket
+//  */
+// 			pt_sync(c->psync_loc);
 		}
 		else{
 			Error("SR_Data_Threads: Wrong SR_mode");

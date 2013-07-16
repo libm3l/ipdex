@@ -63,8 +63,6 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 		Perror("Data_Thread: Data_Thread->data_threads_remainth_counter");
 	if( (Data_Thread->socket = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
 		Perror("Data_Thread: Data_Thread->socket");
-	if( (Data_Thread->sync_loc = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
-		Perror("Data_Thread: Data_Thread->sync_loc");
 	if( (Data_Thread->retval = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
 		Perror("Data_Thread: Data_Thread->retval");
 	if ( (Data_Thread->name_of_data_set  = (lmchar_t *)malloc(MAX_NAME_LENGTH* sizeof(lmchar_t))) == NULL)
@@ -101,7 +99,6 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 	Pthread_mutex_init(&Data_Thread->lock);
 	Pthread_barrier_init(&Data_Thread->barr,  Data_Thread->n_data_threads + 1);
 	Pthread_cond_init(&Data_Thread->cond);
-	Pthread_cond_init(&Data_Thread->dcond);
 	Sem_init(&Data_Thread->sem, 0);
 /*
  * spawn threads
@@ -115,10 +112,8 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 		DataArgs->psem 			= &Data_Thread->sem;	
 		DataArgs->pbarr 		= &Data_Thread->barr;	
 		DataArgs->pcond 		= &Data_Thread->cond;	
-		DataArgs->pdcond 		= &Data_Thread->dcond;	
 		DataArgs->psocket    		=  Data_Thread->socket;	
 		DataArgs->pretval    		=  Data_Thread->retval;	
-		DataArgs->psync_loc    		=  Data_Thread->sync_loc;	
 		DataArgs->pcounter    		=  Data_Thread->data_threads_availth_counter;
 		DataArgs->prcounter    		=  Data_Thread->data_threads_remainth_counter;
 		DataArgs->pname_of_data_set   	=  Data_Thread->name_of_data_set;

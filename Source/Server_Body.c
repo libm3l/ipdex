@@ -94,10 +94,13 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 		if(cycle > 0){
 			Pthread_mutex_lock(&Data_Threads->lock);
 		}
-
-
-// 		printf(" COUNTER is   %d \n", *Data_Threads->data_threads_availth_counter);
-		
+/* 
+ * if number of available threads is 0, wait until some of the Data_Threads become available. 
+ * without this condition, the server would be looping on accepting connection and then refusing it 
+ * at the Thread_Status of all threads is 1 and Check_Request return value is 1
+ *
+ * this condition is signaled by SR_hub
+ */
 		if(*Data_Threads->data_threads_availth_counter == 0){
 			while(*Data_Threads->data_threads_availth_counter == 0)
 				Pthread_cond_wait(&Data_Threads->cond, &Data_Threads->lock);
@@ -106,8 +109,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 		Pthread_mutex_unlock(&Data_Threads->lock);
 	
 		clilen = sizeof(cli_addr);
-
-// 		printf(" \n\nWaiting for new socket \n");
 		
 		if ( (newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen)) < 0){
 			if(errno == EINTR) /* If Interrupted system call, restart - back to while ()  UNP V1 p124  */
@@ -115,9 +116,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			else
 				Perror("accept()");
 		}
-
-// 		printf(" ... .arrived   %d \n", newsockfd);
-
 // 		inet_ntop(AF_INET, &(cli_addr.sin_addr), str, INET_ADDRSTRLEN);
 //    		printf("	CONNECTION --------------------   : %s:%d\n",str, ntohs(cli_addr.sin_port)); 
 /*
@@ -200,10 +198,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 
 		switch ( Check_Request(DataBuffer, name_of_required_data_set, SR_mode, name_of_required_data_set)) {
 			case 0:
-
-
-// 				printf(" Case 0 --- %s   %c\n", name_of_required_data_set, *SR_mode);
-
 /* 
  * Legal request, not in buffer, data_thread available 
  */			
@@ -242,9 +236,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * - set data_set name, SR_Mode and socket number so that data_thread processes can start identification
  * - set the return value to 0, once the thread is identified, the value is set to 1
  */
-
-// 				printf(" Case 0 setting values --- %s   %c\n", name_of_required_data_set, *SR_mode);
-
 				*Data_Threads->data_threads_remainth_counter 	= *Data_Threads->data_threads_availth_counter;	
 				*Data_Threads->sync->nthreads				= *Data_Threads->data_threads_availth_counter + 1;
 				*Data_Threads->retval = 0;
@@ -259,37 +250,17 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * once all necessary data are set, send signal to all threads to start unloc mutex
  * and release borrowed memory
  */
-// 				printf(" Case 0 syncing --- %s   %c   socket %d\n", name_of_required_data_set, *SR_mode, newsockfd);
 				pt_sync(Data_Threads->sync);
 /* 
  * when all Data_Thread are finished, - the identification part, the threads are waiting on each other. 
  * the last thread unlock the semaphore so that the next loop can start
  */		
-// 				Sem_wait(&Data_Threads->sem);
 				pt_sync(Data_Threads->sync);
-
-
-// Pthread_mutex_lock(&Data_Threads->lock);
-// 	*Data_Threads->t_sync_protect = 1;
-// Pthread_mutex_unlock(&Data_Threads->lock);
-// 
-// 				pt_sync(Data_Threads->sync, 1, "Ser_B1");
-// 
-// Pthread_mutex_lock(&Data_Threads->lock);
-// 	if(*Data_Threads->t_sync_protect == 1){
-// 		printf(" THREAD SerBodey  BROADCASTING\n");
-// 		*Data_Threads->t_sync_protect = 0;
-// 		Pthread_cond_broadcast(&Data_Threads->t_sync_cond_protect);
-// 	}	
-// Pthread_mutex_unlock(&Data_Threads->lock);
 		
 				if(*Data_Threads->retval == 1){
 /*
  * data set was identified
  */
-// 				printf(" Case 0 retval (%d)  --- %s   %c\n", *Data_Threads->retval, name_of_required_data_set, *SR_mode);
-
-
 					if( m3l_Umount(&RecNode) != 1)
 						Perror("m3l_Umount");
 				}
@@ -304,7 +275,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			break;
 			
 			case 1:
-// 				printf(" Case 1 --- %s   %c\n", name_of_required_data_set, *SR_mode);
 			
 				if(*SR_mode == 'S'){
 /*
@@ -333,6 +303,9 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 				
 					if( close(newsockfd) == -1)
 						Perror("close");
+				
+				if( m3l_Umount(&RecNode) != 1)
+						Perror("m3l_Umount");
 /*
  * data_thread is occupied let the process know it and close socket
  * process will attempt to establish connection later
@@ -341,9 +314,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			
 			break;
 		}
-			
-// 			printf(" after handshake \n");
-		
 /*
  * initial stage was completed, server is running in while(1) loop, set cycle to 1
  * needed for propper locking of mutex
@@ -367,7 +337,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	Pthread_mutex_destroy(&Data_Threads->lock);
 	Pthread_barrier_destroy(&Data_Threads->barr);
 	Pthread_cond_destroy(&Data_Threads->cond);
-	Pthread_cond_destroy(&Data_Threads->dcond);
 	Sem_destroy(&Data_Threads->sem);
 	
 	free(Data_Threads->data_threads);
@@ -386,13 +355,16 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	Pthread_cond_destroy(&Data_Threads->sync->last);
 	
 	free(Data_Threads->sync);
-	free(Data_Threads->sync_loc);
 
 	free(Data_Threads);
 	
 	if(m3l_Umount(&DataBuffer) != 1)
 		Perror("m3l_Umount DataBuffer");
 
-
+	if(m3l_Umount(&RR_NEG) != 1)
+		Perror("m3l_Umount RR_NEG");
+	
+	if(m3l_Umount(&RR_POS) != 1)
+		Perror("m3l_Umount RR_POS");	
 	return 1;
 }

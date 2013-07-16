@@ -8,9 +8,7 @@
 void *SR_hub(void *arg)
 {
 
-	pthread_t  MyThreadID;
-	MyThreadID = pthread_self();
-
+	lmsize_t i;
 /*
  * function signals SR_Threads that all requests (one Sender and n_rec_proc Receivers) arrived and 
  * that it can start data transfer
@@ -23,60 +21,59 @@ void *SR_hub(void *arg)
  * with Thread_Prt
  */
 	SR_hub_thread_str_t *c = (SR_hub_thread_str_t *)arg;
-	
+
+		if(m3l_Cat(c->pList, "--all", "-L", "-P", "*",   (lmchar_t *)NULL) != 0)
+			Warning("CatData");
+/*
+ * find AT-DT mode
+ * find KEEP_CONN_ALIVE
+ */
 	while(1){
 /*
  * wait for semaphore from Thread_Prt that 
  * all requests arrived
  */
-// 		printf(" -------------------------------   SR_Hub %lu  waiting for semaphor  %d\n",MyThreadID,  *c->pcounter);
 		Sem_wait(c->psem);
-/*
- * go to last barrier, all others are already taken by SR_Threads, Once
- * the thread arrives on this barried, the data tranfer between Sender and all Receivers start
- */
-// 		printf(" -------------------------------   SR_Hub got green light  %d\n", *c->pcounter);
-/*
- * once all R-W threads are taken decrement counter of data_threads ie. Data_Thread->data_threads_availth_counter
- */		
-// 		for (ii = 0; ii< n_rec_proc + 1; ii++)
-// 			printf("job %d, socket %d, mode %s  %c\n", ii, SR_Threads->sockfd[ii],  local_set_name, *c->pcounter, SR_Threads->SR_mode[ii]);
 /*
  * wait until all SR_threads reach barrier, then start actual transfer of the data from S to R(s)
  */
-// 		printf("Thread_Prt: after unlock 1\n");
 		Pthread_barrier_wait(c->pbarr);
-// 		printf("Thread_Prt: Waiting on semaphore \n");
 /*
  * once the data transfer is finished wait until all data is tranferred and S and R threads close their socket
 */
-		Pthread_mutex_lock(c->plock);
 		Sem_wait(c->psem_g);
-// 		printf("TEST_... TRANFER FINISHED  %lu\n\n\n", MyThreadID);
 
-		*c->pn_avail_loc_theads = *c->pn_rec_proc + 1;
-
-// 		printf("Thread_Prt: %s lock 2\n", local_set_name);
-
-/*		Pthread_mutex_lock(c->plock);*/
+		Pthread_mutex_lock(c->plock);
+/*
+ * set the number of available threads for SR transfer to S + R(s) number of threads
+ * counter used in Thread_Prt function to determine if all threads arrived
+ */
+			*c->pn_avail_loc_theads = *c->pn_rec_proc + 1;
+/*
+ * close sockets
+ */
+			for(i=0; i<*c->pn_avail_loc_theads; i++){
+				if( close(c->psockfd[i]) == -1)
+					Perror("close");
+			}
+/*
+ * increase ncount of available Data_Threads
+ */
+			(*c->prcounter)++;
 /*
  * release thread, ie. set Thread_Status = 0
  */
-		*c->pThread_Status = 0;
+			*c->pThread_Status = 0;
 /*
  * if all threads were occupied, ie *Data_Threads->data_threads_availth_counter == *c->pcounter == 0
  * the server is waiting for signal before the continuing with data process identification. 
  * This is done in Server_Body before syncing with data threads
  * If this happens, signal Server_Body that at least one data_thread is avaiable 
- */
-		if(*c->pcounter == 1)
-			Pthread_cond_signal(c->pcond);
+	*/
+			if(*c->pcounter == 1)
+				Pthread_cond_signal(c->pcond);
 		
-// 			printf("Thread_Prt: %s unlock 2\n", local_set_name);
 		Pthread_mutex_unlock(c->plock);
-// 			printf("Thread_Prt: after unlock 2\n");
-
-// 		printf("SR_HUB    -    GOING TO NEXT LOOP   %d   %lu \n\n\n",  *c->pcounter,  MyThreadID);
 	}
 /*
  * release borrowed memory, malloced before starting thread in Data_Thread()
