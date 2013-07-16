@@ -154,7 +154,7 @@ void *SR_Data_Threads(void *arg)
 // /*
 //  * synck here so that after that it is sure all threads closed their socket
 //  */
-// 			pt_sync(c->psync_loc);
+			pt_sync(c->psync_loc);
 
 			if(last == 1)
 				Sem_post(c->psem_g);
@@ -221,7 +221,7 @@ void *SR_Data_Threads(void *arg)
 // /*
 //  * synck here so that after that it is sure all threads closed their socket
 //  */
-// 			pt_sync(c->psync_loc);
+			pt_sync(c->psync_loc);
 		}
 		else{
 			Error("SR_Data_Threads: Wrong SR_mode");
