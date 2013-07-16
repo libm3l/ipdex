@@ -1,0 +1,32 @@
+COMM_DEF  DIR 2
+	Process_Specifications DIR 1
+		Name_of_Case  C 1 10 
+			`Test Case`
+	Data_Sets  DIR 3
+		Data_Set  DIR 3
+			Name_of_Data_Set C 1 9
+				`Pressure`
+			Sending_Process I 1 1
+				1
+			Receiving_Processes ST 1 1
+				2
+		Data_Set  DIR 3
+			Name_of_Data_Set C 1 8
+				`Density`
+			Sending_Process I 1 1
+				1
+			Receiving_Processes ST 1 1
+				2
+		Data_Set  DIR 3
+			Name_of_Data_Set C 1 12
+				`Temperature`
+			Sending_Process I 1 1
+				1
+			Receiving_Processes ST 1 1
+				2
+-EOMF-
+
+
+
+
+
