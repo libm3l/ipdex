@@ -107,9 +107,9 @@ lmint_t main (int argc, char **argv){
  */
 
 
-	for(j=0; j<10; j++){
-
-printf("   \n\n  CYCLE       %d\n\n ", j);
+// 	for(j=0; j<10; j++){
+// 
+// printf("   \n\n  CYCLE       %d\n\n ", j);
 
 	if( (Gnode = m3l_Fread(Filename, (lmchar_t *)NULL))  == NULL){
 		free(Filename);
@@ -145,7 +145,7 @@ printf("   \n\n  CYCLE       %d\n\n ", j);
 		Perror("m3l_Umount");
 
 
-	}
+// 	}
 
 	
 // 	printf(" ------------------------------   Waiting for children \n");

@@ -61,14 +61,14 @@ typedef struct data_thread_str{
 
 typedef struct SR_thread_args{
 	pthread_barrier_t 	*pbarr;  					/* barrier */
-	pthread_mutex_t   	*plock;					/* mutex */
+	pthread_mutex_t   	*plock;						/* mutex */
 	pthread_cond_t    	*pdcond;   					/* condition variable */
-	sem_t 		  	*psem, *psem_g;			/* semaphore */
-	lmchar_t 		*pbuffer;       					/* pointer to buffer */
+	sem_t 		  	*psem, *psem_g;					/* semaphore */
+	lmchar_t 		*pbuffer;       				/* pointer to buffer */
 	lmint_t 		*psockfd, *pEofBuff, *psync;       		/* socket id, unique to every thread, can be in thread stack, End-ofbuffer signal */
-	lmchar_t 		*pSR_mode;      				/* threads mode - Sender(S), Receiver(R) */
+	lmchar_t 		*pSR_mode, *pATDT_mode;      			/* threads modes - Sender(S), Receiver(R) */
 	lmsize_t  		*pthr_cntr;    					/* thread counter */
-	lmsize_t 		*pcounter, *prcounter, *pngotten;  	/* number of available R_threads, number of remaining threads = *pcounter - taken threads 
+	lmsize_t 		*pcounter, *prcounter, *pngotten;  		/* number of available R_threads, number of remaining threads = *pcounter - taken threads 
 											length of buffer from TCP/IP */
 
 	pt_sync_t		*psync_loc;
@@ -80,10 +80,10 @@ typedef struct SR_thread_str{
 	pthread_mutex_t   	lock;									/* mutex */
 	pthread_cond_t    	dcond;								/* condition variable */	
 	sem_t 		  	sem, sem_g;							/* semaphore */
-	lmchar_t 		*buffer;									/* buffer where the exchange data will be written and read from */
+	lmchar_t 		*buffer;								/* buffer where the exchange data will be written and read from */
 	pthread_t 		*data_threads;								/* thread ID of all threads in group data_threads */
 	lmint_t  		*sockfd, *EofBuff, *sync;						/* socket id, unique to every thread, can be in thread stack , End-ofbuffer signal */
-	lmchar_t 		*SR_mode;								/* threads mode - Sender(S), Receiver(R) */
+	lmchar_t 		*SR_mode, *ATDT_mode;							/* threads mode - Sender(S), Receiver(R) */
 	lmsize_t  		*thr_cntr;            							/* thread counter */
 	lmsize_t 		*R_availth_counter, *R_remainth_counter, *ngotten; 	/* number of available and free threads, length of buffer from TCP/IP   */
 	pt_sync_t		*sync_loc;
@@ -105,6 +105,7 @@ typedef struct SR_hub_thread_str{
 	pthread_t 		*data_thread;					/* thread ID */
 	lmint_t 		*psockfd;					/* pointer to array of opened sockets */
 	node_t 			*pList;
+	lmchar_t		*pATDT_mode;
 }SR_hub_thread_str_t;
 
 

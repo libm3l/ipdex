@@ -44,6 +44,7 @@ void *SR_hub(void *arg)
 					Error("Thread_Prt: NULL ATDT_Mode");
 			
 				ATDTMode = (lmchar_t *)m3l_get_data_pointer(List);
+				*c->pATDT_mode = *ATDTMode;
 /* 
  * free memory allocated in m3l_Locate
  */

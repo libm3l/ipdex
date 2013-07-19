@@ -154,6 +154,7 @@ void *Data_Threads(void *arg)
 	SR_Hub_Thread->prcounter 	= c->prcounter;
 	SR_Hub_Thread->psockfd		= SR_Threads->sockfd;
 	SR_Hub_Thread->pList		= c->Node;
+	SR_Hub_Thread->pATDT_mode	= SR_Threads->ATDT_mode;
 
 	while ( (pth_err = pthread_create(&SR_Hub_Thread->data_thread[0], NULL, &SR_hub,  SR_Hub_Thread)) != 0 && errno == EAGAIN);
 	if(pth_err != 0)
@@ -260,6 +261,7 @@ void *Data_Threads(void *arg)
 		
 		free(SR_Threads->data_threads);
 		free(SR_Threads->SR_mode);
+		free(SR_Threads->ATDT_mode);
 		free(SR_Threads->thr_cntr);
 		free(SR_Threads->sockfd);
 		free(SR_Threads->buffer);

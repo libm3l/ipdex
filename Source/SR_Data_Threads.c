@@ -137,13 +137,16 @@ void *SR_Data_Threads(void *arg)
  * Reading process sends signal that the it received all data (ie. 
  * 	----- m3l_Send_to_tcpipsocket(NULL,(char *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB", (char *)NULL);
  * it is just to make sure all processes are done with transfer
+ * do in only of ATDT mode is D
  */
 // 			m3l_Receive_tcpipsocket((const lmchar_t *)NULL, sockfd, "--encoding" , "IEEE-754", "--REOB",  (lmchar_t *)NULL);
 
-			opts.opt_REOBseq = 'G'; // send EOFbuff sequence only
-			if( m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts) < 0){
-				Error("SR_Data_Threads: Error when receiving  REOB\n");
-				return NULL;
+			if(*c->pATDT_mode == 'D'){
+				opts.opt_REOBseq = 'G'; // send EOFbuff sequence only
+				if( m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts) < 0){
+					Error("SR_Data_Threads: Error when receiving  REOB\n");
+					return NULL;
+				}
 			}
 // /*
 //  * close socket, and if last partition, unlock semaphore so that Thead_Prt can continue
@@ -154,6 +157,7 @@ void *SR_Data_Threads(void *arg)
 /*
  * synck before letting SR_hub to close sockets
  */
+// 			printf(" ATDT_R mode is %c\n", *c->pATDT_mode);
 			pt_sync(c->psync_loc);
 
 			if(last == 1)
@@ -205,15 +209,20 @@ void *SR_Data_Threads(void *arg)
 			}while(eofbuffcond != 1);
 /*
  * sender sent payload, before closign socket send back acknowledgement --SEOB, Sender receives --REOB
+ * do it only if ATDT mode == D
  */
 // 			if( m3l_Send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB",  (lmchar_t *)NULL) < 1)
 // 				Error("Error during reading data from socket");
 
-			opts.opt_EOBseq = 'E'; // send EOFbuff sequence only	
-			if( m3l_send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, Popts) < 0){
-				Error("SR_Data_Threads: Error when sending  SEOB\n");
-				return NULL;
+			if(*c->pATDT_mode == 'D'){
+				opts.opt_EOBseq = 'E'; // send EOFbuff sequence only	
+				if( m3l_send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, Popts) < 0){
+					Error("SR_Data_Threads: Error when sending  SEOB\n");
+					return NULL;
+				}
 			}
+			
+// 			printf(" ATDT mode is %c\n", *c->pATDT_mode);
 // 
 // 			if( close(sockfd) == -1)
 // 				Perror("close");
