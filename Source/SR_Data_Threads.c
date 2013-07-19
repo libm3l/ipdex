@@ -128,7 +128,6 @@ void *SR_Data_Threads(void *arg)
 						Pthread_cond_wait(c->pdcond, c->plock);
 				}
 
-			
 				Pthread_mutex_unlock(c->plock);
 
 			}while(R_done == 1);
@@ -140,10 +139,10 @@ void *SR_Data_Threads(void *arg)
  * it is just to make sure all processes are done with transfer
  */
 // 			m3l_Receive_tcpipsocket((const lmchar_t *)NULL, sockfd, "--encoding" , "IEEE-754", "--REOB",  (lmchar_t *)NULL);
-			
+
 			opts.opt_REOBseq = 'G'; // send EOFbuff sequence only
 			if( m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts) < 0){
-				Error(" PROBLEM HERE \n");
+				Error("SR_Data_Threads: Error when receiving  REOB\n");
 				return NULL;
 			}
 // /*
@@ -172,7 +171,7 @@ void *SR_Data_Threads(void *arg)
 			do{
 /*
  * set counter of Receiving threads to number of R_threads (used in synchronizaiton of R_Threads)
- */ 		
+ */
 				*c->prcounter = *c->pcounter-1;
 				*c->pEofBuff = 1;
 
@@ -212,10 +211,10 @@ void *SR_Data_Threads(void *arg)
 
 			opts.opt_EOBseq = 'E'; // send EOFbuff sequence only	
 			if( m3l_send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, Popts) < 0){
-				Error(" PROBLEM HERE \n");
+				Error("SR_Data_Threads: Error when sending  SEOB\n");
 				return NULL;
 			}
-
+// 
 // 			if( close(sockfd) == -1)
 // 				Perror("close");
 // /*

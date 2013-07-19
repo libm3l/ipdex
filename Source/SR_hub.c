@@ -8,7 +8,7 @@
 void *SR_hub(void *arg)
 {
 
-	lmsize_t i;
+	lmsize_t i, IT, IT_Loc;
 	node_t *List;
 	find_t *SFounds;
 	lmchar_t *ATDTMode, *KeepAllive_Mode;
@@ -29,9 +29,12 @@ void *SR_hub(void *arg)
 // 			Warning("CatData");
 /*
  * find AT-DT mode
- * find KEEP_CONN_ALIVE
+ * find KEEP_CONN_ALIVE_Mode
+ * when working with c->pList, lock it, it is shared between
+ * all threads and access it without lock protection causes SIGSEV
  */
-		Pthread_mutex_lock(c->plock);
+	Pthread_mutex_lock(c->plock);
+		
 		if( (SFounds = m3l_Locate(c->pList, "./Data_Set/CONNECTION/ATDT_Mode", "./*/*/*",  (lmchar_t *)NULL)) != NULL){
 			
 			if( m3l_get_Found_number(SFounds) != 1)
@@ -74,32 +77,61 @@ void *SR_hub(void *arg)
 		{
 			Error("SR_hub: CONNECTION/KEEP_CONN_ALIVE_Mode not found\n");
 		}
-		Pthread_mutex_unlock(c->plock);
-		
-		
-		
-		printf(" Modes are %c  %c \n", *ATDTMode, *KeepAllive_Mode);
 
+	Pthread_mutex_unlock(c->plock);
 
+// 		printf(" Modes are %c  %c %d\n", *ATDTMode, *KeepAllive_Mode, *c->pn_rec_proc);
+/*
+ * if ATDT == A(lternate) the communication includes one S(ender) and once R(eceiver)
+ * if more R(eceivers) are included, give error message and quit
+ */
+	if( *ATDTMode == 'A' && *c->pn_rec_proc > 1)
+		Error("SR_hub - ATDT mode can be A only if communication is between one Sender and one Receiver");
+/*
+ * set number of iterations
+ */
+	if(*KeepAllive_Mode == 'N'){
+		if( *ATDTMode == 'D')IT = 1;
+		else if( *ATDTMode == 'A')IT = 2;
+		else Error("SR_hub - Wrong ATDT mode");
+	}
+	else if (*KeepAllive_Mode == 'Y'){
+		IT = 0;
+	}
+	else
+		Error("SR_hub - Wrong KEEP_CONN_ALIVE_Mode mode");
+/*
+ * start loop for transfer
+ */
 	while(1){
 /*
  * wait for semaphore from Thread_Prt that 
  * all requests arrived
  */
 		Sem_wait(c->psem);
+		
+		IT_Loc = IT;
+		
+		do{
 /*
  * wait until all SR_threads reach barrier, then start actual transfer of the data from S to R(s)
  */
-		Pthread_barrier_wait(c->pbarr);
+			Pthread_barrier_wait(c->pbarr);
 /*
  * once the data transfer is finished wait until all data is tranferred and S and R threads close their socket
 */
-		Sem_wait(c->psem_g);
+			Sem_wait(c->psem_g);
+			
+			if(IT == 0) IT_Loc = 2;
+			
+		}while(--IT_Loc > 0);
 
 		Pthread_mutex_lock(c->plock);
 /*
  * set the number of available threads for SR transfer to S + R(s) number of threads
  * counter used in Thread_Prt function to determine if all threads arrived
+ * the pn_avail_loc_theads is decremented in Thread_Prt every time the Thread_Prt identifies 
+ * arriving data set
  */
 			*c->pn_avail_loc_theads = *c->pn_rec_proc + 1;
 /*
