@@ -145,17 +145,15 @@ void *Data_Threads(void *arg)
 	SR_Hub_Thread->pbarr 	= &SR_Threads->barr;		/* wait until all SR_threads reach barrier, then start actual transfer of the data from S to R(s) */
 	SR_Hub_Thread->psem 	= &loc_sem;
 	SR_Hub_Thread->psem_g	= &SR_Threads->sem_g;	/* once the data transfer is finished increase increment of available data_threads */
-	SR_Hub_Thread->plock	= c->plock;	
+	SR_Hub_Thread->plock	= c->plock;
 	SR_Hub_Thread->pcond	= c->pcond;
 	SR_Hub_Thread->pcounter	= c->pcounter;
 	SR_Hub_Thread->pn_avail_loc_theads	= &n_avail_loc_theads;
 	SR_Hub_Thread->pn_rec_proc		= &n_rec_proc;
 	SR_Hub_Thread->pThread_Status 	= Thread_Status;
-	SR_Hub_Thread->pThread_Status 	= Thread_Status;
 	SR_Hub_Thread->prcounter 	= c->prcounter;
 	SR_Hub_Thread->psockfd		= SR_Threads->sockfd;
 	SR_Hub_Thread->pList		= c->Node;
-
 
 	while ( (pth_err = pthread_create(&SR_Hub_Thread->data_thread[0], NULL, &SR_hub,  SR_Hub_Thread)) != 0 && errno == EAGAIN);
 	if(pth_err != 0)

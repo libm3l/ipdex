@@ -90,43 +90,43 @@ void *SR_Data_Threads(void *arg)
 					Perror("write()");
 
 				Pthread_mutex_lock(c->plock);
-				(*c->prcounter)--;
-				*c->psync = 0;
-				
-				if(*c->prcounter == 0){
+					(*c->prcounter)--;
+					*c->psync = 0;
+					
+					if(*c->prcounter == 0){
 /*
  * if this is the last Receiver thread, set last to 1
  */
-					last = 1;
+						last = 1;
 /* 	
  * the last thread, broadcast
  * set number of remaining threads equal to number of reading threads (only if reading will be repeated, otherwise keep it 0)
  * indicate this is the last thread
  */
-					*c->psync == 1;
-					Pthread_cond_broadcast(c->pdcond);
+						*c->psync == 1;
+						Pthread_cond_broadcast(c->pdcond);
 /*
  * clean buffer
  */
-					bzero(c->pbuffer, MAXLINE+1);
-					*c->pngotten = 0;
+						bzero(c->pbuffer, MAXLINE+1);
+						*c->pngotten = 0;
 /*
  * signal Sender that all Receivers are ready for next 
  * round of transmition
  */
-					Sem_post(c->psem);
+						Sem_post(c->psem);
 /* 
  * unlock semaphore in the main program so that another loop can start
  */
-				}
-				else{
+					}
+					else{
 /*
  * still some threads working, wait for them
  * indicate this is waiting thread
  */
-					while (*c->psync != 0)
-						Pthread_cond_wait(c->pdcond, c->plock);
-				}
+						while (*c->psync != 0)
+							Pthread_cond_wait(c->pdcond, c->plock);
+					}
 
 				Pthread_mutex_unlock(c->plock);
 
@@ -150,9 +150,10 @@ void *SR_Data_Threads(void *arg)
 //  */
 // 			if( close(sockfd) == -1)
 // 				Perror("close");
-// /*
-//  * synck here so that after that it is sure all threads closed their socket
-//  */
+// 
+/*
+ * synck before letting SR_hub to close sockets
+ */
 			pt_sync(c->psync_loc);
 
 			if(last == 1)
@@ -186,8 +187,7 @@ void *SR_Data_Threads(void *arg)
 /*
  * The buffer has been red from socket, send broadcast signal to all R_threads to go on
  * then unlock mutex and wait for semaphore
- */			
-				
+ */
 				if(eofbuffcond == 1)
 					*c->pEofBuff = 0;
 /*
@@ -217,19 +217,18 @@ void *SR_Data_Threads(void *arg)
 // 
 // 			if( close(sockfd) == -1)
 // 				Perror("close");
-// /*
-//  * synck here so that after that it is sure all threads closed their socket
-//  */
+// 
+/*
+ * synck before letting SR_hub to close sockets
+ */
 			pt_sync(c->psync_loc);
 		}
 		else{
 			Error("SR_Data_Threads: Wrong SR_mode");
 		}
-		
 	}
 	
 	free(c);
-
 	return NULL;
 }
 

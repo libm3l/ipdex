@@ -7,16 +7,14 @@
 
 void *SR_hub(void *arg)
 {
-
-	lmsize_t i, IT, IT_Loc;
-	node_t *List;
-	find_t *SFounds;
-	lmchar_t *ATDTMode, *KeepAllive_Mode;
 /*
  * function signals SR_Threads that all requests (one Sender and n_rec_proc Receivers) arrived and 
  * that it can start data transfer
  */
-
+	lmsize_t i, IT, IT_Loc;
+	node_t *List;
+	find_t *SFounds;
+	lmchar_t *ATDTMode, *KeepAllive_Mode;
 /*
  * NOTE in previuous version, this function was run after the while(n_avail_loc_theads != 0);  // all connecting thread arrivied, ie. one Sender and n_rec_proc Receivers 
  * in Thread_Prt ended. It did not work when more then one data set arrived and pt_sync in Thread_Prt in do loop was not behaving properly
@@ -34,7 +32,7 @@ void *SR_hub(void *arg)
  * all threads and access it without lock protection causes SIGSEV
  */
 	Pthread_mutex_lock(c->plock);
-		
+
 		if( (SFounds = m3l_Locate(c->pList, "./Data_Set/CONNECTION/ATDT_Mode", "./*/*/*",  (lmchar_t *)NULL)) != NULL){
 			
 			if( m3l_get_Found_number(SFounds) != 1)
@@ -55,8 +53,7 @@ void *SR_hub(void *arg)
 		{
 			Error("SR_hub: CONNECTION/ATDT_Mode not found\n");
 		}
-		
-		
+
 		if( (SFounds = m3l_Locate(c->pList, "./Data_Set/CONNECTION/KEEP_CONN_ALIVE_Mode", "./*/*/*",  (lmchar_t *)NULL)) != NULL){
 			
 			if( m3l_get_Found_number(SFounds) != 1)
@@ -79,8 +76,6 @@ void *SR_hub(void *arg)
 		}
 
 	Pthread_mutex_unlock(c->plock);
-
-// 		printf(" Modes are %c  %c %d\n", *ATDTMode, *KeepAllive_Mode, *c->pn_rec_proc);
 /*
  * if ATDT == A(lternate) the communication includes one S(ender) and once R(eceiver)
  * if more R(eceivers) are included, give error message and quit
@@ -109,9 +104,9 @@ void *SR_hub(void *arg)
  * all requests arrived
  */
 		Sem_wait(c->psem);
-		
+
 		IT_Loc = IT;
-		
+
 		do{
 /*
  * wait until all SR_threads reach barrier, then start actual transfer of the data from S to R(s)
@@ -154,7 +149,7 @@ void *SR_hub(void *arg)
  * the server is waiting for signal before the continuing with data process identification. 
  * This is done in Server_Body before syncing with data threads
  * If this happens, signal Server_Body that at least one data_thread is avaiable 
-	*/
+ */
 			if(*c->pcounter == 1)
 				Pthread_cond_signal(c->pcond);
 		
