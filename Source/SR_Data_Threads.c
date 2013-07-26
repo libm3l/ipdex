@@ -7,7 +7,7 @@
 static inline lmssize_t Read(lmint_t, lmchar_t *, lmint_t);
 static inline lmssize_t Write(lmint_t, lmchar_t *, lmsize_t);
 
-static lmint_t R_KAN(SR_thread_args_t *, lmint_t);
+static lmint_t R_KAN(SR_thread_args_t *, lmint_t, lmint_t);
 static lmint_t S_KAN(SR_thread_args_t *, lmint_t);
 
 void *SR_Data_Threads(void *arg)
@@ -16,25 +16,6 @@ void *SR_Data_Threads(void *arg)
 
 	lmchar_t SR_mode;
 	lmint_t sockfd;
-
-
-// 	pthread_t  MyThreadID;
-// 
-// 	opts_t *Popts, opts;
-// 	
-// 	opts.opt_linkscleanemptlinks = '\0';  // clean empty links
-// 	opts.opt_nomalloc = '\0'; // if 'm', do not malloc (used in Mklist --no_malloc
-// 	opts.opt_linkscleanemptrefs = '\0'; // clean empty link references
-// 	opts.opt_tcpencoding = 't'; // serialization and encoding when sending over TCP/IP
-// 	opts.opt_MEMCP = 'S';  // type of buffering
-// 	
-// 	Popts = &opts;
-// 
-// 	MyThreadID = pthread_self();
-/*
- * wait for signal broadcast
- */
-
 /* 
  * get SR_mode and socket number, unlock so that other SR_threads can get ther
   * increase counter so that next job can grab it.
@@ -63,26 +44,78 @@ void *SR_Data_Threads(void *arg)
 /*
  * do not keep socket allive, ie. open and close secket every time the data transfer occurs
  */
+			if(*c->pATDT_mode == 'D'){
 
+				if(SR_mode == 'R'){
+/*
+ * R(eceivers)
+ */
+					if( R_KAN(c, sockfd, 1) != 1) return NULL;
+				}
+				else if(SR_mode == 'S'){
+/*
+ * S(ender)
+ */
+					if( S_KAN(c, sockfd) != 1) return NULL;
+				}
+				else{
+					Error("SR_Data_Threads: Wrong SR_mode");
+				}
+			}
+			else if(*c->pATDT_mode == 'A'){
+/*
+ * ATDT mode == A, the Receiver will receive the data and then send 
+ * back to Sender, Sender will first send the data and then receive from Receiver
+ * works only for 1 R process
+				
+				if(SR_mode == 'R'){
+/*
+ * R(eceivers)
+ * when finishing with R, do not signal SR_hub to go to another loop, 
+ * the Receiver process will now send the data 
+ */
+					if( R_KAN(c, sockfd, 0) != 1) return NULL;
+					if( S_KAN(c, sockfd) != 1)    return NULL;
+				}
+				else if(SR_mode == 'S'){
+/*
+ * S(ender), after finishing sending, receive the data
+ * after that signal SR_hhub that SR operation is finished and it can do 
+ * another loop
+ */
+					if( S_KAN(c, sockfd) != 1) return NULL;
+					if( R_KAN(c, sockfd, 1) != 1) return NULL;
+				}
+				else{
+					Error("SR_Data_Threads: Wrong SR_mode");
+				}
+				
+			}
+			else
+				Error(" SR_Data_Thread: Wrong ATDT mode");
+		}
+		else if(*c->pKA_mode == 'C'){
+/*
+ * keep socket allive, clients decide when to close it
+ */
+			Error("SR_Data_Threads: KA_mode == C not implemented yet");
+			exit(0);
+			
 			if(SR_mode == 'R'){
 /*
  * R(eceivers)
  */
-				if( R_KAN(c, sockfd) != 1) return NULL;
+// 				if( R_KAN(c, sockfd) != 1) return NULL;
 			}
 			else if(SR_mode == 'S'){
 /*
  * S(ender)
  */
-				if( S_KAN(c, sockfd) != 1) return NULL;
+// 				if( S_KAN(c, sockfd) != 1) return NULL;
 			}
 			else{
 				Error("SR_Data_Threads: Wrong SR_mode");
 			}
-		}
-		else if(*c->pKA_mode == 'Y'){
-			Error("SR_Data_Threads: KA_mode == Y not implemented yet");
-			exit(0);
 		}
 		else{
 			Error("SR_Data_Threads: Wrong KA_mode");
@@ -94,10 +127,9 @@ void *SR_Data_Threads(void *arg)
 }
 
 
-
-
-
-
+/*
+ * socket read and write function prototypes
+ */
 lmssize_t Write(lmint_t sockfd,  lmchar_t *buffer, lmsize_t size){
 /*
  * write buffer to socket
@@ -140,12 +172,18 @@ lmssize_t Read(lmint_t descrpt , lmchar_t *buff, lmint_t n)
 /*
  * Recevier function, ATDT A,D  KeepAllive N
  */
-lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd){
+lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t send_sem){
 
 	lmint_t  R_done, last;
 	opts_t *Popts, opts;
 	lmssize_t n;
 	Popts = &opts;
+	
+	opts.opt_linkscleanemptlinks = '\0';  // clean empty links
+	opts.opt_nomalloc = '\0'; // if 'm', do not malloc (used in Mklist --no_malloc
+	opts.opt_linkscleanemptrefs = '\0'; // clean empty link references
+	opts.opt_tcpencoding = 't'; // serialization and encoding when sending over TCP/IP
+	opts.opt_MEMCP = 'S';  // type of buffering
 /*
  * Receiver threads, set R_done = 0, once the 
  * transfer of entire message is done (ie. Sender sends EOMB sequence
@@ -246,9 +284,13 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd){
  * synck before letting SR_hub to close sockets
  */
 	pt_sync(c->psync_loc);
-
-	if(last == 1)
-		Sem_post(c->psem_g);
+/*
+ * if specified, signal the SR_hub and it can do another cycle
+ */
+	if(send_sem == 1){
+		if(last == 1)
+			Sem_post(c->psem_g);
+	}
 	
 	return 1;
 }
