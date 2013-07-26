@@ -66,6 +66,7 @@ void *SR_hub(void *arg)
 					Error("SR_hub: NULL KEEP_CONN_ALIVE_Mode");
 			
 				KeepAllive_Mode = (lmchar_t *)m3l_get_data_pointer(List);
+				*c->pKA_mode 	= *KeepAllive_Mode;
 /* 
  * free memory allocated in m3l_Locate
  */

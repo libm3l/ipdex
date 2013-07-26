@@ -58,21 +58,34 @@ void *SR_Data_Threads(void *arg)
 			(*c->pthr_cntr)++; 
 	
 		Pthread_mutex_unlock(c->plock);
+		
+		if(*c->pKA_mode == 'N'){
+/*
+ * do not keep socket allive, ie. open and close secket every time the data transfer occurs
+ */
 
-		if(SR_mode == 'R'){
+			if(SR_mode == 'R'){
 /*
  * R(eceivers)
  */
-			if( R_KAN(c, sockfd) != 1) return NULL;
-		}
-		else if(SR_mode == 'S'){
+				if( R_KAN(c, sockfd) != 1) return NULL;
+			}
+			else if(SR_mode == 'S'){
 /*
  * S(ender)
  */
-			if( S_KAN(c, sockfd) != 1) return NULL;
+				if( S_KAN(c, sockfd) != 1) return NULL;
+			}
+			else{
+				Error("SR_Data_Threads: Wrong SR_mode");
+			}
+		}
+		else if(*c->pKA_mode == 'Y'){
+			Error("SR_Data_Threads: KA_mode == Y not implemented yet");
+			exit(0);
 		}
 		else{
-			Error("SR_Data_Threads: Wrong SR_mode");
+			Error("SR_Data_Threads: Wrong KA_mode");
 		}
 	}
 	
@@ -303,7 +316,6 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd){
  */
 // 			if( m3l_Send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB",  (lmchar_t *)NULL) < 1)
 // 				Error("Error during reading data from socket");
-
 	if(*c->pATDT_mode == 'D'){
 		opts.opt_EOBseq = 'E'; // send EOFbuff sequence only	
 		if( m3l_send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, Popts) < 0){
