@@ -262,6 +262,7 @@ void *Data_Threads(void *arg)
 		free(SR_Threads->data_threads);
 		free(SR_Threads->SR_mode);
 		free(SR_Threads->ATDT_mode);
+// 		free(SR_Threads->KA_mode);
 		free(SR_Threads->thr_cntr);
 		free(SR_Threads->sockfd);
 		free(SR_Threads->buffer);
