@@ -134,10 +134,10 @@ void *SR_hub(void *arg)
 /*
  * close sockets
  */
-			for(i=0; i<*c->pn_avail_loc_theads; i++){
-				if( close(c->psockfd[i]) == -1)
-					Perror("close");
-			}
+// 			for(i=0; i<*c->pn_avail_loc_theads; i++){
+// 				if( close(c->psockfd[i]) == -1)
+// 					Perror("close");
+// 			}
 /*
  * increase ncount of available Data_Threads
  */

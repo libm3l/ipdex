@@ -7,15 +7,15 @@
 static inline lmssize_t Read(lmint_t, lmchar_t *, lmint_t);
 static inline lmssize_t Write(lmint_t, lmchar_t *, lmsize_t);
 
-static lmint_t R_KAN(SR_thread_args_t *, lmint_t, lmint_t);
-static lmint_t S_KAN(SR_thread_args_t *, lmint_t);
+static lmint_t R_KAN(SR_thread_args_t *, lmint_t, lmint_t, lmint_t);
+static lmint_t S_KAN(SR_thread_args_t *, lmint_t, lmint_t);
 
 void *SR_Data_Threads(void *arg)
 {
 	SR_thread_args_t *c = (SR_thread_args_t *)arg;
 
 	lmchar_t SR_mode;
-	lmint_t sockfd;
+	lmint_t sockfd, mode;
 /* 
  * get SR_mode and socket number, unlock so that other SR_threads can get ther
   * increase counter so that next job can grab it.
@@ -40,33 +40,40 @@ void *SR_Data_Threads(void *arg)
 	
 		Pthread_mutex_unlock(c->plock);
 		
-		if(*c->pKA_mode == 'N'){
+		switch(*c->pKA_mode){
+			
+		case 'N':
 /*
  * do not keep socket allive, ie. open and close secket every time the data transfer occurs
  */
 			if(*c->pATDT_mode == 'D'){
 
+				mode = 1;
+
 				if(SR_mode == 'R'){
 /*
  * R(eceivers)
  */
-					if( R_KAN(c, sockfd, 1) != 1) return NULL;
+					if( R_KAN(c, sockfd, mode, 1) != 1) return NULL;
 				}
 				else if(SR_mode == 'S'){
 /*
  * S(ender)
  */
-					if( S_KAN(c, sockfd) != 1) return NULL;
+					if( S_KAN(c, sockfd, mode) != 1) return NULL;
 				}
 				else{
 					Error("SR_Data_Threads: Wrong SR_mode");
 				}
 			}
 			else if(*c->pATDT_mode == 'A'){
+
+				mode = 0;
 /*
  * ATDT mode == A, the Receiver will receive the data and then send 
  * back to Sender, Sender will first send the data and then receive from Receiver
  * works only for 1 R process
+ */
 				
 				if(SR_mode == 'R'){
 /*
@@ -74,8 +81,9 @@ void *SR_Data_Threads(void *arg)
  * when finishing with R, do not signal SR_hub to go to another loop, 
  * the Receiver process will now send the data 
  */
-					if( R_KAN(c, sockfd, 0) != 1) return NULL;
-					if( S_KAN(c, sockfd) != 1)    return NULL;
+					if( R_KAN(c, sockfd, mode, 0) != 1) return NULL;
+					mode = 1; /* send REOB */
+					if( S_KAN(c, sockfd, mode) != 1)    return NULL;
 				}
 				else if(SR_mode == 'S'){
 /*
@@ -83,8 +91,9 @@ void *SR_Data_Threads(void *arg)
  * after that signal SR_hhub that SR operation is finished and it can do 
  * another loop
  */
-					if( S_KAN(c, sockfd) != 1) return NULL;
-					if( R_KAN(c, sockfd, 1) != 1) return NULL;
+					if( S_KAN(c, sockfd, mode) != 1)    return NULL;
+					mode = 1; /*require REOB */
+					if( R_KAN(c, sockfd, mode, 1) != 1) return NULL;
 				}
 				else{
 					Error("SR_Data_Threads: Wrong SR_mode");
@@ -93,35 +102,59 @@ void *SR_Data_Threads(void *arg)
 			}
 			else
 				Error(" SR_Data_Thread: Wrong ATDT mode");
-		}
-		else if(*c->pKA_mode == 'C'){
+		break;
+		case 'C':
 /*
  * keep socket allive, clients decide when to close it
  */
 			Error("SR_Data_Threads: KA_mode == C not implemented yet");
 			exit(0);
-			
-			if(SR_mode == 'R'){
+
+			if(*c->pATDT_mode == 'D'){
+				mode = 3;
+
+				if(SR_mode == 'R'){
 /*
  * R(eceivers)
  */
-// 				if( R_KAN(c, sockfd) != 1) return NULL;
-			}
-			else if(SR_mode == 'S'){
+				}
+				else if(SR_mode == 'S'){
 /*
  * S(ender)
  */
-// 				if( S_KAN(c, sockfd) != 1) return NULL;
+				}
+				else{
+					Error("SR_Data_Threads: Wrong SR_mode");
+				}
+				
 			}
-			else{
-				Error("SR_Data_Threads: Wrong SR_mode");
+			else if(*c->pATDT_mode == 'A'){
+				mode = 4;
+				
+				if(SR_mode == 'R'){
+/*
+ * R(eceivers)
+ */
+				}
+				else if(SR_mode == 'S'){
+/*
+ * S(ender)
+ */
+				}
+				else{
+					Error("SR_Data_Threads: Wrong SR_mode");
+				}
 			}
-		}
-		else{
+			else
+				Error(" SR_Data_Thread: Wrong ATDT mode");
+
+		break;
+		
+		default:
 			Error("SR_Data_Threads: Wrong KA_mode");
+		break;
 		}
 	}
-	
 	free(c);
 	return NULL;
 }
@@ -172,7 +205,7 @@ lmssize_t Read(lmint_t descrpt , lmchar_t *buff, lmint_t n)
 /*
  * Recevier function, ATDT A,D  KeepAllive N
  */
-lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t send_sem){
+lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode, lmint_t send_sem){
 
 	lmint_t  R_done, last;
 	opts_t *Popts, opts;
@@ -267,15 +300,30 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t send_sem){
  */
 // 	m3l_Receive_tcpipsocket((const lmchar_t *)NULL, sockfd, "--encoding" , "IEEE-754", "--REOB",  (lmchar_t *)NULL);
 
-	if(*c->pATDT_mode == 'D'){
-		opts.opt_REOBseq = 'G'; // send EOFbuff sequence only
-		if( m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts) < 0){
-			Error("SR_Data_Threads: Error when receiving  REOB\n");
-			return -1;
-		}
+// 	if(*c->pATDT_mode == 'D'){
+
+
+	switch(mode){
+		case 1:
+			opts.opt_REOBseq = 'G'; // send EOFbuff sequence only
+			if( m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts) < 0){
+				Error("SR_Data_Threads: Error when receiving  REOB\n");
+				return -1;
+			}
+/*
+ * close the socket 
+ */
+			if( close(sockfd) == -1)
+				Perror("close");
+// 		}
+		break;
+		
+		case 3:
+			
+		break;
 	}
 // /*
-//  * close socket, and if last partition, unlock semaphore so that Thead_Prt can continue
+//  * close socket, and if last partition, unlock semaphore so that Thead_Prt can continue (closing socket moved to SR_hub)
 //  */
 // 	if( close(sockfd) == -1)
 // 		Perror("close");
@@ -299,7 +347,7 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t send_sem){
 /*
  * Sender function, ATDT A,D  KeepAllive N
  */
-lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd){
+lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 
 	lmchar_t prevbuff[EOBlen+1];
 	lmint_t eofbuffcond;
@@ -358,15 +406,30 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd){
  */
 // 			if( m3l_Send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB",  (lmchar_t *)NULL) < 1)
 // 				Error("Error during reading data from socket");
-	if(*c->pATDT_mode == 'D'){
-		opts.opt_EOBseq = 'E'; // send EOFbuff sequence only	
-		if( m3l_send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, Popts) < 0){
-			Error("SR_Data_Threads: Error when sending  SEOB\n");
-			return -1;
-		}
+// 	if(*c->pATDT_mode == 'D'){
+
+	switch(mode){
+		case 1:
+			opts.opt_EOBseq = 'E'; // send EOFbuff sequence only	
+			if( m3l_send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, Popts) < 0){
+				Error("SR_Data_Threads: Error when sending  SEOB\n");
+				return -1;
+			}
+/*
+ * close the socket 
+ */
+			if( close(sockfd) == -1)
+				Perror("close");
+// 		}
+		break;
+		
+		case 3:
+			
+			
+		break;
 	}
 // 
-// 	if( close(sockfd) == -1)
+// 	if( close(sockfd) == -1)  (closing socket moved to SR_hub)
 // 		Perror("close");
 /*
  * synck before letting SR_hub to close sockets
