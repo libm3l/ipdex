@@ -39,10 +39,6 @@ void *SR_Data_Threads(void *arg)
 			(*c->pthr_cntr)++; 
 	
 		Pthread_mutex_unlock(c->plock);
-		
-// 		switch(*c->pKA_mode){
-// 			
-// 		case 'N':
 /*
  * decide which mode is used; depends on KeepAlive and ATDT option
  * the value of mode set in SR_hub.c
@@ -53,65 +49,56 @@ void *SR_Data_Threads(void *arg)
 /*
  * do not keep socket allive, ie. open and close secket every time the data transfer occurs
  */
-// 			if(*c->pATDT_mode == 'D'){ /* *c->pSRt_mode == 1 */
-
-				mode = 1;
-
-				if(SR_mode == 'R'){
+			mode = 1;
+			if(SR_mode == 'R'){
 /*
  * R(eceivers)
  */
-					if( R_KAN(c, sockfd, mode, 1) != 1) return NULL;
-				}
-				else if(SR_mode == 'S'){
+				if( R_KAN(c, sockfd, mode, 1) != 1) return NULL;
+			}
+			else if(SR_mode == 'S'){
 /*
  * S(ender)
  */
-					if( S_KAN(c, sockfd, mode) != 1) return NULL;
-				}
-				else{
-					Error("SR_Data_Threads: Wrong SR_mode");
-				}
-// 			}
+				if( S_KAN(c, sockfd, mode) != 1) return NULL;
+			}
+			else{
+				Error("SR_Data_Threads: Wrong SR_mode");
+			}
 		break;
 		
 		case 2:
-// 			else if(*c->pATDT_mode == 'A'){/* *c->pSRt_mode == 2 */
-
-				mode = 0;
+			
+			mode = 0;
 /*
  * ATDT mode == A, the Receiver will receive the data and then send 
  * back to Sender, Sender will first send the data and then receive from Receiver
  * works only for 1 R process
  */
 				
-				if(SR_mode == 'R'){
+			if(SR_mode == 'R'){
 /*
  * R(eceivers)
  * when finishing with R, do not signal SR_hub to go to another loop, 
  * the Receiver process will now send the data 
  */
-					if( R_KAN(c, sockfd, mode, 0) != 1) return NULL;
-					mode = 1; /* send REOB */
-					if( S_KAN(c, sockfd, mode) != 1)    return NULL;
-				}
-				else if(SR_mode == 'S'){
+				if( R_KAN(c, sockfd, mode, 0) != 1) return NULL;
+				mode = 1; /* send REOB */
+				if( S_KAN(c, sockfd, mode) != 1)    return NULL;
+			}
+			else if(SR_mode == 'S'){
 /*
  * S(ender), after finishing sending, receive the data
  * after that signal SR_hhub that SR operation is finished and it can do 
  * another loop
  */
-					if( S_KAN(c, sockfd, mode) != 1)    return NULL;
-					mode = 1; /*require REOB */
-					if( R_KAN(c, sockfd, mode, 1) != 1) return NULL;
-				}
-				else{
-					Error("SR_Data_Threads: Wrong SR_mode");
-				}
-				
-// 			}
-// 			else
-// 				Error(" SR_Data_Thread: Wrong ATDT mode");
+				if( S_KAN(c, sockfd, mode) != 1)    return NULL;
+				mode = 1; /*require REOB */
+				if( R_KAN(c, sockfd, mode, 1) != 1) return NULL;
+			}
+			else{
+				Error("SR_Data_Threads: Wrong SR_mode");
+			}
 		break;
 		
 		case 3:
@@ -121,51 +108,42 @@ void *SR_Data_Threads(void *arg)
 			Error("SR_Data_Threads: KA_mode == C not implemented yet");
 			exit(0);
 
-// 			if(*c->pATDT_mode == 'D'){/* *c->pSRt_mode == 3 */
-				mode = 3;
+			mode = 3;
 
-				if(SR_mode == 'R'){
+			if(SR_mode == 'R'){
 /*
  * R(eceivers)
  */
-				}
-				else if(SR_mode == 'S'){
+			}
+			else if(SR_mode == 'S'){
 /*
  * S(ender)
  */
-				}
-				else{
-					Error("SR_Data_Threads: Wrong SR_mode");
-				}
-				
-// 			}
+			}
+			else{
+				Error("SR_Data_Threads: Wrong SR_mode");
+			}
 		break;
 		
 		case 4:
-// 			else if(*c->pATDT_mode == 'A'){/* *c->pSRt_mode == 4 */
-				mode = 4;
-				
-				if(SR_mode == 'R'){
+			mode = 4;
+			if(SR_mode == 'R'){
 /*
  * R(eceivers)
  */
-				}
-				else if(SR_mode == 'S'){
+			}
+			else if(SR_mode == 'S'){
 /*
  * S(ender)
  */
-				}
-				else{
-					Error("SR_Data_Threads: Wrong SR_mode");
-				}
-// 			}
-// 			else
-// 				Error(" SR_Data_Thread: Wrong ATDT mode");
-
+			}
+			else{
+				Error("SR_Data_Threads: Wrong SR_mode");
+			}
 		break;
 		
 		default:
-			Error("SR_Data_Threads: Wrong KA_mode");
+			Error("SR_Data_Threads: Wrong mode - check KeepAlive and ATDT specifications");
 		break;
 		}
 	}
