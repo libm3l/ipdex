@@ -45,6 +45,8 @@ SR_thread_str_t *Start_SR_Threads(lmint_t n_threads){
 		Perror("Start_SR_Threads: SR_Data_Thread->ATDT_mode malloc");
 	if( (SR_Data_Thread->KA_mode = (lmchar_t *)malloc(n_threads * sizeof(lmchar_t))) == NULL)
 		Perror("Start_SR_Threads: SR_Data_Thread->KA_mode malloc");
+	if( (SR_Data_Thread->mode = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
+		Perror("Start_SR_Threads: SR_Data_Thread->mode malloc");
 /*
  * initialize mutex, barrier and condition variable
  */
@@ -106,8 +108,9 @@ SR_thread_str_t *Start_SR_Threads(lmint_t n_threads){
 		SR_DataArgs->psync_loc->pcondvar= &SR_Data_Thread->sync_loc->condvar;
 		SR_DataArgs->psync_loc->plast	= &SR_Data_Thread->sync_loc->last;
 		
-		SR_DataArgs->pATDT_mode 	= SR_Data_Thread->ATDT_mode;
-		SR_DataArgs->pKA_mode 		= SR_Data_Thread->KA_mode;
+// 		SR_DataArgs->pATDT_mode 	= SR_Data_Thread->ATDT_mode;
+// 		SR_DataArgs->pKA_mode 		= SR_Data_Thread->KA_mode;
+		SR_DataArgs->pSRt_mode 		= SR_Data_Thread->mode;
 /*
  * create thread
  */

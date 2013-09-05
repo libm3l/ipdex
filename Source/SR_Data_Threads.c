@@ -40,13 +40,20 @@ void *SR_Data_Threads(void *arg)
 	
 		Pthread_mutex_unlock(c->plock);
 		
-		switch(*c->pKA_mode){
+// 		switch(*c->pKA_mode){
+// 			
+// 		case 'N':
+/*
+ * decide which mode is used; depends on KeepAlive and ATDT option
+ * the value of mode set in SR_hub.c
+ */
+		switch(*c->pSRt_mode){
 			
-		case 'N':
+		case 1:
 /*
  * do not keep socket allive, ie. open and close secket every time the data transfer occurs
  */
-			if(*c->pATDT_mode == 'D'){
+// 			if(*c->pATDT_mode == 'D'){ /* *c->pSRt_mode == 1 */
 
 				mode = 1;
 
@@ -65,8 +72,11 @@ void *SR_Data_Threads(void *arg)
 				else{
 					Error("SR_Data_Threads: Wrong SR_mode");
 				}
-			}
-			else if(*c->pATDT_mode == 'A'){
+// 			}
+		break;
+		
+		case 2:
+// 			else if(*c->pATDT_mode == 'A'){/* *c->pSRt_mode == 2 */
 
 				mode = 0;
 /*
@@ -99,18 +109,19 @@ void *SR_Data_Threads(void *arg)
 					Error("SR_Data_Threads: Wrong SR_mode");
 				}
 				
-			}
-			else
-				Error(" SR_Data_Thread: Wrong ATDT mode");
+// 			}
+// 			else
+// 				Error(" SR_Data_Thread: Wrong ATDT mode");
 		break;
-		case 'C':
+		
+		case 3:
 /*
  * keep socket allive, clients decide when to close it
  */
 			Error("SR_Data_Threads: KA_mode == C not implemented yet");
 			exit(0);
 
-			if(*c->pATDT_mode == 'D'){
+// 			if(*c->pATDT_mode == 'D'){/* *c->pSRt_mode == 3 */
 				mode = 3;
 
 				if(SR_mode == 'R'){
@@ -127,8 +138,11 @@ void *SR_Data_Threads(void *arg)
 					Error("SR_Data_Threads: Wrong SR_mode");
 				}
 				
-			}
-			else if(*c->pATDT_mode == 'A'){
+// 			}
+		break;
+		
+		case 4:
+// 			else if(*c->pATDT_mode == 'A'){/* *c->pSRt_mode == 4 */
 				mode = 4;
 				
 				if(SR_mode == 'R'){
@@ -144,9 +158,9 @@ void *SR_Data_Threads(void *arg)
 				else{
 					Error("SR_Data_Threads: Wrong SR_mode");
 				}
-			}
-			else
-				Error(" SR_Data_Thread: Wrong ATDT mode");
+// 			}
+// 			else
+// 				Error(" SR_Data_Thread: Wrong ATDT mode");
 
 		break;
 		
@@ -296,7 +310,7 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode, lmint_t send_se
  * Reading process sends signal that the it received all data (ie. 
  * 	----- m3l_Send_to_tcpipsocket(NULL,(char *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB", (char *)NULL);
  * it is just to make sure all processes are done with transfer
- * do in only of ATDT mode is D
+ * do in only ff ATDT mode is D
  */
 // 	m3l_Receive_tcpipsocket((const lmchar_t *)NULL, sockfd, "--encoding" , "IEEE-754", "--REOB",  (lmchar_t *)NULL);
 

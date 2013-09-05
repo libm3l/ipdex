@@ -156,6 +156,7 @@ void *Data_Threads(void *arg)
 	SR_Hub_Thread->pList		= c->Node;
 	SR_Hub_Thread->pATDT_mode	= SR_Threads->ATDT_mode;  /* associate pointer, the values will be filled in SR_hub */
 	SR_Hub_Thread->pKA_mode		= SR_Threads->KA_mode;    /* associate pointer, the values will be filled in SR_hub */
+	SR_Hub_Thread->pSRh_mode	= SR_Threads->mode;    /* associate pointer, the values will be filled in SR_hub */
 
 	while ( (pth_err = pthread_create(&SR_Hub_Thread->data_thread[0], NULL, &SR_hub,  SR_Hub_Thread)) != 0 && errno == EAGAIN);
 	if(pth_err != 0)
@@ -264,6 +265,7 @@ void *Data_Threads(void *arg)
 		free(SR_Threads->SR_mode);
 		free(SR_Threads->ATDT_mode);
 		free(SR_Threads->KA_mode);
+		free(SR_Threads->mode);
 		free(SR_Threads->thr_cntr);
 		free(SR_Threads->sockfd);
 		free(SR_Threads->buffer);

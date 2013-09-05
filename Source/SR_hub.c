@@ -85,6 +85,21 @@ void *SR_hub(void *arg)
 	if( *ATDTMode == 'A' && *c->pn_rec_proc > 1)
 		Error("SR_hub - ATDT mode can be A only if communication is between one Sender and one Receiver");
 /*
+ * determine mode number
+ */
+	if     (*ATDTMode == 'D' && *KeepAllive_Mode == 'C')
+		*c->pSRh_mode = 3;
+	else if(*ATDTMode == 'A' && *KeepAllive_Mode == 'C')
+		*c->pSRh_mode = 4;
+	else if(*ATDTMode == 'D' && *KeepAllive_Mode == 'N')
+		*c->pSRh_mode = 1;
+	else if(*ATDTMode == 'A' && *KeepAllive_Mode == 'N')
+		*c->pSRh_mode = 2;
+	else if(*ATDTMode == 'A' && *KeepAllive_Mode == 'Y')
+		*c->pSRh_mode = 5;
+	else if(*ATDTMode == 'N' && *KeepAllive_Mode == 'Y')
+		*c->pSRh_mode = 6;
+/*
  * set number of iterations
  */
 	if(*KeepAllive_Mode == 'N'){
