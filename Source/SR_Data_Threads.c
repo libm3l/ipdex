@@ -49,18 +49,17 @@ void *SR_Data_Threads(void *arg)
 /*
  * do not keep socket allive, ie. open and close secket every time the data transfer occurs
  */
-			mode = 1;
 			if(SR_mode == 'R'){
 /*
  * R(eceivers)
  */
-				if( R_KAN(c, sockfd, mode, 1) != 1) return NULL;
+				if( R_KAN(c, sockfd, 1, 1) != 1) return NULL;
 			}
 			else if(SR_mode == 'S'){
 /*
  * S(ender)
  */
-				if( S_KAN(c, sockfd, mode) != 1) return NULL;
+				if( S_KAN(c, sockfd, 1) != 1) return NULL;
 			}
 			else{
 				Error("SR_Data_Threads: Wrong SR_mode");
@@ -68,8 +67,6 @@ void *SR_Data_Threads(void *arg)
 		break;
 		
 		case 2:
-			
-			mode = 0;
 /*
  * ATDT mode == A, the Receiver will receive the data and then send 
  * back to Sender, Sender will first send the data and then receive from Receiver
@@ -82,9 +79,8 @@ void *SR_Data_Threads(void *arg)
  * when finishing with R, do not signal SR_hub to go to another loop, 
  * the Receiver process will now send the data 
  */
-				if( R_KAN(c, sockfd, mode, 0) != 1) return NULL;
-				mode = 1; /* send REOB */
-				if( S_KAN(c, sockfd, mode) != 1)    return NULL;
+				if( R_KAN(c, sockfd, 0, 0) != 1) return NULL;
+				if( S_KAN(c, sockfd, 1) != 1)    return NULL;
 			}
 			else if(SR_mode == 'S'){
 /*
@@ -92,9 +88,8 @@ void *SR_Data_Threads(void *arg)
  * after that signal SR_hhub that SR operation is finished and it can do 
  * another loop
  */
-				if( S_KAN(c, sockfd, mode) != 1)    return NULL;
-				mode = 1; /*require REOB */
-				if( R_KAN(c, sockfd, mode, 1) != 1) return NULL;
+				if( S_KAN(c, sockfd, 0) != 1)    return NULL;
+				if( R_KAN(c, sockfd, 1, 1) != 1) return NULL;
 			}
 			else{
 				Error("SR_Data_Threads: Wrong SR_mode");
@@ -398,7 +393,6 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
  */
 // 			if( m3l_Send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB",  (lmchar_t *)NULL) < 1)
 // 				Error("Error during reading data from socket");
-// 	if(*c->pATDT_mode == 'D'){
 
 	switch(mode){
 		case 1:
@@ -412,17 +406,8 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
  */
 			if( close(sockfd) == -1)
 				Perror("close");
-// 		}
-		break;
-		
-		case 3:
-			
-			
 		break;
 	}
-// 
-// 	if( close(sockfd) == -1)  (closing socket moved to SR_hub)
-// 		Perror("close");
 /*
  * synck before letting SR_hub to close sockets
  */

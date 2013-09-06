@@ -11,7 +11,7 @@ void *SR_hub(void *arg)
  * function signals SR_Threads that all requests (one Sender and n_rec_proc Receivers) arrived and 
  * that it can start data transfer
  */
-	lmsize_t i, IT, IT_Loc;
+	lmsize_t i;
 	node_t *List;
 	find_t *SFounds;
 	lmchar_t *ATDTMode, *KeepAllive_Mode;
@@ -87,31 +87,18 @@ void *SR_hub(void *arg)
 /*
  * determine mode number
  */
-	if     (*ATDTMode == 'D' && *KeepAllive_Mode == 'C')
-		*c->pSRh_mode = 3;
-	else if(*ATDTMode == 'A' && *KeepAllive_Mode == 'C')
-		*c->pSRh_mode = 4;
-	else if(*ATDTMode == 'D' && *KeepAllive_Mode == 'N')
+	     if(*ATDTMode == 'D' && *KeepAllive_Mode == 'N')
 		*c->pSRh_mode = 1;
 	else if(*ATDTMode == 'A' && *KeepAllive_Mode == 'N')
 		*c->pSRh_mode = 2;
+	else if(*ATDTMode == 'D' && *KeepAllive_Mode == 'C')
+		*c->pSRh_mode = 3;
+	else if(*ATDTMode == 'A' && *KeepAllive_Mode == 'C')
+		*c->pSRh_mode = 4;
 	else if(*ATDTMode == 'A' && *KeepAllive_Mode == 'Y')
 		*c->pSRh_mode = 5;
 	else if(*ATDTMode == 'N' && *KeepAllive_Mode == 'Y')
 		*c->pSRh_mode = 6;
-/*
- * set number of iterations
- */
-	if(*KeepAllive_Mode == 'N'){
-		if( *ATDTMode == 'D')IT = 1;
-		else if( *ATDTMode == 'A')IT = 2;
-		else Error("SR_hub - Wrong ATDT mode");
-	}
-	else if (*KeepAllive_Mode == 'Y'){
-		IT = 0;
-	}
-	else
-		Error("SR_hub - Wrong KEEP_CONN_ALIVE_Mode mode");
 /*
  * start loop for transfer
  */
@@ -121,10 +108,6 @@ void *SR_hub(void *arg)
  * all requests arrived
  */
 		Sem_wait(c->psem);
-
-		IT_Loc = IT;
-
-		do{
 /*
  * wait until all SR_threads reach barrier, then start actual transfer of the data from S to R(s)
  */
@@ -133,10 +116,6 @@ void *SR_hub(void *arg)
  * once the data transfer is finished wait until all data is tranferred and S and R threads close their socket
 */
 			Sem_wait(c->psem_g);
-			
-			if(IT == 0) IT_Loc = 2;
-			
-		}while(--IT_Loc > 0);
 
 		Pthread_mutex_lock(c->plock);
 /*
@@ -147,8 +126,8 @@ void *SR_hub(void *arg)
  */
 			*c->pn_avail_loc_theads = *c->pn_rec_proc + 1;
 /*
- * close sockets
- */
+ * close sockets (moved to SR_Data_Thread)
+ * 
 // 			for(i=0; i<*c->pn_avail_loc_theads; i++){
 // 				if( close(c->psockfd[i]) == -1)
 // 					Perror("close");
