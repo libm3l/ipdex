@@ -83,21 +83,21 @@ void *SR_hub(void *arg)
  * if more R(eceivers) are included, give error message and quit
  */
 	if( *ATDTMode == 'A' && *c->pn_rec_proc > 1)
-		Error("SR_hub - ATDT mode can be A only if communication is between one Sender and one Receiver");
+		Error("SR_hub - ATDT mode can be A only if the communication is established between one Sender and one Receiver");
 /*
  * determine mode number
  */
-	     if(*ATDTMode == 'D' && *KeepAllive_Mode == 'N')
+	     if(*ATDTMode == 'D' && *KeepAllive_Mode == 'N')  /* Direct transfer, close socket */
 		*c->pSRh_mode = 1;
-	else if(*ATDTMode == 'A' && *KeepAllive_Mode == 'N')
+	else if(*ATDTMode == 'A' && *KeepAllive_Mode == 'N')  /* Alternate transfer, close socket */
 		*c->pSRh_mode = 2;
-	else if(*ATDTMode == 'D' && *KeepAllive_Mode == 'C')
+	else if(*ATDTMode == 'D' && *KeepAllive_Mode == 'C')  /* Direct transfer, close socket after client request it*/
 		*c->pSRh_mode = 3;
-	else if(*ATDTMode == 'A' && *KeepAllive_Mode == 'C')
+	else if(*ATDTMode == 'A' && *KeepAllive_Mode == 'C')  /* Alternate transfer, close socket after client request it*/
 		*c->pSRh_mode = 4;
-	else if(*ATDTMode == 'A' && *KeepAllive_Mode == 'Y')
+	else if(*ATDTMode == 'D' && *KeepAllive_Mode == 'Y')  /* Direct transfer, do not socket socket*/
 		*c->pSRh_mode = 5;
-	else if(*ATDTMode == 'N' && *KeepAllive_Mode == 'Y')
+	else if(*ATDTMode == 'A' && *KeepAllive_Mode == 'Y')  /* Alternate transfer, do not socket socket*/
 		*c->pSRh_mode = 6;
 /*
  * start loop for transfer

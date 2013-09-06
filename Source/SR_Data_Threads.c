@@ -15,7 +15,7 @@ void *SR_Data_Threads(void *arg)
 	SR_thread_args_t *c = (SR_thread_args_t *)arg;
 
 	lmchar_t SR_mode;
-	lmint_t sockfd, mode;
+	lmint_t sockfd, retval;
 /* 
  * get SR_mode and socket number, unlock so that other SR_threads can get ther
   * increase counter so that next job can grab it.
@@ -33,7 +33,7 @@ void *SR_Data_Threads(void *arg)
  * protext by mutex
  */
 		Pthread_mutex_lock(c->plock);
-			
+
 			SR_mode =  c->pSR_mode[*c->pthr_cntr];
 			sockfd  =  c->psockfd[*c->pthr_cntr];
 			(*c->pthr_cntr)++; 
@@ -44,7 +44,7 @@ void *SR_Data_Threads(void *arg)
  * the value of mode set in SR_hub.c
  */
 		switch(*c->pSRt_mode){
-			
+/*  -------------------------------------------------------------- */
 		case 1:
 /*
  * do not keep socket allive, ie. open and close secket every time the data transfer occurs
@@ -53,34 +53,33 @@ void *SR_Data_Threads(void *arg)
 /*
  * R(eceivers)
  */
-				if( R_KAN(c, sockfd, 1, 1) != 1) return NULL;
+				if( R_KAN(c, sockfd, 1, 1) == -1) return NULL;
 			}
 			else if(SR_mode == 'S'){
 /*
  * S(ender)
  */
-				if( S_KAN(c, sockfd, 1) != 1) return NULL;
+				if( S_KAN(c, sockfd, 1) == -1) return NULL;
 			}
 			else{
 				Error("SR_Data_Threads: Wrong SR_mode");
 			}
 		break;
-		
+/*  -------------------------------------------------------------- */
 		case 2:
 /*
  * ATDT mode == A, the Receiver will receive the data and then send 
  * back to Sender, Sender will first send the data and then receive from Receiver
  * works only for 1 R process
  */
-				
 			if(SR_mode == 'R'){
 /*
  * R(eceivers)
  * when finishing with R, do not signal SR_hub to go to another loop, 
  * the Receiver process will now send the data 
  */
-				if( R_KAN(c, sockfd, 0, 0) != 1) return NULL;
-				if( S_KAN(c, sockfd, 1) != 1)    return NULL;
+				if( R_KAN(c, sockfd, 0, 0) == -1) return NULL;
+				if( S_KAN(c, sockfd, 1) == -1)    return NULL;
 			}
 			else if(SR_mode == 'S'){
 /*
@@ -88,14 +87,14 @@ void *SR_Data_Threads(void *arg)
  * after that signal SR_hhub that SR operation is finished and it can do 
  * another loop
  */
-				if( S_KAN(c, sockfd, 0) != 1)    return NULL;
-				if( R_KAN(c, sockfd, 1, 1) != 1) return NULL;
+				if( S_KAN(c, sockfd, 0) == -1)    return NULL;
+				if( R_KAN(c, sockfd, 1, 1) == -1) return NULL;
 			}
 			else{
 				Error("SR_Data_Threads: Wrong SR_mode");
 			}
 		break;
-		
+/*  -------------------------------------------------------------- */
 		case 3:
 /*
  * keep socket allive, clients decide when to close it
@@ -103,34 +102,103 @@ void *SR_Data_Threads(void *arg)
 			Error("SR_Data_Threads: KA_mode == C not implemented yet");
 			exit(0);
 
-			mode = 3;
-
 			if(SR_mode == 'R'){
 /*
  * R(eceivers)
  */
+				do{
+					if( (retval = R_KAN(c, sockfd, 3, 3)) == -1) return NULL;
+				}while(retval != 0);
 			}
 			else if(SR_mode == 'S'){
 /*
  * S(ender)
  */
+				do{
+					if( (retval = S_KAN(c, sockfd, 3)) == -1) return NULL;
+				}while(retval != 0);
 			}
 			else{
 				Error("SR_Data_Threads: Wrong SR_mode");
 			}
 		break;
-		
+/*  -------------------------------------------------------------- */
 		case 4:
-			mode = 4;
+			if(SR_mode == 'R'){
+/*
+ * R(eceivers)
+ * when finishing with R, do not signal SR_hub to go to another loop, 
+ * the Receiver process will now send the data 
+ */
+				do{
+					if( (retval = R_KAN(c, sockfd, 4, 0)) == -1) return NULL;
+					if( (retval = S_KAN(c, sockfd, 4)) == -1)    return NULL;
+				}while(retval != 0);
+			}
+			else if(SR_mode == 'S'){
+/*
+ * S(ender), after finishing sending, receive the data
+ * after that signal SR_hhub that SR operation is finished and it can do 
+ * another loop
+ */
+				do{
+					if( (retval = S_KAN(c, sockfd, 0)) == -1)    return NULL;
+					if( (retval = R_KAN(c, sockfd, 4, 4)) == -1) return NULL;
+				}while(retval != 0);
+			}
+			else{
+				Error("SR_Data_Threads: Wrong SR_mode");
+			}
+		break;
+/*  -------------------------------------------------------------- */
+		case 5:  /* same as mode 1, do not close socket and do not signal SR_hub */
+/*
+ * do not keep socket allive, ie. open and close secket every time the data transfer occurs
+ */
 			if(SR_mode == 'R'){
 /*
  * R(eceivers)
  */
+				while(1) if( R_KAN(c, sockfd, 0, 0) != 1) return NULL;
 			}
 			else if(SR_mode == 'S'){
 /*
  * S(ender)
  */
+				while(1) if( S_KAN(c, sockfd, 0) != 1) return NULL;
+			}
+			else{
+				Error("SR_Data_Threads: Wrong SR_mode");
+			}
+		break;
+/*  -------------------------------------------------------------- */
+		case 6:   /* same as mode 2, do not close socket and do not signal SR_hub */
+/*
+ * ATDT mode == A, the Receiver will receive the data and then send 
+ * back to Sender, Sender will first send the data and then receive from Receiver
+ * works only for 1 R process
+ */
+			if(SR_mode == 'R'){
+/*
+ * R(eceivers)
+ * when finishing with R, do not signal SR_hub to go to another loop, 
+ * the Receiver process will now send the data 
+ */
+				while(1){
+					if( R_KAN(c, sockfd, 0, 0) != 1) return NULL;
+					if( S_KAN(c, sockfd, 0) != 1)    return NULL;
+				}
+			}
+			else if(SR_mode == 'S'){
+/*
+ * S(ender), after finishing sending, receive the data
+ * after that signal SR_hhub that SR operation is finished and it can do 
+ * another loop
+ */
+				while(1){
+					if( S_KAN(c, sockfd, 0) != 1)    return NULL;
+					if( R_KAN(c, sockfd, 0, 0) != 1) return NULL;
+				}
 			}
 			else{
 				Error("SR_Data_Threads: Wrong SR_mode");
@@ -232,8 +300,10 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode, lmint_t send_se
  * the mutex was locked here to protect writing to each individual sockets
  * but I think it is  not needed, moved lock after 
  */
-		if ( (n = Write(sockfd,c->pbuffer, *c->pngotten)) < *c->pngotten)
+		if ( (n = Write(sockfd,c->pbuffer, *c->pngotten)) < *c->pngotten){
 			Perror("write()");
+			return -1;
+		}
 
 		Pthread_mutex_lock(c->plock);
 			(*c->prcounter)--;
@@ -364,7 +434,7 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 		if (  (*c->pngotten = Read(sockfd, c->pbuffer, MAXLINE)) == -1){
 			Perror("read");
 			free(c);
-			return;
+			return -1;
 		}
 
 		eofbuffcond = Check_EOFbuff(c->pbuffer,prevbuff, strlen(c->pbuffer), EOBlen, EOFbuff);
