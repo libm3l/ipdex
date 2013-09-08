@@ -21,7 +21,7 @@ COMM_DEF  DIR 2
 			Sending_Process I 1 1
 				1
 			Receiving_Processes ST 1 1
-				2
+				3
 			CONNECTION DIR 2
 				ATDT_Mode C 1 2
 				`D`

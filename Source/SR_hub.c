@@ -12,6 +12,7 @@ void *SR_hub(void *arg)
  * that it can start data transfer
  */
 	lmsize_t i;
+	lmint_t IT;
 	node_t *List;
 	find_t *SFounds;
 	lmchar_t *ATDTMode, *KeepAllive_Mode;
@@ -108,14 +109,51 @@ void *SR_hub(void *arg)
  * all requests arrived
  */
 		Sem_wait(c->psem);
+			
+			switch(*c->pSRh_mode){
+				case 1:
 /*
  * wait until all SR_threads reach barrier, then start actual transfer of the data from S to R(s)
  */
-			Pthread_barrier_wait(c->pbarr);
+					Pthread_barrier_wait(c->pbarr);
 /*
  * once the data transfer is finished wait until all data is tranferred and S and R threads close their socket
 */
-			Sem_wait(c->psem_g);
+					Sem_wait(c->psem_g);
+				break;
+				
+				case 2:
+					
+					IT = 2;
+					while(IT > 1){
+/*
+ * wait until all SR_threads reach barrier, then start actual transfer of the data from S to R(s)
+ */
+						Pthread_barrier_wait(c->pbarr);
+/*
+ * once the data transfer is finished wait until all data is tranferred and S and R threads close their socket
+*/
+						Sem_wait(c->psem_g);
+						IT--;
+					}
+				break;
+			
+				case 3:
+				case 4:
+// 					do{
+// 						Pthread_barrier_wait(c->pbarr);
+// 						Sem_wait(c->psem_g);   
+// 					}while(TERMINATE_CYC == 1);
+				break;
+			
+				case 5:
+				case 6:
+					while(1){
+						Pthread_barrier_wait(c->pbarr);
+						Sem_wait(c->psem_g);
+						}
+				break;
+			}
 
 		Pthread_mutex_lock(c->plock);
 /*

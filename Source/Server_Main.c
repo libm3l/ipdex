@@ -1,7 +1,7 @@
 #include "libm3l.h"
 #include "Server_Header.h"
 #include "Server_Functions_Prt.h"
-
+#include "ipdx.h"
 
 #include "SignalC.h"
 #include "Server_Body.h"
@@ -23,6 +23,11 @@ lmint_t main (int argc, char **argv){
 	char opt_s='\0';
 	
 	portnum = -1;
+	
+	
+	
+// 	printf(" OPTION %s %s \n", EOFCY, EOFCN);
+// 	exit(0);
 /*
  * get options 
  */

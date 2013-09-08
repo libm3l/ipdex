@@ -7,8 +7,10 @@
 static inline lmssize_t Read(lmint_t, lmchar_t *, lmint_t);
 static inline lmssize_t Write(lmint_t, lmchar_t *, lmsize_t);
 
-static lmint_t R_KAN(SR_thread_args_t *, lmint_t, lmint_t, lmint_t);
+static lmint_t R_KAN(SR_thread_args_t *, lmint_t, lmint_t);
 static lmint_t S_KAN(SR_thread_args_t *, lmint_t, lmint_t);
+
+static lmint_t R_EOFC(lmint_t);
 
 void *SR_Data_Threads(void *arg)
 {
@@ -53,7 +55,7 @@ void *SR_Data_Threads(void *arg)
 /*
  * R(eceivers)
  */
-				if( R_KAN(c, sockfd, 1, 1) == -1) return NULL;
+				if( R_KAN(c, sockfd, 1) == -1) return NULL;
 			}
 			else if(SR_mode == 'S'){
 /*
@@ -78,8 +80,8 @@ void *SR_Data_Threads(void *arg)
  * when finishing with R, do not signal SR_hub to go to another loop, 
  * the Receiver process will now send the data 
  */
-				if( R_KAN(c, sockfd, 0, 0) == -1) return NULL;
-				if( S_KAN(c, sockfd, 1) == -1)    return NULL;
+				if( R_KAN(c, sockfd, 0) == -1) return NULL;
+				if( S_KAN(c, sockfd, 2) == -1) return NULL;
 			}
 			else if(SR_mode == 'S'){
 /*
@@ -87,8 +89,8 @@ void *SR_Data_Threads(void *arg)
  * after that signal SR_hhub that SR operation is finished and it can do 
  * another loop
  */
-				if( S_KAN(c, sockfd, 0) == -1)    return NULL;
-				if( R_KAN(c, sockfd, 1, 1) == -1) return NULL;
+				if( S_KAN(c, sockfd, 0) == -1) return NULL;
+				if( R_KAN(c, sockfd, 2) == -1) return NULL;
 			}
 			else{
 				Error("SR_Data_Threads: Wrong SR_mode");
@@ -97,7 +99,7 @@ void *SR_Data_Threads(void *arg)
 /*  -------------------------------------------------------------- */
 		case 3:
 /*
- * keep socket allive, clients decide when to close it
+ * keep socket allive until clients request closing it
  */
 			Error("SR_Data_Threads: KA_mode == C not implemented yet");
 			exit(0);
@@ -107,7 +109,7 @@ void *SR_Data_Threads(void *arg)
  * R(eceivers)
  */
 				do{
-					if( (retval = R_KAN(c, sockfd, 3, 3)) == -1) return NULL;
+					if( (retval = R_KAN(c, sockfd, 3)) == -1) return NULL;
 				}while(retval != 0);
 			}
 			else if(SR_mode == 'S'){
@@ -131,8 +133,8 @@ void *SR_Data_Threads(void *arg)
  * the Receiver process will now send the data 
  */
 				do{
-					if( (retval = R_KAN(c, sockfd, 4, 0)) == -1) return NULL;
-					if( (retval = S_KAN(c, sockfd, 4)) == -1)    return NULL;
+					if( (retval = R_KAN(c, sockfd, 4)) == -1) return NULL;
+					if( (retval = S_KAN(c, sockfd, 4)) == -1) return NULL;
 				}while(retval != 0);
 			}
 			else if(SR_mode == 'S'){
@@ -142,8 +144,8 @@ void *SR_Data_Threads(void *arg)
  * another loop
  */
 				do{
-					if( (retval = S_KAN(c, sockfd, 0)) == -1)    return NULL;
-					if( (retval = R_KAN(c, sockfd, 4, 4)) == -1) return NULL;
+					if( (retval = S_KAN(c, sockfd, 4)) == -1) return NULL;
+					if( (retval = R_KAN(c, sockfd, 4)) == -1) return NULL;
 				}while(retval != 0);
 			}
 			else{
@@ -153,19 +155,19 @@ void *SR_Data_Threads(void *arg)
 /*  -------------------------------------------------------------- */
 		case 5:  /* same as mode 1, do not close socket and do not signal SR_hub */
 /*
- * do not keep socket allive, ie. open and close secket every time the data transfer occurs
+ * keep socket alive forever
  */
 			if(SR_mode == 'R'){
 /*
  * R(eceivers)
  */
-				while(1) if( R_KAN(c, sockfd, 0, 0) != 1) return NULL;
+				while(1) if( R_KAN(c, sockfd, 5) != 1) return NULL;
 			}
 			else if(SR_mode == 'S'){
 /*
  * S(ender)
  */
-				while(1) if( S_KAN(c, sockfd, 0) != 1) return NULL;
+				while(1) if( S_KAN(c, sockfd, 5) != 1) return NULL;
 			}
 			else{
 				Error("SR_Data_Threads: Wrong SR_mode");
@@ -185,8 +187,8 @@ void *SR_Data_Threads(void *arg)
  * the Receiver process will now send the data 
  */
 				while(1){
-					if( R_KAN(c, sockfd, 0, 0) != 1) return NULL;
-					if( S_KAN(c, sockfd, 0) != 1)    return NULL;
+					if( R_KAN(c, sockfd, 6) != 1) return NULL;
+					if( S_KAN(c, sockfd, 6) != 1) return NULL;
 				}
 			}
 			else if(SR_mode == 'S'){
@@ -196,8 +198,8 @@ void *SR_Data_Threads(void *arg)
  * another loop
  */
 				while(1){
-					if( S_KAN(c, sockfd, 0) != 1)    return NULL;
-					if( R_KAN(c, sockfd, 0, 0) != 1) return NULL;
+					if( S_KAN(c, sockfd, 6) != 1) return NULL;
+					if( R_KAN(c, sockfd, 6) != 1) return NULL;
 				}
 			}
 			else{
@@ -260,7 +262,7 @@ lmssize_t Read(lmint_t descrpt , lmchar_t *buff, lmint_t n)
 /*
  * Recevier function, ATDT A,D  KeepAllive N
  */
-lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode, lmint_t send_sem){
+lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 
 	lmint_t  R_done, last;
 	opts_t *Popts, opts;
@@ -357,9 +359,6 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode, lmint_t send_se
  */
 // 	m3l_Receive_tcpipsocket((const lmchar_t *)NULL, sockfd, "--encoding" , "IEEE-754", "--REOB",  (lmchar_t *)NULL);
 
-// 	if(*c->pATDT_mode == 'D'){
-
-
 	switch(mode){
 		case 1:
 			opts.opt_REOBseq = 'G'; // send EOFbuff sequence only
@@ -372,11 +371,33 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode, lmint_t send_se
  */
 			if( close(sockfd) == -1)
 				Perror("close");
-// 		}
+		break;
+
+		case 2:
+/*
+ * close the socket 
+ */
+			if( close(sockfd) == -1)
+				Perror("close");
+			
 		break;
 		
 		case 3:
+/*
+ * receive End of connection (if requested)
+ */
+
+		break;
 			
+		case 5:
+			opts.opt_REOBseq = 'G'; // send EOFbuff sequence only
+			if( m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts) < 0){
+				Error("SR_Data_Threads: Error when receiving  REOB\n");
+				return -1;
+			}
+		break;
+		
+		default:
 		break;
 	}
 // /*
@@ -390,13 +411,9 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode, lmint_t send_se
  */
 	pt_sync(c->psync_loc);
 /*
- * if specified, signal the SR_hub and it can do another cycle
+ * signal the SR_hub and it can do another cycle
  */
-	if(send_sem == 1){
-		if(last == 1)
-			Sem_post(c->psem_g);
-	}
-	
+	if(last == 1)Sem_post(c->psem_g);
 	return 1;
 }
 
@@ -477,6 +494,39 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 			if( close(sockfd) == -1)
 				Perror("close");
 		break;
+		
+		case 2:
+/*
+ * close the socket 
+ */
+			if( close(sockfd) == -1)
+				Perror("close");
+			
+		case 3:
+			opts.opt_EOBseq = 'E'; // send EOFbuff sequence only	
+			if( m3l_send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, Popts) < 0){
+				Error("SR_Data_Threads: Error when sending  SEOB\n");
+				return -1;
+			}
+/*
+ * receive End sequence (if client requires end
+ */
+
+
+			opts.opt_EOBseq = 'E'; // send EOFbuff sequence only	
+			if( m3l_send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, Popts) < 0){
+				Error("SR_Data_Threads: Error when sending  SEOB\n");
+				return -1;
+			}
+		break;
+		
+		case 5:
+			opts.opt_EOBseq = 'E'; // send EOFbuff sequence only	
+			if( m3l_send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, Popts) < 0){
+				Error("SR_Data_Threads: Error when sending  SEOB\n");
+				return -1;
+			}
+		break;
 	}
 /*
  * synck before letting SR_hub to close sockets
@@ -484,4 +534,57 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 	pt_sync(c->psync_loc);
 	
 	return 1;
+}
+
+
+lmint_t R_EOFC(lmint_t sockfd){
+/*
+ * receive the EOFC sequence, look at the first byte
+ * value and return in back
+ */
+
+// lmint_t Check_EOFbuff(lmchar_t *buff, lmchar_t *eofbuff, ssize_t n, size_t eoblen, lmchar_t *EOFBUFF)
+{
+/*
+ * function check arrival of EOFbuff 
+ * - used when only looking for EOFbuff sequence to 
+ * terminate reading from socket
+ */
+// 	size_t counter,i;
+// 	counter = 0;
+// /*
+//  * find how many character has buffer, up to eoblen
+//  */
+// 	if(eoblen < n)
+// 		counter = eoblen ;
+// 	else
+// 		counter = n;
+// 	
+// 	for (i=counter; i<eoblen; i++)
+// 		*(eofbuff+i-counter) = *(eofbuff+i);
+// // 		eofbuff[i-counter] = eofbuff[i];
+// 	
+// 	for (i=0; i<counter; i++)
+// 		*(eofbuff+i+eoblen-counter) = *(buff+n-counter+i);
+// // 		eofbuff[i+eoblen-counter] = buff[n-counter+i];
+// 
+// 	eofbuff[eoblen]='\0';
+// 				
+// 	if(strncmp(eofbuff, EOFBUFF, eoblen) == 0){
+// 		return 1;
+// 	}
+// 	else{
+// 		return 0;
+// 	}
+}
+
+}
+
+
+lmint_t S_EOFC(lmint_t sockfd, lmint_t val){
+/*
+ * send the value of the EOFC.
+ * client requests or not to close the socket
+ */
+
 }
