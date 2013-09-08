@@ -1,0 +1,49 @@
+#/bin/csh
+
+        set DIR_list=`ls *.c `
+
+        foreach DIR ($DIR_list)
+	echo $DIR
+	
+	set nlines = `grep -i Copyright $DIR | wc -l`	
+	
+	if( $nlines == 0 ) then
+#	if( {grep -s Copyright $DIR} ) then
+		set date=`ls -l --time-style=long-iso $DIR | awk '{printf $6}'`
+
+		sed 's/NAME_OF_FUNCTION/Function '$DIR'/' MODINFO > AOA1
+		sed 's/Date:/Date: '$date'/' AOA1 > AOA2
+	
+		cat COPYRIGHT_NOTICE AOA2 $DIR > CO_$DIR 
+		mv CO_$DIR $DIR
+		rm AOA1 AOA2
+
+
+#	sed -i 's/clibm3l/libm3l/g' $DIR
+
+
+	endif
+	
+        end
+
+
+        set DIR_list=`ls *.h  `
+
+        foreach DIR ($DIR_list)
+	echo $DIR
+	
+	set nlines = `grep -i Copyright $DIR | wc -l`	
+	
+	if( $nlines == 0 ) then
+		set date=`ls -l --time-style=long-iso $DIR | awk '{printf $6}'`
+
+		sed 's/NAME_OF_FUNCTION/Header file '$DIR'/' MODINFOH > AOA1
+		sed 's/Date:/Date: '$date'/' AOA1 > AOA2
+	
+		cat COPYRIGHT_NOTICE AOA2 $DIR > CO_$DIR 
+		mv CO_$DIR $DIR
+		rm AOA1 AOA2
+	endif
+
+
+        end
