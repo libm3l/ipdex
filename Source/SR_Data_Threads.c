@@ -53,13 +53,15 @@
 #include "Server_Functions_Prt.h"
 #include "SR_Data_Threads.h"
 
+#include "ipdx.h"
+
 static inline lmssize_t Read(lmint_t, lmchar_t *, lmint_t);
 static inline lmssize_t Write(lmint_t, lmchar_t *, lmsize_t);
 
 static lmint_t R_KAN(SR_thread_args_t *, lmint_t, lmint_t);
 static lmint_t S_KAN(SR_thread_args_t *, lmint_t, lmint_t);
 
-static lmint_t R_EOFC(lmint_t);
+static lmchar_t R_EOFC(lmint_t);
 
 void *SR_Data_Threads(void *arg)
 {
@@ -435,7 +437,7 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 /*
  * receive End of connection (if requested)
  */
-
+// 			R_EOFC(sockfd)
 		break;
 			
 		case 5:
@@ -558,8 +560,9 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 				return -1;
 			}
 /*
- * receive End sequence (if client requires end
+ * receive End sequence (if client requires end of connection)
  */
+// 			R_EOFC(sockfd)
 
 
 			opts.opt_EOBseq = 'E'; // send EOFbuff sequence only	
@@ -576,6 +579,8 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 				return -1;
 			}
 		break;
+		
+// 		case 6:  empty case
 	}
 /*
  * synck before letting SR_hub to close sockets
@@ -586,47 +591,36 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 }
 
 
-lmint_t R_EOFC(lmint_t sockfd){
+lmchar_t R_EOFC(lmint_t sockfd){
 /*
  * receive the EOFC sequence, look at the first byte
  * value and return in back
  */
+	lmchar_t buff[EOFClen+1], allbuff[EOFClen+1], *pc;
+	lmssize_t ngotten, nreceived;
+	lmsize_t i;
 
-// lmint_t Check_EOFbuff(lmchar_t *buff, lmchar_t *eofbuff, ssize_t n, size_t eoblen, lmchar_t *EOFBUFF)
-{
+	nreceived = 0;
+	pc = &allbuff[0];
+
+	do{
 /*
- * function check arrival of EOFbuff 
- * - used when only looking for EOFbuff sequence to 
- * terminate reading from socket
+ * bzero buffer
+ */		bzero(buff,sizeof(buff));
+		if (  (ngotten = Read(sockfd, buff, EOFClen)) == -1)
+ 			Perror("read");
+		
+		nreceived = nreceived + ngotten;
+		
+		for(i=0; i< ngotten; i++)
+			*pc++ = *(buff+i);
+		
+	}while(nreceived < EOFClen);
+/* 
+ * allbuff contains entire segment, which consits of a number and EOFbuff sequence
+ * check the first byte and get the value
  */
-// 	size_t counter,i;
-// 	counter = 0;
-// /*
-//  * find how many character has buffer, up to eoblen
-//  */
-// 	if(eoblen < n)
-// 		counter = eoblen ;
-// 	else
-// 		counter = n;
-// 	
-// 	for (i=counter; i<eoblen; i++)
-// 		*(eofbuff+i-counter) = *(eofbuff+i);
-// // 		eofbuff[i-counter] = eofbuff[i];
-// 	
-// 	for (i=0; i<counter; i++)
-// 		*(eofbuff+i+eoblen-counter) = *(buff+n-counter+i);
-// // 		eofbuff[i+eoblen-counter] = buff[n-counter+i];
-// 
-// 	eofbuff[eoblen]='\0';
-// 				
-// 	if(strncmp(eofbuff, EOFBUFF, eoblen) == 0){
-// 		return 1;
-// 	}
-// 	else{
-// 		return 0;
-// 	}
-}
-
+	return allbuff[0];
 }
 
 

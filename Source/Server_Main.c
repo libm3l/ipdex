@@ -74,9 +74,7 @@ lmint_t main (int argc, char **argv){
 	portnum = -1;
 	
 	
-	
-// 	printf(" OPTION %s %s \n", EOFCY, EOFCN);
-// 	exit(0);
+
 /*
  * get options 
  */

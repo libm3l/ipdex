@@ -42,7 +42,9 @@
 #ifndef __IPDX_HEADER_H__
 #define __IPDX_HEADER_H__
 
-#define EOFCY 1EOFbuff
-#define EOFCN 1EOFbuff
+#define EOFCY "0"EOFbuff
+#define EOFCN "1"EOFbuff
+
+#define EOFClen 1+EOBlen
 
 #endif
