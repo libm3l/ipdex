@@ -145,9 +145,9 @@ void *SR_hub(void *arg)
 		*c->pSRh_mode = 3;
 	else if(*ATDTMode == 'A' && *KeepAllive_Mode == 'C')  /* Alternate transfer, close socket after client request it*/
 		*c->pSRh_mode = 4;
-	else if(*ATDTMode == 'D' && *KeepAllive_Mode == 'Y')  /* Direct transfer, do not socket socket*/
+	else if(*ATDTMode == 'D' && *KeepAllive_Mode == 'Y')  /* Direct transfer, do not close socket*/
 		*c->pSRh_mode = 5;
-	else if(*ATDTMode == 'A' && *KeepAllive_Mode == 'Y')  /* Alternate transfer, do not socket socket*/
+	else if(*ATDTMode == 'A' && *KeepAllive_Mode == 'Y')  /* Alternate transfer, do not close socket*/
 		*c->pSRh_mode = 6;
 /*
  * start loop for transfer
@@ -174,17 +174,18 @@ void *SR_hub(void *arg)
 				case 2:
 					
 					IT = 2;
-					while(IT > 1){
+					do{
 /*
  * wait until all SR_threads reach barrier, then start actual transfer of the data from S to R(s)
  */
 						Pthread_barrier_wait(c->pbarr);
 /*
  * once the data transfer is finished wait until all data is tranferred and S and R threads close their socket
-*/
+ */
 						Sem_wait(c->psem_g);
-						IT--;
-					}
+
+						
+					}while(--IT == 0);
 				break;
 			
 				case 3:

@@ -55,13 +55,15 @@
 
 #include "ipdx.h"
 
+#define INTEGMIN(X,Y) ((X) < (Y) ? : (X) : (Y)), 
+
 static inline lmssize_t Read(lmint_t, lmchar_t *, lmint_t);
 static inline lmssize_t Write(lmint_t, lmchar_t *, lmsize_t);
 
 static lmint_t R_KAN(SR_thread_args_t *, lmint_t, lmint_t);
 static lmint_t S_KAN(SR_thread_args_t *, lmint_t, lmint_t);
 
-static lmchar_t R_EOFC(lmint_t);
+static lmint_t R_EOFC(lmint_t);
 
 void *SR_Data_Threads(void *arg)
 {
@@ -315,7 +317,7 @@ lmssize_t Read(lmint_t descrpt , lmchar_t *buff, lmint_t n)
  */
 lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 
-	lmint_t  R_done, last;
+	lmint_t  R_done, last, retval;
 	opts_t *Popts, opts;
 	lmssize_t n;
 	Popts = &opts;
@@ -410,6 +412,8 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
  */
 // 	m3l_Receive_tcpipsocket((const lmchar_t *)NULL, sockfd, "--encoding" , "IEEE-754", "--REOB",  (lmchar_t *)NULL);
 
+	retval = 1;
+
 	switch(mode){
 		case 1:
 			opts.opt_REOBseq = 'G'; // send EOFbuff sequence only
@@ -435,9 +439,18 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 		
 		case 3:
 /*
- * receive End of connection (if requested)
+ * receive End sequence (if client requires end of connection)
  */
-// 			R_EOFC(sockfd)
+			if( (retval = R_EOFC(sockfd)) == -1){
+				Error(" R_EOFC error ");
+				return -1;
+			}
+			
+			
+			Pthread_mutex_lock(c->plock);
+// 				*c->EOFC_END = max
+			Pthread_mutex_unlock(c->plock);
+
 		break;
 			
 		case 5:
@@ -460,12 +473,12 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 /*
  * synck before letting SR_hub to close sockets
  */
-	pt_sync(c->psync_loc);
+	pt_sync(c->psync_loc);  /* syncing all R and S threads, all sockets are now closed (if required them to be closed ) */
 /*
  * signal the SR_hub and it can do another cycle
  */
 	if(last == 1)Sem_post(c->psem_g);
-	return 1;
+	return retval;
 }
 
 
@@ -475,7 +488,7 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 
 	lmchar_t prevbuff[EOBlen+1];
-	lmint_t eofbuffcond;
+	lmint_t eofbuffcond, retval;
 	opts_t *Popts, opts;
 	Popts = &opts;
 
@@ -532,6 +545,8 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 // 			if( m3l_Send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB",  (lmchar_t *)NULL) < 1)
 // 				Error("Error during reading data from socket");
 
+	retval = 1;
+
 	switch(mode){
 		case 1:
 			opts.opt_EOBseq = 'E'; // send EOFbuff sequence only	
@@ -562,8 +577,10 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 /*
  * receive End sequence (if client requires end of connection)
  */
-// 			R_EOFC(sockfd)
-
+			if( (retval = R_EOFC(sockfd)) == -1){
+				Error(" R_EOFC error ");
+				return -1;
+			}
 
 			opts.opt_EOBseq = 'E'; // send EOFbuff sequence only	
 			if( m3l_send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, Popts) < 0){
@@ -587,11 +604,11 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
  */
 	pt_sync(c->psync_loc);
 	
-	return 1;
+	return retval;
 }
 
 
-lmchar_t R_EOFC(lmint_t sockfd){
+lmint_t R_EOFC(lmint_t sockfd){
 /*
  * receive the EOFC sequence, look at the first byte
  * value and return in back
@@ -599,6 +616,8 @@ lmchar_t R_EOFC(lmint_t sockfd){
 	lmchar_t buff[EOFClen+1], allbuff[EOFClen+1], *pc;
 	lmssize_t ngotten, nreceived;
 	lmsize_t i;
+	
+	lmint_t retval;
 
 	nreceived = 0;
 	pc = &allbuff[0];
@@ -619,15 +638,51 @@ lmchar_t R_EOFC(lmint_t sockfd){
 /* 
  * allbuff contains entire segment, which consits of a number and EOFbuff sequence
  * check the first byte and get the value
- */
-	return allbuff[0];
+ */ 
+	retval = allbuff[0] - '0';
+	return retval;
 }
 
 
-lmint_t S_EOFC(lmint_t sockfd, lmint_t val){
+lmssize_t S_EOFC(lmint_t sockfd, lmint_t val){
 /*
- * send the value of the EOFC.
+ * send the value of the EOFC signaling whether
  * client requests or not to close the socket
  */
+	lmssize_t total, n;
+	total = 0;
+	lmchar_t Echo[EOFClen+1], *buff;
+	lmsize_t size;
+	
+	if(val == 1){
+		if( snprintf(Echo, EOFClen+1 ,"%s", EOFCY) < 0)
+			Perror("snprintf");
+	}
+	else if(val == 1){
+		if( snprintf(Echo, EOFClen+1 ,"%s", EOFCN) < 0)
+			Perror("snprintf");
+	}
+	else
+		Error("S_EOFC: Wrong value of val parameter");
 
+	
+	Echo[EOFClen] = '\0';
+	size = EOFClen + 1;
+	
+	buff = Echo;
+	
+	while(size > 0) {
+		
+		if ( (n = write(sockfd,buff,size)) < 0){
+			if (errno == EINTR) continue;
+			return (total == 0) ? -1 : total;
+		}
+ 		buff += n;
+		total += n;
+		size -= n;
+	}
+/*
+ * buffer was sent
+ */
+	return total;
 }
