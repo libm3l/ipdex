@@ -189,11 +189,47 @@ void *SR_hub(void *arg)
 				break;
 			
 				case 3:
+					do{
+						Pthread_barrier_wait(c->pbarr);
+						Sem_wait(c->psem_g);   
+					}while(*c->pEOFC_ENDh == 1);  /* this value is not protected by mtex
+							at this point should be accessed only by this process */
+							
+							
+// 
+// 
+// http://stackoverflow.com/questions/5927053/handling-a-mutex-variable-in-a-while-loop-check
+// Edit: @ninjalj's suggestion to replace the while-loop with use of a condition variable is good advice if you are using the while-loop to wait until a program state has been reached. However, if you are using a while-loop to do work until a program state has been reached then...
+// 
+// You should wrap the "lock-mutex; examine variable; unlock mutex" code in a utility function, and your while-loop condition can then call that function. For example, the utility function might be written as shown in the following code:
+// 
+// int valueOfSharedVariable()
+// {
+//     int status;
+//     int result;
+// 
+//     status = pthread_mutex_lock(&mutex);
+//     assert(status == 0);
+//     result = sharedVariable;
+//     status = pthread_mutex_unlock(&mutex);
+//     assert(status == 0);
+//     return result;
+// }
+// 
+// Then, your while-loop condition can be written like the following:
+// 
+// while (valueOfSharedVariable() < 10) {
+//     ...
+// }
+
+
+
 				case 4:
-// 					do{
-// 						Pthread_barrier_wait(c->pbarr);
-// 						Sem_wait(c->psem_g);   
-// 					}while(TERMINATE_CYC == 1);
+					do{
+						Pthread_barrier_wait(c->pbarr);
+						Sem_wait(c->psem_g);   
+					}while(*c->pEOFC_ENDh == 1);  /* this value is not protected by mtex
+							at this point should be accessed only by this process */
 				break;
 			
 				case 5:

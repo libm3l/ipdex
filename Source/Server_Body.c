@@ -80,7 +80,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	opts.opt_nomalloc = '\0'; // if 'm', do not malloc (used in Mklist --no_malloc
 	opts.opt_linkscleanemptrefs = '\0'; // clean empty link references
 	opts.opt_tcpencoding = 'I'; // serialization and encoding when sending over TCP/IP
-	opts.opt_MEMCP = 'S';  // type of buffering
+	opts.opt_MEMCP = 'M';  // type of buffering
 	
 	cycle=0;
 /*

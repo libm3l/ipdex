@@ -55,7 +55,7 @@
 
 #include "ipdx.h"
 
-#define INTEGMIN(X,Y) ((X) < (Y) ? : (X) : (Y)), 
+#define INTEGMIN(X,Y) ((X) < (Y) ? (X) : (Y)); 
 
 static inline lmssize_t Read(lmint_t, lmchar_t *, lmint_t);
 static inline lmssize_t Write(lmint_t, lmchar_t *, lmsize_t);
@@ -70,7 +70,7 @@ void *SR_Data_Threads(void *arg)
 	SR_thread_args_t *c = (SR_thread_args_t *)arg;
 
 	lmchar_t SR_mode;
-	lmint_t sockfd, retval;
+	lmint_t sockfd, retval, retvaln;
 /* 
  * get SR_mode and socket number, unlock so that other SR_threads can get ther
   * increase counter so that next job can grab it.
@@ -187,7 +187,8 @@ void *SR_Data_Threads(void *arg)
  */
 				do{
 					if( (retval = R_KAN(c, sockfd, 4)) == -1) return NULL;
-					if( (retval = S_KAN(c, sockfd, 4)) == -1) return NULL;
+					if( (retvaln = S_KAN(c, sockfd, 4)) == -1) return NULL;
+					retval = INTEGMIN(retval, retvaln);
 				}while(retval != 0);
 			}
 			else if(SR_mode == 'S'){
@@ -199,6 +200,7 @@ void *SR_Data_Threads(void *arg)
 				do{
 					if( (retval = S_KAN(c, sockfd, 4)) == -1) return NULL;
 					if( (retval = R_KAN(c, sockfd, 4)) == -1) return NULL;
+					retval = INTEGMIN(retval, retvaln);
 				}while(retval != 0);
 			}
 			else{
@@ -326,7 +328,7 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 	opts.opt_nomalloc = '\0'; // if 'm', do not malloc (used in Mklist --no_malloc
 	opts.opt_linkscleanemptrefs = '\0'; // clean empty link references
 	opts.opt_tcpencoding = 't'; // serialization and encoding when sending over TCP/IP
-	opts.opt_MEMCP = 'S';  // type of buffering
+	opts.opt_MEMCP = 'M';  // type of buffering
 /*
  * Receiver threads, set R_done = 0, once the 
  * transfer of entire message is done (ie. Sender sends EOMB sequence
@@ -448,9 +450,29 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 			
 			
 			Pthread_mutex_lock(c->plock);
-// 				*c->EOFC_END = max
+				*c->pEOFC_ENDt = retval;
 			Pthread_mutex_unlock(c->plock);
 
+		break;
+		
+		case 4:
+/*
+ * receive End sequence (if client requires end of connection)
+ */
+			if( (retval = R_EOFC(sockfd)) == -1){
+				Error(" R_EOFC error ");
+				return -1;
+			}
+			
+			opts.opt_EOBseq = 'E'; // send EOFbuff sequence only	
+			if( m3l_send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, Popts) < 0){
+				Error("SR_Data_Threads: Error when sending  SEOB\n");
+				return -1;
+			}
+			
+			Pthread_mutex_lock(c->plock);
+				*c->pEOFC_ENDt = retval;
+			Pthread_mutex_unlock(c->plock);
 		break;
 			
 		case 5:
@@ -471,9 +493,9 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 // 		Perror("close");
 // 
 /*
- * synck before letting SR_hub to close sockets
+ * syncing all R and S threads, all sockets are now closed (if required them to be closed ) 
  */
-	pt_sync(c->psync_loc);  /* syncing all R and S threads, all sockets are now closed (if required them to be closed ) */
+	pt_sync(c->psync_loc); 
 /*
  * signal the SR_hub and it can do another cycle
  */
@@ -496,7 +518,7 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 	opts.opt_nomalloc = '\0'; // if 'm', do not malloc (used in Mklist --no_malloc
 	opts.opt_linkscleanemptrefs = '\0'; // clean empty link references
 	opts.opt_tcpencoding = 't'; // serialization and encoding when sending over TCP/IP
-	opts.opt_MEMCP = 'S';  // type of buffering
+	opts.opt_MEMCP = 'M';  // type of buffering
 
 	bzero(prevbuff, EOBlen+1);
 /*
@@ -544,7 +566,6 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
  */
 // 			if( m3l_Send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB",  (lmchar_t *)NULL) < 1)
 // 				Error("Error during reading data from socket");
-
 	retval = 1;
 
 	switch(mode){
@@ -587,8 +608,32 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 				Error("SR_Data_Threads: Error when sending  SEOB\n");
 				return -1;
 			}
+			
+			Pthread_mutex_lock(c->plock);
+				*c->pEOFC_ENDt = retval;
+			Pthread_mutex_unlock(c->plock);
 		break;
 		
+		case 4:
+			opts.opt_EOBseq = 'E'; // send EOFbuff sequence only	
+			if( m3l_send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, Popts) < 0){
+				Error("SR_Data_Threads: Error when sending  SEOB\n");
+				return -1;
+			}
+/*
+ * receive End sequence (if client requires end of connection)
+ */
+			if( (retval = R_EOFC(sockfd)) == -1){
+				Error(" R_EOFC error ");
+				return -1;
+			}
+
+			Pthread_mutex_lock(c->plock);
+				*c->pEOFC_ENDt = retval;
+			Pthread_mutex_unlock(c->plock);
+
+		break;
+
 		case 5:
 			opts.opt_EOBseq = 'E'; // send EOFbuff sequence only	
 			if( m3l_send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, Popts) < 0){

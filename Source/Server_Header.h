@@ -107,7 +107,7 @@ typedef struct SR_thread_args{
 	lmint_t 		*psockfd, *pEofBuff, *psync;       		/* socket id, unique to every thread, can be in thread stack, End-ofbuffer signal */
 	lmchar_t 		*pSR_mode;					/* threads modes - Sender(S), Receiver(R) */
 	lmchar_t		*pATDT_mode, *pKA_mode;      			
-	lmint_t 		*pSRt_mode;
+	lmint_t 		*pSRt_mode, *pEOFC_ENDt;
 	lmsize_t  		*pthr_cntr;    					/* thread counter */
 	lmsize_t 		*pcounter, *prcounter, *pngotten;  		/* number of available R_threads, number of remaining threads = *pcounter - taken threads 
 											length of buffer from TCP/IP */
@@ -128,7 +128,7 @@ typedef struct SR_thread_str{
 	lmsize_t  		*thr_cntr;            							/* thread counter */
 	lmsize_t 		*R_availth_counter, *R_remainth_counter, *ngotten; 	/* number of available and free threads, length of buffer from TCP/IP   */
 	pt_sync_t		*sync_loc;
-	lmint_t			*mode;
+	lmint_t			*mode, *EOFC_END;
 }SR_thread_str_t;
 
 
@@ -148,7 +148,7 @@ typedef struct SR_hub_thread_str{
 	lmint_t 		*psockfd;					/* pointer to array of opened sockets */
 	node_t 			*pList;
 	lmchar_t		*pATDT_mode, *pKA_mode;	
-	lmint_t 		*pSRh_mode;
+	lmint_t 		*pSRh_mode, *pEOFC_ENDh;
 }SR_hub_thread_str_t;
 
 
