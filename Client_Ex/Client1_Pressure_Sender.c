@@ -100,15 +100,16 @@ int main(int argc, char *argv[])
 		tmpi = (lmint_t *)m3l_get_data_pointer(TmpNode);
 		tmpi[0] = i;
 		free(dim);
-		
+
 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
 			Error("CatData");
+
 again:
 		if ( (sockfd =  m3l_cli_open_socket(argv[1], portno, (char *)NULL)) < 0)
 			Error("Could not open socket");
 
 // 		m3l_Send_receive_tcpipsocket(Gnode,(char *)NULL, sockfd, "--encoding" , "IEEE-754",  "--REOB", (char *)NULL);
-		
+
 		if(  (TmpNode = m3l_Send_receive_tcpipsocket(Gnode,(char *)NULL, sockfd, "--encoding" , "IEEE-754", (char *)NULL)) == NULL)
 			Error("Receiving data");
 /*
@@ -133,7 +134,6 @@ again:
 			
 			printf("Sender -- Attemtping to send Header data again\n");
 
-			
 			goto again;
 		}
 		
@@ -143,12 +143,8 @@ again:
 		
 		if(m3l_Umount(&TmpNode) != 1)
 			Perror("m3l_Umount");
-		
-		
-		
-		
-		
-		
+
+
 
 
 

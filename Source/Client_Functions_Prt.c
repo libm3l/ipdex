@@ -1,8 +1,5 @@
 
 
-
-
-
 #include "libm3l.h"
 #include "Client_Functions_Prt.h"
 
@@ -20,7 +17,7 @@ lmint_t Client_Sender(void *data, const lmchar_t *hostname, lmint_t portnumber, 
 	List = (node_t *)data;
 	
 	option_index = 0;
-	
+
 	opts.opt_i = '\0';
 /*
  * check if data set exists
