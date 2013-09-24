@@ -115,7 +115,7 @@ node_t *client_name(char *name)
 }
 
 
-node_t *Header(char *name, char RWmode){
+node_t *Header(lmchar_t *name, lmchar_t RWmode){
 
 	node_t *Gnode, *TmpNode;
 	lmsize_t *dim;

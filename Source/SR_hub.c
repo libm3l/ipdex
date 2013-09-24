@@ -54,6 +54,8 @@
 
 #include "SR_hub.h"
 
+static lmint_t valueOfSharedVariable(SR_hub_thread_str_t *);
+
 void *SR_hub(void *arg)
 {
 /*
@@ -192,52 +194,31 @@ void *SR_hub(void *arg)
 					do{
 						Pthread_barrier_wait(c->pbarr);
 						Sem_wait(c->psem_g);   
-					}while(*c->pEOFC_ENDh == 1);  /* this value is not protected by mtex
-							at this point should be accessed only by this process */
-							
-							
-// 
-// 
-// http://stackoverflow.com/questions/5927053/handling-a-mutex-variable-in-a-while-loop-check
-// Edit: @ninjalj's suggestion to replace the while-loop with use of a condition variable is good advice if you are using the while-loop to wait until a program state has been reached. However, if you are using a while-loop to do work until a program state has been reached then...
-// 
-// You should wrap the "lock-mutex; examine variable; unlock mutex" code in a utility function, and your while-loop condition can then call that function. For example, the utility function might be written as shown in the following code:
-// 
-// int valueOfSharedVariable()
-// {
-//     int status;
-//     int result;
-// 
-//     status = pthread_mutex_lock(&mutex);
-//     assert(status == 0);
-//     result = sharedVariable;
-//     status = pthread_mutex_unlock(&mutex);
-//     assert(status == 0);
-//     return result;
-// }
-// 
-// Then, your while-loop condition can be written like the following:
-// 
-// while (valueOfSharedVariable() < 10) {
-//     ...
-// }
-
-
+// 					}while(*c->pEOFC_ENDh == 1);  /* this value is not protected by mtex
+// 							at this point should be accessed only by this process */
+					}while(valueOfSharedVariable(c) == 1);
 
 				case 4:
 					do{
-						Pthread_barrier_wait(c->pbarr);
-						Sem_wait(c->psem_g);   
-					}while(*c->pEOFC_ENDh == 1);  /* this value is not protected by mtex
-							at this point should be accessed only by this process */
+						IT = 2;
+						do{
+							Pthread_barrier_wait(c->pbarr);
+							Sem_wait(c->psem_g);  
+						}while(--IT == 0);
+// 					}while(*c->pEOFC_ENDh == 1);  /* this value is not protected by mtex
+// 							at this point should be accessed only by this process */
+					}while(valueOfSharedVariable(c) == 1);
 				break;
 			
 				case 5:
 				case 6:
 					while(1){
-						Pthread_barrier_wait(c->pbarr);
-						Sem_wait(c->psem_g);
-						}
+						IT = 2;
+						do{
+							Pthread_barrier_wait(c->pbarr);
+							Sem_wait(c->psem_g);
+						}while(--IT == 0);
+					}
 				break;
 			}
 
@@ -281,5 +262,19 @@ void *SR_hub(void *arg)
 	free(c);
 
 	return NULL;
+
+}
+
+
+lmint_t valueOfSharedVariable(SR_hub_thread_str_t *c)
+{
+	lmint_t status;
+	lmint_t result;
+
+	Pthread_mutex_lock(c->plock);
+	result = *c->pEOFC_ENDh;
+
+	Pthread_mutex_unlock(c->plock);
+	return result;
 
 }

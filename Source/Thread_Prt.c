@@ -297,7 +297,7 @@ void *Data_Threads(void *arg)
 		}while(n_avail_loc_theads != 0);  /* all connecting thread arrivied, ie. one Sender and n_rec_proc Receivers */
 		
 		n_avail_loc_theads = n_rec_proc + 1;
-		Sem_post(&loc_sem);
+		Sem_post(&loc_sem);   /* SR_hub sem_wait() for this semaphore */
 
 		}
 /*

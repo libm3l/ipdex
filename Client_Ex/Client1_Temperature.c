@@ -146,9 +146,8 @@ again:
 		if(m3l_Umount(&Gnode) != 1)
 			Perror("m3l_Umount");
 		
-		
-		
-		
+		if(m3l_Umount(&TmpNode) != 1)
+			Perror("m3l_Umount");
 		
 		
 

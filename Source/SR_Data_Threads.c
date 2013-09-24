@@ -656,7 +656,8 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 lmint_t R_EOFC(lmint_t sockfd){
 /*
  * receive the EOFC sequence, look at the first byte
- * value and return in back
+ * value and return back; the values signals if the client request
+ * closing scoket or keep it opened
  */
 	lmchar_t buff[EOFClen+1], allbuff[EOFClen+1], *pc;
 	lmssize_t ngotten, nreceived;
@@ -692,7 +693,7 @@ lmint_t R_EOFC(lmint_t sockfd){
 lmssize_t S_EOFC(lmint_t sockfd, lmint_t val){
 /*
  * send the value of the EOFC signaling whether
- * client requests or not to close the socket
+ * client requests or does not request to close the socket
  */
 	lmssize_t total, n;
 	total = 0;

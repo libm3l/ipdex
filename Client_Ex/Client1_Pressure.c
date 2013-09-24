@@ -138,6 +138,9 @@ again:
 			goto again;
 		}
 		
+		if(m3l_Umount(&TmpNode) != 1)
+			Perror("m3l_Umount");
+		
 		printf(" Sending --SEOB\n");
 
 		

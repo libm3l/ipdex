@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
 		
 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
 			Error("CatData");
-again:		
+again:
 		if ( (sockfd =  m3l_cli_open_socket(argv[1], portno, (char *)NULL)) < 0)
 			Error("Could not open socket");
 
@@ -141,7 +141,8 @@ again:
 			Perror("m3l_Umount");
 		
 		
-		
+		if(m3l_Umount(&TmpNode) != 1)
+			Perror("m3l_Umount");
 		
 		
 		
