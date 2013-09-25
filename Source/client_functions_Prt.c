@@ -133,6 +133,7 @@ again:
 // 		if(  (TmpNode = m3l_Send_receive_tcpipsocket(Gnode,(lmchar_t *)NULL, sockfd, "--encoding" , "IEEE-754", (lmchar_t *)NULL)) == NULL)
 // 			Error("Receiving data");
 
+		opts.opt_tcpencoding = 'I';
 		if( (TmpNode = m3l_send_receive_tcpipsocket(Gnode, (lmchar_t *)NULL, sockfd, Popts_1)) == NULL){
 			Perror("m3l_send_receive_tcpipsocket error");
 			return (void *)NULL;
@@ -167,6 +168,7 @@ again:
 /*
  * confirm the header was received (--SEOB)
  */
+		opts.opt_tcpencoding = 'I';
 		opts.opt_EOBseq = 'E';
 // 		m3l_Send_to_tcpipsocket((node_t *)NULL, (char *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB", (char *)NULL);
 		m3l_send_to_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts_1);
@@ -175,7 +177,8 @@ again:
  */
 // 		if( (Gnode = m3l_Receive_tcpipsocket((char *)NULL, sockfd, "--encoding" , "IEEE-754", (char *)NULL)) == NULL)
 // 			Error("Receiving data");
-		
+
+		opts.opt_tcpencoding = 'I';		
 		if( (Gnode = m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts_1)) == NULL)
 			Error("Receiving data");
 
@@ -183,6 +186,8 @@ again:
  * confirm the data was received (--SEOB)
  */
 // 		m3l_Send_to_tcpipsocket(NULL,(char *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB", (char *)NULL);
+		opts.opt_tcpencoding = 'I';
+		opts.opt_EOBseq = 'E';
 		m3l_send_to_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts_1);
 		
 		if(hostname != NULL){
