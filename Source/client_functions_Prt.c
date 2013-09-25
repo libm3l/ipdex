@@ -28,19 +28,21 @@ lmint_t client_sender(void *data, const lmchar_t *hostname, lmint_t portno, lmch
 /*
  * create header which will identify name of data set and Sender (S) or Receiver (R)
  */
-// 		Gnode = Header("Pressure", 'S');
 		Gnode = Header(data_name, SR_MODE);
 /* 
  * if required, open socket 
  */
 again:
-		if ( (sockfd =  m3l_cli_open_socket(hostname, portno, (lmchar_t *)NULL)) < 0)
-			Error("Could not open socket");
+		if(hostname != NULL){
+			if ( (sockfd =  m3l_cli_open_socket(hostname, portno, (lmchar_t *)NULL)) < 0)
+				Error("Could not open socket");
+		}
+
+		opts.opt_tcpencoding = 'I';
 		
 // 		if(  (TmpNode = m3l_Send_receive_tcpipsocket(Gnode,(lmchar_t *)NULL, sockfd, "--encoding" , "IEEE-754", (lmchar_t *)NULL)) == NULL)
 // 			Error("Receiving data");
-		
-		
+
 		if( (TmpNode = m3l_send_receive_tcpipsocket(Gnode, (lmchar_t *)NULL, sockfd, Popts_1)) == NULL){
 			Perror("m3l_send_receive_tcpipsocket error");
 			return -1;
@@ -57,9 +59,12 @@ again:
 	
 			if(m3l_Umount(&TmpNode) != 1)
 			Perror("m3l_Umount");
+
+			if(hostname != NULL){
+				if( close(sockfd) == -1)
+					Perror("close");
+			}
 			
-			if( close(sockfd) == -1)
-				Perror("close");			
 			if(nanosleep(&tim , &tim2) < 0 )
 				Error("Nano sleep system call failed \n");
 			
@@ -76,24 +81,20 @@ again:
 // 		m3l_Send_receive_tcpipsocket((node_t *)data,(char *)NULL, sockfd, "--encoding" , "IEEE-754",  "--REOB", (char *)NULL);
 
 		opts.opt_REOBseq = 'G';
-		m3l_send_receive_tcpipsocket(Gnode, (lmchar_t *)NULL, sockfd, Popts_1);
+		opts.opt_tcpencoding = 'I';
+
+		m3l_send_receive_tcpipsocket((node_t *)data, (lmchar_t *)NULL, sockfd, Popts_1);
 		
-		if(Gnode == NULL)
-			Error("transfer data error");
-		
-		if(m3l_Umount(&Gnode) != 1)
-			Perror("m3l_Umount");
-		
-		if( close(sockfd) == -1)
-			Perror("close");
+		if(hostname != NULL){
+			if( close(sockfd) == -1)
+				Perror("close");
+		}
 }
 
 
 
 
-
-
-lmint_t client_recevier(void *data, const lmchar_t *hostname, lmint_t portno, lmchar_t *data_name, lmchar_t SR_MODE, opts_t *Popts, opts_t *Popst_lm3l){
+void *client_recevier(const lmchar_t *hostname, lmint_t portno, lmchar_t *data_name, lmchar_t SR_MODE, opts_t *Popts, opts_t *Popst_lm3l){
 
 	node_t *Gnode, *TmpNode;
 	lmint_t sockfd, retval;
@@ -124,16 +125,17 @@ lmint_t client_recevier(void *data, const lmchar_t *hostname, lmint_t portno, lm
  * if required, open socket 
  */
 again:
-		if ( (sockfd =  m3l_cli_open_socket(hostname, portno, (lmchar_t *)NULL)) < 0)
-			Error("Could not open socket");
-		
+		if(hostname != NULL){
+			if ( (sockfd =  m3l_cli_open_socket(hostname, portno, (lmchar_t *)NULL)) < 0)
+				Error("Could not open socket");
+		}
+
 // 		if(  (TmpNode = m3l_Send_receive_tcpipsocket(Gnode,(lmchar_t *)NULL, sockfd, "--encoding" , "IEEE-754", (lmchar_t *)NULL)) == NULL)
 // 			Error("Receiving data");
-		
-		
+
 		if( (TmpNode = m3l_send_receive_tcpipsocket(Gnode, (lmchar_t *)NULL, sockfd, Popts_1)) == NULL){
 			Perror("m3l_send_receive_tcpipsocket error");
-			return -1;
+			return (void *)NULL;
 		}
 /*
  * get the value of the /RR/val
@@ -148,8 +150,10 @@ again:
 			if(m3l_Umount(&TmpNode) != 1)
 			Perror("m3l_Umount");
 			
-			if( close(sockfd) == -1)
-				Perror("close");			
+			if(hostname != NULL){
+				if( close(sockfd) == -1)
+					Perror("close");
+			}
 			if(nanosleep(&tim , &tim2) < 0 )
 				Error("Nano sleep system call failed \n");
 			
@@ -181,6 +185,10 @@ again:
 // 		m3l_Send_to_tcpipsocket(NULL,(char *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB", (char *)NULL);
 		m3l_send_to_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts_1);
 		
-		if( close(sockfd) == -1)
-			Perror("close");
+		if(hostname != NULL){
+			if( close(sockfd) == -1)
+				Perror("close");
+		}
+		
+		return (void *)Gnode;
 }
