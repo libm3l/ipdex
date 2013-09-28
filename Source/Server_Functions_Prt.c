@@ -276,3 +276,30 @@ void pt_sync(pt_sync_t *sync)
  */
 	Pthread_mutex_unlock(sync->pmutex);
 }
+
+
+
+lmint_t get_exchange_channel_mode(lmchar_t ATDTMode, lmchar_t KeepAllive_Mode){
+/*
+ * function returns mode of the socket based on the values of ATDTMode and KeepAllive_Mode
+ */
+	lmint_t retval;
+
+	     if(ATDTMode == 'D' && KeepAllive_Mode == 'N')  /* Direct transfer, close socket */
+		retval = 1;
+	else if(ATDTMode == 'A' && KeepAllive_Mode == 'N')  /* Alternate transfer, close socket */
+		retval = 2;
+	else if(ATDTMode == 'D' && KeepAllive_Mode == 'C')  /* Direct transfer, close socket after client request it*/
+		retval = 3;
+	else if(ATDTMode == 'A' && KeepAllive_Mode == 'C')  /* Alternate transfer, close socket after client request it*/
+		retval = 4;
+	else if(ATDTMode == 'D' && KeepAllive_Mode == 'Y')  /* Direct transfer, do not close socket*/
+		retval = 5;
+	else if(ATDTMode == 'A' && KeepAllive_Mode == 'Y')  /* Alternate transfer, do not close socket*/
+		retval = 6;
+	else
+		retval = -1;
+	
+	return retval;
+
+}

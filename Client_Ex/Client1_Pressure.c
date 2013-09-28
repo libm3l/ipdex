@@ -49,6 +49,7 @@
 
 #include "libm3l.h"
 #include "ACK.h"
+#include "client_functions_Prt.h"
 
 int main(int argc, char *argv[])
 {
@@ -90,7 +91,7 @@ int main(int argc, char *argv[])
  		printf("\n\n--------------------------------    i = %ld\n\n", i);
 
 		
-		Gnode = (node_t *)client_recevier(argv[1], portno, "Pressure", 'R',  (opts_t *)NULL, (opts_t *)NULL);
+		Gnode = (node_t *)client_recevier_mode1(argv[1], portno, "Pressure", 'R',  (opts_t *)NULL, (opts_t *)NULL);
 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
 			Error("CatData");
 		
