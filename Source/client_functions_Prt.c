@@ -134,6 +134,41 @@ again:
 // 		}
 		
 	break;
+
+	case 4:
+/*
+ * send data and receive REOB
+ */	
+		opts.opt_REOBseq = 'G';  /* --REOB */
+		opts.opt_tcpencoding = 'I';   /*  "--encoding" , "IEEE-754"  */
+		m3l_send_receive_tcpipsocket((node_t *)data, (lmchar_t *)NULL, sockfd, Popts_1);
+// 		m3l_send_to_tcpipsocket((node_t *)END_OK, (lmchar_t *)NULL, sockfd, Popts_1);
+		
+	break;
+
+	case 5:
+/*
+ * send data and receive confirmation that the data were received (--REOB)
+ */
+// 		m3l_Send_receive_tcpipsocket((node_t *)data,(char *)NULL, sockfd, "--encoding" , "IEEE-754",  "--REOB", (char *)NULL);
+
+		opts.opt_REOBseq = 'G';  /* --REOB */
+		opts.opt_tcpencoding = 'I';   /*  "--encoding" , "IEEE-754"  */
+		m3l_send_receive_tcpipsocket((node_t *)data, (lmchar_t *)NULL, sockfd, Popts_1);
+	
+	break;
+
+	case 6:
+/*
+ * send data and receive confirmation that the data were received (--REOB)
+ */
+// 		m3l_Send_to_tcpipsocket((node_t *)data,(char *)NULL, sockfd, "--encoding" , "IEEE-754",  "--REOB", (char *)NULL);
+		opts.opt_tcpencoding = 'I';   /*  "--encoding" , "IEEE-754"  */
+		m3l_send_to_tcpipsocket((node_t *)data, (lmchar_t *)NULL, sockfd, Popts_1);
+		
+		/* maybe adding REOB */
+		
+	break;
 	
 	default:
 		Error("client_sender: Wrong mode - check KeepAlive and ATDT specifications");
@@ -272,6 +307,47 @@ again:
 // 			if( close(sockfd) == -1)
 // 				Perror("close");
 // 		}		
+	break;
+	
+
+	case 4:
+		opts.opt_tcpencoding = 'I';   /*  "--encoding" , "IEEE-754"  */
+		if( (Gnode = m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts_1)) == NULL)
+			Error("Receiving data");
+		
+		opts.opt_REOBseq = 'G';  /* --REOB */
+// 		m3l_send_receive_tcpipsocket((node_t *)END_OK, (lmchar_t *)NULL, sockfd, Popts_1);
+		
+	break;
+
+	case 5:
+/*
+ * receive payload
+ */
+// 	if( (Gnode = m3l_Receive_tcpipsocket((char *)NULL, sockfd, "--encoding" , "IEEE-754", (char *)NULL)) == NULL)
+// 		Error("Receiving data");
+
+		opts.opt_tcpencoding = 'I';   /*  "--encoding" , "IEEE-754"  */
+		if( (Gnode = m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts_1)) == NULL)
+			Error("Receiving data");
+/*
+ * confirm the data was received (--SEOB)
+ */
+// 	m3l_Send_to_tcpipsocket(NULL,(char *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB", (char *)NULL);
+
+		opts.opt_tcpencoding = 'I';  /*  "--encoding" , "IEEE-754"  */
+		opts.opt_EOBseq = 'E';   /* --SEOB */
+		m3l_send_to_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts_1);
+
+	break;
+	
+	case 6:
+		opts.opt_tcpencoding = 'I';   /*  "--encoding" , "IEEE-754"  */
+		if( (Gnode = m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts_1)) == NULL)
+			Error("Receiving data");
+		
+		/* maybe adding SEOB */
+
 	break;
 	
 	default:
