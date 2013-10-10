@@ -64,7 +64,9 @@ int main(int argc, char *argv[])
 	char *name="Pressure";
 
 	int nmax, retval;
-	double *tmpdf;	
+	double *tmpdf;
+	
+	client_fce_struct_t InpPar, *PInpPar;
 
 	struct timespec tim, tim2;
 	tim.tv_sec = 0;
@@ -73,6 +75,8 @@ int main(int argc, char *argv[])
 	tim.tv_nsec = 10000000L;    /* 0.01 secs */
 
 	nmax = 100000;
+	
+	PInpPar = &InpPar;
 /*
  * get port number
  */
@@ -90,8 +94,12 @@ int main(int argc, char *argv[])
 
  		printf("\n\n--------------------------------    i = %ld\n\n", i);
 
+		PInpPar->data_name = name;
+		PInpPar->SR_MODE = 'R';
+		PInpPar->mode = 1;
+		PInpPar->Caller = 'S';
 		
-		Gnode = (node_t *)client_recevier_mode1(argv[1], portno, "Pressure", 'R',  (opts_t *)NULL, (opts_t *)NULL);
+		Gnode = (node_t *)client_recevier(argv[1], portno, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
 			Error("CatData");
 		
