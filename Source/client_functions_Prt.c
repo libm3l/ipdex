@@ -109,11 +109,12 @@ again:
  */
 // 		m3l_Send_to_tcpipsocket((node_t *)data,(char *)NULL, sockfd, "--encoding" , "IEEE-754",  "--REOB", (char *)NULL);
 		opts.opt_tcpencoding = 'I';   /*  "--encoding" , "IEEE-754"  */
+		opts.opt_EOBseq = '\0';  /* --REOB */
 		m3l_send_to_tcpipsocket((node_t *)data, (lmchar_t *)NULL, sockfd, Popts_1);
 		
 		/* maybe adding REOB */
 	
-		if(hostname != NULL && ClientInPar->Caller == 'R'){  /* Only Receiver closes socket */
+		if(hostname != NULL && ClientInPar->SR_MODE == 'R'){  /* Only Receiver closes socket */
 			if( close(sockfd) == -1)
 				Perror("close");
 		}
@@ -179,12 +180,14 @@ again:
 
 
 
-void *client_recevier(const lmchar_t *hostname, lmint_t portno, client_fce_struct_t *ClientInPar, opts_t *Popts, opts_t *Popst_lm3l){
+client_recevier_struct_t client_recevier(const lmchar_t *hostname, lmint_t portno, client_fce_struct_t *ClientInPar, opts_t *Popts, opts_t *Popst_lm3l){
 
 	node_t *Gnode, *TmpNode;
 	lmint_t sockfd, retval;
 	
 	opts_t *Popts_1, opts;
+	
+	client_recevier_struct_t Pretval;
 	
 	struct timespec tim, tim2;
 	tim.tv_sec = 0;
@@ -199,7 +202,6 @@ void *client_recevier(const lmchar_t *hostname, lmint_t portno, client_fce_struc
 	opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
 	opts.opt_REOBseq = '\0'; // read EOFbuff sequence only
 	
-	
 	Popts_1 = &opts;
 /*
  * create header which will identify name of data set and Sender (S) or Receiver (R)
@@ -212,6 +214,8 @@ again:
 	if(hostname != NULL){
 		if ( (sockfd =  m3l_cli_open_socket(hostname, portno, (lmchar_t *)NULL)) < 0)
 			Error("Could not open socket");
+		
+		Pretval.sockfd = sockfd;
 	}
 
 // 	if(  (TmpNode = m3l_Send_receive_tcpipsocket(Gnode,(lmchar_t *)NULL, sockfd, "--encoding" , "IEEE-754", (lmchar_t *)NULL)) == NULL)
@@ -223,7 +227,8 @@ again:
 	opts.opt_tcpencoding = 'I';  /*  "--encoding" , "IEEE-754"  */
 	if( (TmpNode = m3l_send_receive_tcpipsocket(Gnode, (lmchar_t *)NULL, sockfd, Popts_1)) == NULL){
 		Perror("m3l_send_receive_tcpipsocket error");
-		return (void *)NULL;
+		Pretval.sockfd = -1;
+		return Pretval;
 	}
 /*
  * get the value of the /RR/val
@@ -291,7 +296,7 @@ again:
 		
 		/* maybe adding SEOB */
 		
-		if(hostname != NULL && ClientInPar->Caller == 'S'){  /* Sender closes socket */
+		if(hostname != NULL && ClientInPar->SR_MODE == 'S'){  /* Sender closes socket */
 			if( close(sockfd) == -1)
 				Perror("close");
 		}
@@ -355,5 +360,7 @@ again:
 	break;
 	}
 
-	return (void *)Gnode;
+// 	return (void *)Gnode;
+	Pretval.data = Gnode;
+	return Pretval;
 }

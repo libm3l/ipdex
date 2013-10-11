@@ -167,14 +167,18 @@ void *SR_hub(void *arg)
 					
 					IT = 2;
 					do{
+						
+						printf(" IT is %d\n", IT);
 /*
  * wait until all SR_threads reach barrier, then start actual transfer of the data from S to R(s)
  */
 						Pthread_barrier_wait(c->pbarr);
+						printf(" After barrier \n");
 /*
  * once the data transfer is finished wait until all data is tranferred and S and R threads close their socket
  */
 						Sem_wait(c->psem_g);
+						printf(" After semaphore \n");
 						
 					}while(--IT == 0);
 				break;

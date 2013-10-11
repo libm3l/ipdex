@@ -121,11 +121,9 @@ int main(int argc, char *argv[])
 		PInpPar->data_name = name;
 		PInpPar->SR_MODE = 'S';
 		PInpPar->mode    = 2;
-		PInpPar->Caller  = 'R';
 		
 		client_sender(Gnode, argv[1], portno, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
-		
-		
+
 		printf(" DATA sent \n");
 		
 		if(m3l_Umount(&Gnode) != 1)

@@ -67,6 +67,7 @@ int main(int argc, char *argv[])
 	double *tmpdf;
 	
 	client_fce_struct_t InpPar, *PInpPar;
+	client_recevier_struct_t Pretval;
 
 	struct timespec tim, tim2;
 	tim.tv_sec = 0;
@@ -74,9 +75,9 @@ int main(int argc, char *argv[])
 	tim.tv_sec = 0;
 	tim.tv_nsec = 10000000L;    /* 0.01 secs */
 
-	nmax = 100000;
-	
 	PInpPar = &InpPar;
+
+	nmax = 100000;
 /*
  * get port number
  */
@@ -97,13 +98,12 @@ int main(int argc, char *argv[])
 		PInpPar->data_name = name;
 		PInpPar->SR_MODE = 'R';
 		PInpPar->mode = 1;
-		PInpPar->Caller = 'S';
 		
-		Gnode = (node_t *)client_recevier(argv[1], portno, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
-		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
+		Pretval = client_recevier(argv[1], portno, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
+		if(m3l_Cat(Pretval.data, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
 			Error("CatData");
 		
-		if(m3l_Umount(&Gnode) != 1)
+		if(m3l_Umount(&Pretval.data) != 1)
 			Perror("m3l_Umount");
 
 // 		if(nanosleep(&tim , &tim2) < 0 )

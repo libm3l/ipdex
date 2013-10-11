@@ -97,7 +97,6 @@ int main(int argc, char *argv[])
 		PInpPar->data_name = name;
 		PInpPar->SR_MODE = 'R';
 		PInpPar->mode    = 2;
-		PInpPar->Caller  = 'S';
 		
 		Gnode = (node_t *)client_recevier(argv[1], portno, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
