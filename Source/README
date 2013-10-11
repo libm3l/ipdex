@@ -7,7 +7,7 @@ valgrind --tool=memcheck  --trace-children=yes --vex-iropt-register-updates=allr
 
 
 
- valgrind --tool=memcheck  --trace-children=yes --vex-iropt-register-updates=allregs-at-mem-access --leak-check=full --leak-resolution=high --show-reachable=yes  --track-origins=yes ./Server_Main.out --port 31000 --input_file Definition_File_P1 --show   &> OUTPUT
+ valgrind --tool=memcheck  --trace-children=yes --vex-iropt-register-updates=allregs-at-mem-access --leak-check=full --leak-resolution=high --show-reachable=yes  --track-origins=yes ./Server_Main.out --port 31000 --input_file Definition_File_PDT_Modes  --show   &> OUTPUT
 
 
 gdb

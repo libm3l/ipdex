@@ -49,6 +49,7 @@
 
 #include "libm3l.h"
 #include "ACK.h"
+#include "client_functions_Prt.h"
 
 int main(int argc, char *argv[])
 {
@@ -64,6 +65,7 @@ int main(int argc, char *argv[])
 
 	lmint_t nmax, retval;
 	lmdouble_t *tmpdf;
+	client_fce_struct_t InpPar, *PInpPar;
 	
 	struct timespec tim, tim2;
 // 	tim.tv_sec = 1;
@@ -72,6 +74,7 @@ int main(int argc, char *argv[])
 	tim.tv_nsec = 10000000L;    /* 0.1 secs */
 
 	nmax = 100000;
+	PInpPar = &InpPar;
 /*
  * get port number
  */
@@ -91,70 +94,8 @@ int main(int argc, char *argv[])
 /*
  * open socket, IP address of server is in argv[1], port number is in portno
  */
-		Gnode = Header("Temperature", 'S');
-
-		dim = (size_t *) malloc( 1* sizeof(size_t));
-		dim[0] = 1;
-		if(  (TmpNode = m3l_Mklist("Iteration", "I", 1, dim, &Gnode, "/Header", "./", (char *)NULL)) == 0)
-				Error("m3l_Mklist");
-		tmpi = (lmint_t *)m3l_get_data_pointer(TmpNode);
-		tmpi[0] = i;
-		free(dim);
-		
-		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
-			Error("CatData");
-again:		
-		if ( (sockfd =  m3l_cli_open_socket(argv[1], portno, (char *)NULL)) < 0)
-			Error("Could not open socket");
-
-// 		m3l_Send_receive_tcpipsocket(Gnode,(char *)NULL, sockfd, "--encoding" , "IEEE-754",  "--REOB", (char *)NULL);
-		
-		if(  (TmpNode = m3l_Send_receive_tcpipsocket(Gnode,(char *)NULL, sockfd, "--encoding" , "IEEE-754", (char *)NULL)) == NULL)
-			Error("Receiving data");
-/*
- * get the value of the /RR/val
- */
-		retval = TmpNode->child->data.i[0];
-/*
- * if retval == 1 the data_thread is prepared to transmit the data, 
- * if retval == 0 the data_thread is busy, close socket and try again
- */
-		printf(" Sending header %d\n", retval);
-		
-		if(retval == 0){
-	
-			if(m3l_Umount(&TmpNode) != 1)
-			Perror("m3l_Umount");
-			
-			if( close(sockfd) == -1)
-				Perror("close");			
-			if(nanosleep(&tim , &tim2) < 0 )
-				Error("Nano sleep system call failed \n");
-			
-			printf("Sender -- Attemtping to send Header data again\n");
-
-			
-			goto again;
-		}
-		
-		if(m3l_Umount(&Gnode) != 1)
-			Perror("m3l_Umount");
-		
-		
-		
-		
-		
-		
-		
-		
-		
-
-
-
-		printf(" Creating payload \n");
-		
 		Gnode = client_name("Text from Client1");
-	
+// 	
 		dim = (size_t *) malloc( 1* sizeof(size_t));
 		dim[0] = 1;
 /*
@@ -164,32 +105,28 @@ again:
 				Error("m3l_Mklist");
 		TmpNode->data.i[0] = i;
 /*
- * add pressure array, array has 10 pressure with some values
+ * add pressure array, array has 7 pressure with some values
  */	
-		dim[0] = 10;
+		dim[0] = 7;
 		if(  (TmpNode = m3l_Mklist("numbers", "D", 1, dim, &Gnode, "/Client_Data", "./", (char *)NULL)) == 0)
 				Error("m3l_Mklist");
 		tmpdf = (double *)m3l_get_data_pointer(TmpNode);
-		for(j=0; j<10; j++)
+		for(j=0; j<7; j++)
 			tmpdf[j] = (i+1)*j*1.1;
 		free(dim);
-
+		
 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
 			Error("CatData");
-
-		m3l_Send_receive_tcpipsocket(Gnode,(char *)NULL, sockfd, "--encoding" , "IEEE-754",  "--REOB", (char *)NULL);
-// 		printf(" after sending payload \n");
-
-// 		m3l_Send_to_tcpipsocket(Gnode,(char *)NULL, sockfd, "--encoding" , "IEEE-754", (char *)NULL);
-// 		printf(" after sending payload \n");
-// 		m3l_Receive_tcpipsocket((char *)NULL, sockfd, "--encoding" , "IEEE-754",  "--REOB", (char *)NULL);
-// 		printf(" after --REOB \n");
 		
+		PInpPar->data_name = name;
+		PInpPar->SR_MODE = 'S';
+		PInpPar->mode = 1;
+		PInpPar->Caller = 'R';
+		
+		client_sender(Gnode, argv[1], portno, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
+
 		if(m3l_Umount(&Gnode) != 1)
 			Perror("m3l_Umount");
-		
-		if( close(sockfd) == -1)
-			Perror("close");
 		
 		if(nanosleep(&tim , &tim2) < 0 )
 			Error("Nano sleep system call failed \n");

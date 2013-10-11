@@ -175,7 +175,6 @@ void *SR_hub(void *arg)
  * once the data transfer is finished wait until all data is tranferred and S and R threads close their socket
  */
 						Sem_wait(c->psem_g);
-
 						
 					}while(--IT == 0);
 				break;
