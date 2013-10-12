@@ -66,6 +66,7 @@ int main(int argc, char *argv[])
 	lmint_t nmax, retval;
 	lmdouble_t *tmpdf;
 	client_fce_struct_t InpPar, *PInpPar;
+	client_recevier_struct_t Pretval;
 	
 	struct timespec tim, tim2;
 // 	tim.tv_sec = 1;

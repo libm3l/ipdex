@@ -180,14 +180,14 @@ again:
 
 
 
-client_recevier_struct_t client_recevier(const lmchar_t *hostname, lmint_t portno, client_fce_struct_t *ClientInPar, opts_t *Popts, opts_t *Popst_lm3l){
+client_recevier_struct_t *client_recevier(const lmchar_t *hostname, lmint_t portno, client_fce_struct_t *ClientInPar, opts_t *Popts, opts_t *Popst_lm3l){
 
 	node_t *Gnode, *TmpNode;
 	lmint_t sockfd, retval;
 	
 	opts_t *Popts_1, opts;
 	
-	client_recevier_struct_t Pretval;
+	client_recevier_struct_t *Pretval;
 	
 	struct timespec tim, tim2;
 	tim.tv_sec = 0;
@@ -203,6 +203,8 @@ client_recevier_struct_t client_recevier(const lmchar_t *hostname, lmint_t portn
 	opts.opt_REOBseq = '\0'; // read EOFbuff sequence only
 	
 	Popts_1 = &opts;
+	
+	Pretval = (client_recevier_struct_t *)malloc(sizeof(client_recevier_struct_t));
 /*
  * create header which will identify name of data set and Sender (S) or Receiver (R)
  */
@@ -215,7 +217,7 @@ again:
 		if ( (sockfd =  m3l_cli_open_socket(hostname, portno, (lmchar_t *)NULL)) < 0)
 			Error("Could not open socket");
 		
-		Pretval.sockfd = sockfd;
+		Pretval->sockfd = sockfd;
 	}
 
 // 	if(  (TmpNode = m3l_Send_receive_tcpipsocket(Gnode,(lmchar_t *)NULL, sockfd, "--encoding" , "IEEE-754", (lmchar_t *)NULL)) == NULL)
@@ -227,7 +229,11 @@ again:
 	opts.opt_tcpencoding = 'I';  /*  "--encoding" , "IEEE-754"  */
 	if( (TmpNode = m3l_send_receive_tcpipsocket(Gnode, (lmchar_t *)NULL, sockfd, Popts_1)) == NULL){
 		Perror("m3l_send_receive_tcpipsocket error");
-		Pretval.sockfd = -1;
+		
+		if(m3l_Umount(&Gnode) != 1)
+			Perror("m3l_Umount");
+		
+		Pretval->sockfd = -1;
 		return Pretval;
 	}
 /*
@@ -348,9 +354,11 @@ again:
 	
 	case 6:
 		opts.opt_tcpencoding = 'I';   /*  "--encoding" , "IEEE-754"  */
-		if( (Gnode = m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts_1)) == NULL)
+		if( (Gnode = m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts_1)) == NULL){
+			if(m3l_Umount(&Gnode) != 1)
+				Perror("m3l_Umount");
 			Error("Receiving data");
-		
+		}
 		/* maybe adding SEOB */
 
 	break;
@@ -361,6 +369,6 @@ again:
 	}
 
 // 	return (void *)Gnode;
-	Pretval.data = Gnode;
+	Pretval->data = Gnode;
 	return Pretval;
 }

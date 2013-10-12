@@ -67,6 +67,7 @@ int main(int argc, char *argv[])
 	double *tmpdf;
 	
 	client_fce_struct_t InpPar, *PInpPar;
+	client_recevier_struct_t Pretval;
 
 	struct timespec tim, tim2;
 	tim.tv_sec = 0;
@@ -98,11 +99,11 @@ int main(int argc, char *argv[])
 		PInpPar->SR_MODE = 'R';
 		PInpPar->mode    = 2;
 		
-		Gnode = (node_t *)client_recevier(argv[1], portno, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
+		Pretval = client_recevier(argv[1], portno, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
 			Error("CatData");
 		
-		if(m3l_Umount(&Gnode) != 1)
+		if(m3l_Umount(&Pretval.data) != 1)
 			Perror("m3l_Umount");
 		
 		
