@@ -149,8 +149,10 @@ void *SR_hub(void *arg)
  * wait for semaphore from Thread_Prt that 
  * all requests arrived
  */
+// 		printf(" BEFORE CLIENT MODE ---  is %d\n", *c->pSRh_mode);
 		Sem_wait(c->psem);
 			
+// 			printf(" CLIENT MODE---  is %d\n", *c->pSRh_mode);
 			switch(*c->pSRh_mode){
 				case 1:
 /*
@@ -178,9 +180,9 @@ void *SR_hub(void *arg)
  * once the data transfer is finished wait until all data is tranferred and S and R threads close their socket
  */
 						Sem_wait(c->psem_g);
-						printf(" After semaphore \n");
+						printf(" After semaphore\n");
 						
-					}while(--IT == 0);
+					}while(--IT != 0);
 				break;
 			
 				case 3:

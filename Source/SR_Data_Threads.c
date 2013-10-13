@@ -304,11 +304,17 @@ lmssize_t Read(lmint_t descrpt , lmchar_t *buff, lmint_t n)
 {
 	lmsize_t ngotten;
 
+	
+// 	printf("SR_Data_Threads descrpt %d\n",  descrpt);
+	
 	if (  (ngotten = read(descrpt,buff,n)) == -1){
-		Perror("read here");
+		
+// 		printf("ERR BUFF:  '%s'  %d\n", buff, ngotten);
+		Perror("SR_Data_Threads - Read");
 		return -1;
 	}
 	buff[ngotten] = '\0';
+// 		printf("BUFF:  '%s'    %d\n", buff, ngotten);
 
 	return ngotten;
 }
@@ -417,6 +423,19 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 	retval = 1;
 
 	switch(mode){
+		
+		case 0:
+// 			printf(" CASE 0\n");
+// 			/* handshake  SEOB-REOB */
+// 			opts.opt_REOBseq = 'G';  /* --REOB */
+// 			opts.opt_EOBseq = 'E';       /* --SEOB */
+// 			m3l_receive_send_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts);
+// 			opts.opt_REOBseq = '\0';  /* --REOB */
+// 			opts.opt_EOBseq = '\0';       /* --SEOB */
+// 			printf(" ATER CASE 0\n");
+
+		break;
+
 		case 1:
 			opts.opt_REOBseq = 'G'; // send EOFbuff sequence only
 			if( m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts) < 0){
@@ -431,12 +450,19 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 		break;
 
 		case 2:
+// 			printf(" SR---CASE 2\n");
+// 			/* handshake  SEOB-REOB */
+// 			opts.opt_REOBseq = 'G';  /* --REOB */
+// 			opts.opt_EOBseq = 'E';       /* --SEOB */
+// 			m3l_receive_send_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts);
+// 			opts.opt_REOBseq = '\0';  /* --REOB */
+// 			opts.opt_EOBseq = '\0';       /* --SEOB */
+// 			printf(" ATER SR----CASE 2\n");
 /*
  * close the socket 
  */
 			if( close(sockfd) == -1)
 				Perror("close");
-			
 		break;
 		
 		case 3:
@@ -495,11 +521,16 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 /*
  * syncing all R and S threads, all sockets are now closed (if required them to be closed ) 
  */
+
+// 			printf(" ATER SR--syncing 2\n");
+
 	pt_sync(c->psync_loc); 
 /*
  * signal the SR_hub and it can do another cycle
  */
+// 			printf(" ATER SR--semaphore 2\n");
 	if(last == 1)Sem_post(c->psem_g);
+// 			printf(" ATER SR--retval 2\n");
 	return retval;
 }
 
@@ -549,7 +580,7 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 			*c->pEofBuff = 0;
 /*
  * wait on synchronization point, the syncing for Receivers is done before writing the 
- * bffer to socket
+ * buffer to socket
  */
 		pt_sync(c->psync_loc);
 /*
@@ -569,6 +600,16 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 	retval = 1;
 
 	switch(mode){
+		
+		case 0:
+			/* handshake  REOB-SEOB */
+// 			opts.opt_REOBseq = 'G';  /* --REOB */
+// 			opts.opt_EOBseq = 'E';       /* --SEOB */
+// 			m3l_send_receive_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts);
+// 			opts.opt_REOBseq = '\0';  /* --REOB */
+// 			opts.opt_EOBseq = '\0';       /* --SEOB */
+		break;
+		
 		case 1:
 			opts.opt_EOBseq = 'E'; // send EOFbuff sequence only	
 			if( m3l_send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, Popts) < 0){
@@ -583,6 +624,12 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 		break;
 		
 		case 2:
+			/* handshake  REOB-SEOB */
+// 			opts.opt_REOBseq = 'G';  /* --REOB */
+// 			opts.opt_EOBseq = 'E';       /* --SEOB */
+// 			m3l_send_receive_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts);
+// 			opts.opt_REOBseq = '\0';  /* --REOB */
+// 			opts.opt_EOBseq = '\0';       /* --SEOB */
 /*
  * close the socket 
  */

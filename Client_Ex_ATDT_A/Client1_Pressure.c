@@ -50,7 +50,7 @@
 #include "libm3l.h"
 #include "ACK.h"
 #include "client_functions_Prt.h"
-
+//
 int main(int argc, char *argv[])
 {
 	node_t *Gnode=NULL, *RecNode=NULL, *TmpNode = NULL;
@@ -67,12 +67,12 @@ int main(int argc, char *argv[])
 	double *tmpdf;
 	
 	client_fce_struct_t InpPar, *PInpPar;
-	client_recevier_struct_t Pretval;
+	client_recevier_struct_t *Pretval;
 
 	struct timespec tim, tim2;
-	tim.tv_sec = 0;
+	tim.tv_sec  = 0;
 	tim.tv_nsec = 100000000L;    /* 0.1 secs */
-	tim.tv_sec = 0;
+	tim.tv_sec  = 0;
 	tim.tv_nsec = 10000000L;    /* 0.01 secs */
 
 	nmax = 100000;
@@ -100,21 +100,27 @@ int main(int argc, char *argv[])
 		PInpPar->mode    = 2;
 		
 		Pretval = client_recevier(argv[1], portno, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
+		Gnode  = Pretval->data;
+		sockfd = Pretval->sockfd;
+		printf(" SOCKET number is %d\n", sockfd);
+		free(Pretval);
+		
 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
 			Error("CatData");
 		
-		if(m3l_Umount(&Pretval.data) != 1)
+		if(m3l_Umount(&Gnode) != 1)
 			Perror("m3l_Umount");
 		
 		
-		printf(" DATA RECEIVED..... Sending \n");
+		printf(" DATA RECEIVED..... Sending %d\n", sockfd);
 		
 		Gnode = client_name("Text from Client2222222");
 		
-		client_sender(Gnode, argv[1], portno, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
+		sleep(10);
 		
-		
-		
+		client_sender(Gnode, (char *)NULL, sockfd, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
+		printf(" DATA sent..... Sending %d\n", sockfd);
+	
 		if(m3l_Umount(&Gnode) != 1)
 			Perror("m3l_Umount");
 				

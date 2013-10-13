@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
 		PInpPar->SR_MODE = 'S';
 		PInpPar->mode = 1;
 		
-		client_sender(Gnode, argv[1], portno, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
+		sockfd=client_sender(Gnode, argv[1], portno, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
 
 		if(m3l_Umount(&Gnode) != 1)
 			Perror("m3l_Umount");
