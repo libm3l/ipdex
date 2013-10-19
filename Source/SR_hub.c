@@ -149,10 +149,10 @@ void *SR_hub(void *arg)
  * wait for semaphore from Thread_Prt that 
  * all requests arrived
  */
-// 		printf(" BEFORE CLIENT MODE ---  is %d\n", *c->pSRh_mode);
+		printf(" BEFORE CLIENT MODE ---  is %d\n", *c->pSRh_mode);
 		Sem_wait(c->psem);
 			
-// 			printf(" CLIENT MODE---  is %d\n", *c->pSRh_mode);
+			printf(" CLIENT MODE---  is %d\n", *c->pSRh_mode);
 			switch(*c->pSRh_mode){
 				case 1:
 /*
@@ -173,9 +173,14 @@ void *SR_hub(void *arg)
 						printf(" IT is %d\n", IT);
 /*
  * wait until all SR_threads reach barrier, then start actual transfer of the data from S to R(s)
+ * 
+ * for IT == 2 the barrier is locate at the beginning of the SR_Data_threads before they 
+ * get value of SR mode and socket
+ * 
+ * for IT == 1 the barrier is located in case 2 between invoking S_KAN and R_KAN functions
  */
 						Pthread_barrier_wait(c->pbarr);
-						printf(" After barrier \n");
+						printf(" SR_hub After barrier \n");
 /*
  * once the data transfer is finished wait until all data is tranferred and S and R threads close their socket
  */

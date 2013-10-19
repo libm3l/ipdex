@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
 		if(m3l_Umount(&Gnode) != 1)
 			Perror("m3l_Umount");
 
-		sleep(10);
+// 		sleep(2);
 
 		Pretval = client_recevier((char *)NULL, sockfd, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
 		Gnode = Pretval->data;
@@ -143,6 +143,8 @@ int main(int argc, char *argv[])
 		
 		if(nanosleep(&tim , &tim2) < 0 )
 			Error("Nano sleep system call failed \n");
+
+// 		sleep(2);
  	}
 
 

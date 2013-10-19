@@ -38,19 +38,18 @@ lmint_t client_sender(void *data, const lmchar_t *hostname, lmint_t portno, clie
 /* 
  * if required, open socket 
  */
-again:
 	if(hostname != NULL){
+
+again:
+
 		if ( (sockfd =  m3l_cli_open_socket(hostname, portno, (lmchar_t *)NULL)) < 0)
 			Error("Could not open socket");
 		
-// 		printf(" client_recevier: Socket number is % d\n", sockfd);
+		printf(" client_sender: Socket number is % d\n", sockfd);
 
-	}
-	else
-		sockfd = portno;
 // 	printf(" Client sender after socket \n");
 
-	opts.opt_tcpencoding = 'I';    /*  "--encoding" , "IEEE-754"  */
+		opts.opt_tcpencoding = 'I';    /*  "--encoding" , "IEEE-754"  */
 	
 // 		if(  (TmpNode = m3l_Send_receive_tcpipsocket(Gnode,(lmchar_t *)NULL, sockfd, "--encoding" , "IEEE-754", (lmchar_t *)NULL)) == NULL)
 // 			Error("Receiving data");
@@ -58,40 +57,43 @@ again:
  * send header identifying name which connection will be used. Upon receiving this info, 
  * server will send back the answer
  */
-	if( (TmpNode = m3l_send_receive_tcpipsocket(Gnode, (lmchar_t *)NULL, sockfd, Popts_1)) == NULL){
-		Perror("m3l_send_receive_tcpipsocket error");
+		if( (TmpNode = m3l_send_receive_tcpipsocket(Gnode, (lmchar_t *)NULL, sockfd, Popts_1)) == NULL){
+			Perror("m3l_send_receive_tcpipsocket error");
 
-		if(m3l_Umount(&Gnode) != 1)
-			Perror("m3l_Umount");
-		return -1;
-	}
+			if(m3l_Umount(&Gnode) != 1)
+				Perror("m3l_Umount");
+			return -1;
+		}
 /*
  * get the value of the /RR/val
  */
-	retval = TmpNode->child->data.i[0];
+		retval = TmpNode->child->data.i[0];
 /*
  * if retval == 1 the data_thread is prepared to transmit the data, 
  * if retval == 0 the data_thread is busy, close socket and try again
  */		
-	if(retval == 0){
-	
+		if(retval == 0){
+		
+			if(m3l_Umount(&TmpNode) != 1)
+				Perror("m3l_Umount");
+
+			if(hostname != NULL){
+				if( close(sockfd) == -1)
+					Perror("close");
+			}
+				
+			if(nanosleep(&tim , &tim2) < 0 )
+				Error("Nano sleep system call failed \n");
+			goto again;
+		}
+
+		if(m3l_Umount(&Gnode) != 1)
+			Perror("m3l_Umount");
 		if(m3l_Umount(&TmpNode) != 1)
 			Perror("m3l_Umount");
-
-		if(hostname != NULL){
-			if( close(sockfd) == -1)
-				Perror("close");
-		}
-			
-		if(nanosleep(&tim , &tim2) < 0 )
-			Error("Nano sleep system call failed \n");
-		goto again;
 	}
-
-	if(m3l_Umount(&Gnode) != 1)
-		Perror("m3l_Umount");
-	if(m3l_Umount(&TmpNode) != 1)
-		Perror("m3l_Umount");
+	else
+		sockfd = portno;
 	
 	
 // 	printf(" CLIENT MODE is %d\n", ClientInPar->mode);
@@ -134,7 +136,18 @@ again:
 // 		/* maybe adding REOB */
 // 			printf(" ATER CASE 2\n");
 	
-		if(hostname != NULL && ClientInPar->SR_MODE == 'R'){  /* Only Receiver closes socket */
+		if(ClientInPar->SR_MODE == 'R'){  /* Only Receiver closes socket */
+			
+			opts.opt_REOBseq = 'G';  /* --REOB */
+			opts.opt_EOBseq  = 'E';       /* --SEOB */
+// 			m3l_receive_send_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts_1);
+			m3l_receive_tcpipsocket((lmchar_t *)NULL, sockfd, Popts_1);
+			opts.opt_REOBseq = '\0';  /* --REOB */
+			opts.opt_EOBseq = '\0';       /* --SEOB */
+// 		/* maybe adding REOB */
+// 			printf(" ATER CASE 2\n");
+			
+			
 			if( close(sockfd) == -1)
 				Perror("close");
 			
@@ -146,7 +159,7 @@ again:
 
 	case 3:
 		
-		opts.opt_REOBseq = 'G';  /* --REOB */
+		opts.opt_REOBseq     = 'G';  /* --REOB */
 		opts.opt_tcpencoding = 'I';   /*  "--encoding" , "IEEE-754"  */
 		m3l_send_receive_tcpipsocket((node_t *)data, (lmchar_t *)NULL, sockfd, Popts_1);
 
@@ -241,19 +254,17 @@ client_recevier_struct_t *client_recevier(const lmchar_t *hostname, lmint_t port
 /* 
  * if required, open socket 
  */
-again:
 	if(hostname != NULL){
+
+again:
+
 		if ( (sockfd =  m3l_cli_open_socket(hostname, portno, (lmchar_t *)NULL)) < 0)
 			Error("Could not open socket");
 		
-// 		printf(" client_recevier: Socket number is % d\n", sockfd);
+		printf(" client_recevier: Socket number is % d\n", sockfd);
 		
 		Pretval->sockfd = sockfd;
-	}
-	else
-		sockfd = portno;
-	
-	
+
 // 	printf(" Client receiver after socket\n");
 	
 
@@ -263,42 +274,45 @@ again:
  * send header identifying name which connection will be used. Upon receiving this info, 
  * server will send back the answer
  */
-	opts.opt_tcpencoding = 'I';  /*  "--encoding" , "IEEE-754"  */
-	if( (TmpNode = m3l_send_receive_tcpipsocket(Gnode, (lmchar_t *)NULL, sockfd, Popts_1)) == NULL){
-		Perror("m3l_send_receive_tcpipsocket error");
-		
-		if(m3l_Umount(&Gnode) != 1)
-			Perror("m3l_Umount");
-		
-		Pretval->sockfd = -1;
-		return (client_recevier_struct_t *)NULL;
-	}
+		opts.opt_tcpencoding = 'I';  /*  "--encoding" , "IEEE-754"  */
+		if( (TmpNode = m3l_send_receive_tcpipsocket(Gnode, (lmchar_t *)NULL, sockfd, Popts_1)) == NULL){
+			Perror("m3l_send_receive_tcpipsocket error");
+			
+			if(m3l_Umount(&Gnode) != 1)
+				Perror("m3l_Umount");
+			
+			Pretval->sockfd = -1;
+			return (client_recevier_struct_t *)NULL;
+		}
 /*
  * get the value of the /RR/val
  */
-	retval = TmpNode->child->data.i[0];
+		retval = TmpNode->child->data.i[0];
 /*
  * if retval == 1 the data_thread is prepared to transmit the data, 
  * if retval == 0 the data_thread is busy, close socket and try again
  */		
-	if(retval == 0){
+		if(retval == 0){
 
+			if(m3l_Umount(&TmpNode) != 1)
+				Perror("m3l_Umount");
+			
+			if(hostname != NULL){
+				if( close(sockfd) == -1)
+					Perror("close");
+			}
+			if(nanosleep(&tim , &tim2) < 0 )
+				Error("Nano sleep system call failed \n");
+			goto again;
+		}
+
+		if(m3l_Umount(&Gnode) != 1)
+			Perror("m3l_Umount");
 		if(m3l_Umount(&TmpNode) != 1)
 			Perror("m3l_Umount");
-		
-		if(hostname != NULL){
-			if( close(sockfd) == -1)
-				Perror("close");
 		}
-		if(nanosleep(&tim , &tim2) < 0 )
-			Error("Nano sleep system call failed \n");
-		goto again;
-	}
-
-	if(m3l_Umount(&Gnode) != 1)
-		Perror("m3l_Umount");
-	if(m3l_Umount(&TmpNode) != 1)
-		Perror("m3l_Umount");
+	else
+		sockfd = portno;
 	
 // 		printf(" Client receiver sending data \n");
 
@@ -338,7 +352,7 @@ again:
 	case 2:
 			printf("  CASE 2\n");
 		opts.opt_tcpencoding = 'I';   /*  "--encoding" , "IEEE-754"  */
-		opts.opt_REOBseq = '\0';  /* --REOB */
+		opts.opt_REOBseq     = '\0';  /* --REOB */
 		if( (Gnode = m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts_1)) == NULL)
 			Error("Receiving data");
 		
@@ -354,7 +368,16 @@ again:
 // 		opts.opt_EOBseq = '\0';       /* --SEOB */
 // 			printf(" ATER CASE 2\n");
 		
-		if(hostname != NULL && ClientInPar->SR_MODE == 'S'){  /* Sender closes socket */
+		if(ClientInPar->SR_MODE == 'S'){  /* Sender closes socket */
+			
+			opts.opt_REOBseq = 'G';  /* --REOB */
+			opts.opt_EOBseq  = 'E';       /* --SEOB */
+// 			m3l_send_receive_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts_1);
+			m3l_send_to_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts_1);
+			opts.opt_REOBseq = '\0';  /* --REOB */
+			opts.opt_EOBseq = '\0';       /* --SEOB */
+			printf(" ATER CASE 2\n");
+			
 			if( close(sockfd) == -1)
 				Perror("close");
 			printf(" client_recevier Closed socket \n");

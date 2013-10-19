@@ -57,7 +57,7 @@
 
 #define INTEGMIN(X,Y) ((X) < (Y) ? (X) : (Y)); 
 
-static inline lmssize_t Read(lmint_t, lmchar_t *, lmint_t);
+static inline lmssize_t Read(lmint_t, lmchar_t *, lmint_t, lmchar_t);
 static inline lmssize_t Write(lmint_t, lmchar_t *, lmsize_t);
 
 static lmint_t R_KAN(SR_thread_args_t *, lmint_t, lmint_t);
@@ -92,6 +92,9 @@ void *SR_Data_Threads(void *arg)
 			SR_mode =  c->pSR_mode[*c->pthr_cntr];
 			sockfd  =  c->psockfd[*c->pthr_cntr];
 			(*c->pthr_cntr)++; 
+			
+			
+			printf(" Connection arrived, socket is %d, SR mode is %c\n",  sockfd, SR_mode);
 	
 		Pthread_mutex_unlock(c->plock);
 /*
@@ -133,8 +136,15 @@ void *SR_Data_Threads(void *arg)
  * when finishing with R, do not signal SR_hub to go to another loop, 
  * the Receiver process will now send the data 
  */
+				printf(" R-R_KAN\n");
 				if( R_KAN(c, sockfd, 0) == -1) return NULL;
+				printf(" R- Before barrier \n");
+				Pthread_barrier_wait(c->pbarr);
+				
+				printf(" R - After barrier \n");
+				printf(" R-S_KAN\n");
 				if( S_KAN(c, sockfd, 2) == -1) return NULL;
+				printf(" R-DONE\n");
 			}
 			else if(SR_mode == 'S'){
 /*
@@ -142,8 +152,15 @@ void *SR_Data_Threads(void *arg)
  * after that signal SR_hhub that SR operation is finished and it can do 
  * another loop
  */
+				printf(" S-S_KAN\n");
 				if( S_KAN(c, sockfd, 0) == -1) return NULL;
+				printf(" S- Before barrier \n");
+				Pthread_barrier_wait(c->pbarr);
+				
+				printf(" S- After barrier \n");
+				printf(" S-R_KAN\n");
 				if( R_KAN(c, sockfd, 2) == -1) return NULL;
+				printf(" S-DONE\n");
 			}
 			else{
 				Error("SR_Data_Threads: Wrong SR_mode");
@@ -300,7 +317,7 @@ lmssize_t Write(lmint_t sockfd,  lmchar_t *buffer, lmsize_t size){
 }
 
 
-lmssize_t Read(lmint_t descrpt , lmchar_t *buff, lmint_t n)
+lmssize_t Read(lmint_t descrpt , lmchar_t *buff, lmint_t n, lmchar_t SR)
 {
 	lmsize_t ngotten;
 
@@ -309,7 +326,7 @@ lmssize_t Read(lmint_t descrpt , lmchar_t *buff, lmint_t n)
 	
 	if (  (ngotten = read(descrpt,buff,n)) == -1){
 		
-// 		printf("ERR BUFF:  '%s'  %d\n", buff, ngotten);
+// 		printf("ERR BUFF:  '%s'  %d   %c\n", buff, ngotten, SR);
 		Perror("SR_Data_Threads - Read");
 		return -1;
 	}
@@ -452,17 +469,20 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 		case 2:
 // 			printf(" SR---CASE 2\n");
 // 			/* handshake  SEOB-REOB */
-// 			opts.opt_REOBseq = 'G';  /* --REOB */
-// 			opts.opt_EOBseq = 'E';       /* --SEOB */
+			opts.opt_REOBseq = 'G';  /* --REOB */
+			opts.opt_EOBseq = 'E';       /* --SEOB */
 // 			m3l_receive_send_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts);
-// 			opts.opt_REOBseq = '\0';  /* --REOB */
-// 			opts.opt_EOBseq = '\0';       /* --SEOB */
+			m3l_receive_tcpipsocket((lmchar_t *)NULL, sockfd, Popts);
+			opts.opt_REOBseq = '\0';  /* --REOB */
+			opts.opt_EOBseq = '\0';       /* --SEOB */
 // 			printf(" ATER SR----CASE 2\n");
 /*
  * close the socket 
  */
 			if( close(sockfd) == -1)
 				Perror("close");
+			printf(" R----closing socket\n");
+			
 		break;
 		
 		case 3:
@@ -530,7 +550,7 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
  */
 // 			printf(" ATER SR--semaphore 2\n");
 	if(last == 1)Sem_post(c->psem_g);
-// 			printf(" ATER SR--retval 2\n");
+			printf(" R --retval 2\n");
 	return retval;
 }
 
@@ -565,7 +585,7 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 		*c->pEofBuff = 1;
 
 		bzero(c->pbuffer,MAXLINE+1);
-		if (  (*c->pngotten = Read(sockfd, c->pbuffer, MAXLINE)) == -1){
+		if (  (*c->pngotten = Read(sockfd, c->pbuffer, MAXLINE, 'R')) == -1){
 			Perror("read");
 			free(c);
 			return -1;
@@ -625,16 +645,19 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 		
 		case 2:
 			/* handshake  REOB-SEOB */
-// 			opts.opt_REOBseq = 'G';  /* --REOB */
-// 			opts.opt_EOBseq = 'E';       /* --SEOB */
+			opts.opt_REOBseq = 'G';  /* --REOB */
+			opts.opt_EOBseq = 'E';       /* --SEOB */
 // 			m3l_send_receive_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts);
-// 			opts.opt_REOBseq = '\0';  /* --REOB */
-// 			opts.opt_EOBseq = '\0';       /* --SEOB */
+			m3l_send_to_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts);
+			opts.opt_REOBseq = '\0';  /* --REOB */
+			opts.opt_EOBseq = '\0';       /* --SEOB */
 /*
  * close the socket 
  */
 			if( close(sockfd) == -1)
 				Perror("close");
+			printf(" S----closing socket\n");
+		break;
 			
 		case 3:
 			opts.opt_EOBseq = 'E'; // send EOFbuff sequence only	
@@ -695,6 +718,7 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
  * synck before letting SR_hub to close sockets
  */
 	pt_sync(c->psync_loc);
+			printf(" S --retval 2\n");
 	
 	return retval;
 }
@@ -719,7 +743,7 @@ lmint_t R_EOFC(lmint_t sockfd){
 /*
  * bzero buffer
  */		bzero(buff,sizeof(buff));
-		if (  (ngotten = Read(sockfd, buff, EOFClen)) == -1)
+		if (  (ngotten = Read(sockfd, buff, EOFClen, 'A')) == -1)
  			Perror("read");
 		
 		nreceived = nreceived + ngotten;
