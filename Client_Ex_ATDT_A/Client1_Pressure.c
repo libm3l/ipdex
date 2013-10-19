@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
 		
 		Gnode = client_name("Text from Client2222222");
 		
-		sleep(10);
+// 		sleep(2);
 		
 		client_sender(Gnode, (char *)NULL, sockfd, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
 		printf(" DATA sent..... Sending %d\n", sockfd);
