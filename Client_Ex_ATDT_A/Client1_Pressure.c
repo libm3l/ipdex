@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 {
 	node_t *Gnode=NULL, *RecNode=NULL, *TmpNode = NULL;
 	pid_t  childpid;
-	size_t *dim, i, j;
+	size_t i, j, dim[1];
 
 	int sockfd, portno, n, status, ch_stat, *tmpint, *tmpi;
 
@@ -112,14 +112,25 @@ int main(int argc, char *argv[])
 			Perror("m3l_Umount");
 		
 		
-		printf(" DATA RECEIVED..... Sending %d\n", sockfd);
+// 		printf(" DATA RECEIVED..... Sending %d\n", sockfd);
 		
 		Gnode = client_name("Text from Client2222222");
+// 		printf(" Gnode made\n");
+
+		
+		dim[0] = 1;
+/*
+ * add iteration number
+ */
+		if(  (TmpNode = m3l_Mklist("Iteration_Number", "I", 1, dim, &Gnode, "/Client_Data", "./", (char *)NULL)) == 0)
+				Error("m3l_Mklist");
+		TmpNode->data.i[0] = i;
+// 		printf(" Tmpnode added made\n");
 		
 // 		sleep(2);
 		
 		client_sender(Gnode, (char *)NULL, sockfd, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
-		printf(" DATA sent..... Sending %d\n", sockfd);
+// 		printf(" DATA sent..... Sending %d\n", sockfd);
 	
 		if(m3l_Umount(&Gnode) != 1)
 			Perror("m3l_Umount");

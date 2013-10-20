@@ -170,4 +170,16 @@ typedef struct buff_str{
 	lmint_t NR, TR, TS;  /* number of Receiving processes, number of taken processes, number of taken senders (TS can be either 0 or 1) */
 }buff_str_t;
 
+
+typedef struct client_fce_struct{
+	lmchar_t *data_name;
+	lmchar_t SR_MODE;
+	lmint_t mode;
+}client_fce_struct_t;
+
+typedef struct client_receiver_struct{
+	node_t *data;
+	lmint_t sockfd;
+}client_recevier_struct_t;
+
 #endif

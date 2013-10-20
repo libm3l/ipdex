@@ -94,7 +94,7 @@ void *SR_Data_Threads(void *arg)
 			(*c->pthr_cntr)++; 
 			
 			
-			printf(" Connection arrived, socket is %d, SR mode is %c\n",  sockfd, SR_mode);
+// 			printf(" Connection arrived, socket is %d, SR mode is %c\n",  sockfd, SR_mode);
 	
 		Pthread_mutex_unlock(c->plock);
 /*
@@ -136,15 +136,15 @@ void *SR_Data_Threads(void *arg)
  * when finishing with R, do not signal SR_hub to go to another loop, 
  * the Receiver process will now send the data 
  */
-				printf(" R-R_KAN\n");
+// 				printf(" R-R_KAN\n");
 				if( R_KAN(c, sockfd, 0) == -1) return NULL;
-				printf(" R- Before barrier \n");
+// 				printf(" R- Before barrier \n");
 				Pthread_barrier_wait(c->pbarr);
 				
-				printf(" R - After barrier \n");
-				printf(" R-S_KAN\n");
+// 				printf(" R - After barrier \n");
+// 				printf(" R-S_KAN\n");
 				if( S_KAN(c, sockfd, 2) == -1) return NULL;
-				printf(" R-DONE\n");
+// 				printf(" R-DONE\n");
 			}
 			else if(SR_mode == 'S'){
 /*
@@ -152,15 +152,15 @@ void *SR_Data_Threads(void *arg)
  * after that signal SR_hhub that SR operation is finished and it can do 
  * another loop
  */
-				printf(" S-S_KAN\n");
+// 				printf(" S-S_KAN\n");
 				if( S_KAN(c, sockfd, 0) == -1) return NULL;
-				printf(" S- Before barrier \n");
+// 				printf(" S- Before barrier \n");
 				Pthread_barrier_wait(c->pbarr);
 				
-				printf(" S- After barrier \n");
-				printf(" S-R_KAN\n");
+// 				printf(" S- After barrier \n");
+// 				printf(" S-R_KAN\n");
 				if( R_KAN(c, sockfd, 2) == -1) return NULL;
-				printf(" S-DONE\n");
+// 				printf(" S-DONE\n");
 			}
 			else{
 				Error("SR_Data_Threads: Wrong SR_mode");
@@ -481,7 +481,7 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
  */
 			if( close(sockfd) == -1)
 				Perror("close");
-			printf(" R----closing socket\n");
+// 			printf(" R----closing socket\n");
 			
 		break;
 		
@@ -550,7 +550,7 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
  */
 // 			printf(" ATER SR--semaphore 2\n");
 	if(last == 1)Sem_post(c->psem_g);
-			printf(" R --retval 2\n");
+// 			printf(" R --retval 2\n");
 	return retval;
 }
 
@@ -656,7 +656,7 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
  */
 			if( close(sockfd) == -1)
 				Perror("close");
-			printf(" S----closing socket\n");
+// 			printf(" S----closing socket\n");
 		break;
 			
 		case 3:
@@ -718,7 +718,7 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
  * synck before letting SR_hub to close sockets
  */
 	pt_sync(c->psync_loc);
-			printf(" S --retval 2\n");
+// 			printf(" S --retval 2\n");
 	
 	return retval;
 }

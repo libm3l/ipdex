@@ -125,7 +125,7 @@ int main(int argc, char *argv[])
 		
 		sockfd = client_sender(Gnode, argv[1], portno, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
 
-		printf(" DATA sent , socket number is %d\n", sockfd);
+// 		printf(" DATA sent , socket number is %d\n", sockfd);
 		
 		if(m3l_Umount(&Gnode) != 1)
 			Perror("m3l_Umount");

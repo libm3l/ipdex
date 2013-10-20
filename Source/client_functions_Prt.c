@@ -1,4 +1,5 @@
 #include "libm3l.h"
+#include "Server_Header.h"
 #include "client_functions_Prt.h"
 #include "ACK.h"
 
@@ -31,23 +32,17 @@ lmint_t client_sender(void *data, const lmchar_t *hostname, lmint_t portno, clie
 	opts.opt_REOBseq = '\0'; // read EOFbuff sequence only
 	
 	Popts_1 = &opts;
-/*
- * create header which will identify name of data set and Sender (S) or Receiver (R)
- */
-	Gnode = Header(ClientInPar->data_name, ClientInPar->SR_MODE);
 /* 
  * if required, open socket 
  */
 	if(hostname != NULL){
-
+		/*
+ * create header which will identify name of data set and Sender (S) or Receiver (R)
+ */
+		Gnode = Header(ClientInPar->data_name, ClientInPar->SR_MODE);
 again:
-
 		if ( (sockfd =  m3l_cli_open_socket(hostname, portno, (lmchar_t *)NULL)) < 0)
 			Error("Could not open socket");
-		
-		printf(" client_sender: Socket number is % d\n", sockfd);
-
-// 	printf(" Client sender after socket \n");
 
 		opts.opt_tcpencoding = 'I';    /*  "--encoding" , "IEEE-754"  */
 	
@@ -120,40 +115,21 @@ again:
  * send data and receive confirmation that the data were received (--REOB)
  */
 // 		m3l_Send_to_tcpipsocket((node_t *)data,(char *)NULL, sockfd, "--encoding" , "IEEE-754",  "--REOB", (char *)NULL);
-			printf(" CASE 2\n");
 		opts.opt_tcpencoding = 'I';   /*  "--encoding" , "IEEE-754"  */
 		opts.opt_EOBseq = '\0';  /* --REOB */
 		m3l_send_to_tcpipsocket((node_t *)data, (lmchar_t *)NULL, sockfd, Popts_1);
-		printf(" CASE 22222    - after sending socket \n");
-
-		/* handshake  REOB-SEOB */
-
-// 		opts.opt_REOBseq = 'G';  /* --REOB */
-// 		opts.opt_EOBseq  = 'E';       /* --SEOB */
-// 		m3l_receive_send_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts_1);
-// 		opts.opt_REOBseq = '\0';  /* --REOB */
-// 		opts.opt_EOBseq = '\0';       /* --SEOB */		
-// 		/* maybe adding REOB */
-// 			printf(" ATER CASE 2\n");
-	
-		if(ClientInPar->SR_MODE == 'R'){  /* Only Receiver closes socket */
+/* 
+ *  Only Receiver closes socket, before that wait for client confirming all data were sent
+ */
+		if(ClientInPar->SR_MODE == 'R'){
 			
 			opts.opt_REOBseq = 'G';  /* --REOB */
-			opts.opt_EOBseq  = 'E';       /* --SEOB */
-// 			m3l_receive_send_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts_1);
 			m3l_receive_tcpipsocket((lmchar_t *)NULL, sockfd, Popts_1);
-			opts.opt_REOBseq = '\0';  /* --REOB */
-			opts.opt_EOBseq = '\0';       /* --SEOB */
-// 		/* maybe adding REOB */
-// 			printf(" ATER CASE 2\n");
-			
+			opts.opt_REOBseq = '\0';  /* --REOB */			
 			
 			if( close(sockfd) == -1)
 				Perror("close");
-			
-			printf(" client_sender Closed socket \n");
 		}
-			printf(" ATER closing CASE 2\n");
 
 	break;
 
@@ -246,23 +222,19 @@ client_recevier_struct_t *client_recevier(const lmchar_t *hostname, lmint_t port
 	
 	if ( (Pretval = (client_recevier_struct_t *)malloc(sizeof(client_recevier_struct_t))) == NULL)
 		Error("client_recevier: allocating Pretval failed ");
-/*
- * create header which will identify name of data set and Sender (S) or Receiver (R)
- */
-	Gnode = Header(ClientInPar->data_name, ClientInPar->SR_MODE);
-// 	printf(" Client receiver  after Gnode\n");
 /* 
  * if required, open socket 
  */
 	if(hostname != NULL){
+		/*
+ * create header which will identify name of data set and Sender (S) or Receiver (R)
+ */
+		Gnode = Header(ClientInPar->data_name, ClientInPar->SR_MODE);
 
 again:
-
 		if ( (sockfd =  m3l_cli_open_socket(hostname, portno, (lmchar_t *)NULL)) < 0)
 			Error("Could not open socket");
-		
-		printf(" client_recevier: Socket number is % d\n", sockfd);
-		
+
 		Pretval->sockfd = sockfd;
 
 // 	printf(" Client receiver after socket\n");
@@ -350,39 +322,22 @@ again:
 	break;
 	
 	case 2:
-			printf("  CASE 2\n");
 		opts.opt_tcpencoding = 'I';   /*  "--encoding" , "IEEE-754"  */
 		opts.opt_REOBseq     = '\0';  /* --REOB */
 		if( (Gnode = m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts_1)) == NULL)
 			Error("Receiving data");
-		
-		
-		printf(" CASE 22222    - after receiving socket \n");
-		
-		/* handshake  SEOB-REOB */
-		
-// 		opts.opt_REOBseq = 'G';  /* --REOB */
-// 		opts.opt_EOBseq  = 'E';       /* --SEOB */
-// 		m3l_send_receive_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts_1);
-// 		opts.opt_REOBseq = '\0';  /* --REOB */
-// 		opts.opt_EOBseq = '\0';       /* --SEOB */
-// 			printf(" ATER CASE 2\n");
-		
+/*
+ * Sender closes socket, before that it conforms all data were transferred
+ */
 		if(ClientInPar->SR_MODE == 'S'){  /* Sender closes socket */
 			
-			opts.opt_REOBseq = 'G';  /* --REOB */
 			opts.opt_EOBseq  = 'E';       /* --SEOB */
-// 			m3l_send_receive_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts_1);
 			m3l_send_to_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts_1);
-			opts.opt_REOBseq = '\0';  /* --REOB */
 			opts.opt_EOBseq = '\0';       /* --SEOB */
-			printf(" ATER CASE 2\n");
 			
 			if( close(sockfd) == -1)
 				Perror("close");
-			printf(" client_recevier Closed socket \n");
 		}
-			printf(" ATER closing socket CASE 2\n");
 	break;
 
 	case 3:
