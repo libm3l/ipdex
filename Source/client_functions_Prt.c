@@ -1,8 +1,54 @@
+/*
+ *     Copyright (C) 2012  Adam Jirasek
+ * 
+ *     This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU Lesser General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ * 
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU Lesser General Public License for more details.
+ * 
+ *     You should have received a copy of the GNU Lesser General Public License
+ *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *     
+ *     contact: libm3l@gmail.com
+ * 
+ */
+
+
+
+
+/*
+ *     Function client_functions_Prt.c
+ *
+ *     Date: 2013-10-20
+ * 
+ * 
+ *     Description:
+ * 
+ *
+ *     Input parameters:
+ * 
+ *
+ *     Return value:
+ * 
+ * 
+ *
+ *     Modifications:
+ *     Date		Version		Patch number		CLA 
+ *
+ *
+ *     Description
+ * 
+ */
 #include "libm3l.h"
 #include "Server_Header.h"
 #include "client_functions_Prt.h"
 #include "ACK.h"
-
+#include "socket_op.h"
 
 //      mode 1: ATDTMode == 'D' && KeepAllive_Mode == 'N'  /* Direct transfer, close socket */
 //      mode 2: ATDTMode == 'A' && KeepAllive_Mode == 'N'  /* Alternate transfer, close socket */
@@ -17,81 +63,28 @@ lmint_t client_sender(void *data, const lmchar_t *hostname, lmint_t portno, clie
 	lmint_t sockfd, retval;
 	
 	opts_t *Popts_1, opts;
-	
-	struct timespec tim, tim2;
-	tim.tv_sec = 0;
-	tim.tv_nsec = 100000000L;    /* 0.1 secs */
 
-	opts.opt_linkscleanemptlinks = '\0';  // clean empty links
-	opts.opt_nomalloc = '\0'; // if 'm', do not malloc (used in Mklist --no_malloc
-	opts.opt_linkscleanemptrefs = '\0'; // clean empty link references
-	opts.opt_tcpencoding = 't'; // serialization and encoding when sending over TCP/IP
-	opts.opt_shutdown = '\0'; // shutdown when finished with sending
-	opts.opt_MEMCP = 'S';  // type of buffering
-	opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
-	opts.opt_REOBseq = '\0'; // read EOFbuff sequence only
-	
+// 	opts.opt_linkscleanemptlinks = '\0';  // clean empty links
+// 	opts.opt_nomalloc = '\0'; // if 'm', do not malloc (used in Mklist --no_malloc
+// 	opts.opt_linkscleanemptrefs = '\0'; // clean empty link references
+// 	opts.opt_tcpencoding = 'I'; // serialization and encoding when sending over TCP/IP
+// 	opts.opt_shutdown = '\0'; // shutdown when finished with sending
+// 	opts.opt_MEMCP = 'S';  // type of buffering
+// 	opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
+// 	opts.opt_REOBseq = '\0'; // read EOFbuff sequence only
+
 	Popts_1 = &opts;
+	m3l_set_Send_receive_tcpipsocket(&Popts_1);
 /* 
  * if required, open socket 
  */
 	if(hostname != NULL){
-		/*
- * create header which will identify name of data set and Sender (S) or Receiver (R)
- */
-		Gnode = Header(ClientInPar->data_name, ClientInPar->SR_MODE);
-again:
-		if ( (sockfd =  m3l_cli_open_socket(hostname, portno, (lmchar_t *)NULL)) < 0)
-			Error("Could not open socket");
-
-		opts.opt_tcpencoding = 'I';    /*  "--encoding" , "IEEE-754"  */
-	
-// 		if(  (TmpNode = m3l_Send_receive_tcpipsocket(Gnode,(lmchar_t *)NULL, sockfd, "--encoding" , "IEEE-754", (lmchar_t *)NULL)) == NULL)
-// 			Error("Receiving data");
-/*
- * send header identifying name which connection will be used. Upon receiving this info, 
- * server will send back the answer
- */
-		if( (TmpNode = m3l_send_receive_tcpipsocket(Gnode, (lmchar_t *)NULL, sockfd, Popts_1)) == NULL){
-			Perror("m3l_send_receive_tcpipsocket error");
-
-			if(m3l_Umount(&Gnode) != 1)
-				Perror("m3l_Umount");
-			return -1;
-		}
-/*
- * get the value of the /RR/val
- */
-		retval = TmpNode->child->data.i[0];
-/*
- * if retval == 1 the data_thread is prepared to transmit the data, 
- * if retval == 0 the data_thread is busy, close socket and try again
- */		
-		if(retval == 0){
-		
-			if(m3l_Umount(&TmpNode) != 1)
-				Perror("m3l_Umount");
-
-			if(hostname != NULL){
-				if( close(sockfd) == -1)
-					Perror("close");
-			}
-				
-			if(nanosleep(&tim , &tim2) < 0 )
-				Error("Nano sleep system call failed \n");
-			goto again;
-		}
-
-		if(m3l_Umount(&Gnode) != 1)
-			Perror("m3l_Umount");
-		if(m3l_Umount(&TmpNode) != 1)
-			Perror("m3l_Umount");
+		if( (sockfd = open_connection_to_server(hostname, portno, ClientInPar, Popts_1)))
+			Error("client_sender: Error when opening socket");
 	}
 	else
 		sockfd = portno;
 	
-	
-// 	printf(" CLIENT MODE is %d\n", ClientInPar->mode);
 	switch(ClientInPar->mode){
 	case 1:
 /*
@@ -99,8 +92,7 @@ again:
  */
 // 		m3l_Send_receive_tcpipsocket((node_t *)data,(char *)NULL, sockfd, "--encoding" , "IEEE-754",  "--REOB", (char *)NULL);
 
-		opts.opt_REOBseq = 'G';  /* --REOB */
-		opts.opt_tcpencoding = 'I';   /*  "--encoding" , "IEEE-754"  */
+		opts.opt_REOBseq 	= 'G';  /* --REOB */
 		m3l_send_receive_tcpipsocket((node_t *)data, (lmchar_t *)NULL, sockfd, Popts_1);
 		
 		if(hostname != NULL){
@@ -115,8 +107,7 @@ again:
  * send data and receive confirmation that the data were received (--REOB)
  */
 // 		m3l_Send_to_tcpipsocket((node_t *)data,(char *)NULL, sockfd, "--encoding" , "IEEE-754",  "--REOB", (char *)NULL);
-		opts.opt_tcpencoding = 'I';   /*  "--encoding" , "IEEE-754"  */
-		opts.opt_EOBseq = '\0';  /* --REOB */
+		opts.opt_EOBseq 	= '\0';  /* --REOB */
 		m3l_send_to_tcpipsocket((node_t *)data, (lmchar_t *)NULL, sockfd, Popts_1);
 /* 
  *  Only Receiver closes socket, before that wait for client confirming all data were sent
@@ -136,7 +127,6 @@ again:
 	case 3:
 		
 		opts.opt_REOBseq     = 'G';  /* --REOB */
-		opts.opt_tcpencoding = 'I';   /*  "--encoding" , "IEEE-754"  */
 		m3l_send_receive_tcpipsocket((node_t *)data, (lmchar_t *)NULL, sockfd, Popts_1);
 
 // 		m3l_send_receive_tcpipsocket((node_t *)END_OK, (lmchar_t *)NULL, sockfd, Popts_1);
@@ -152,8 +142,7 @@ again:
 /*
  * send data and receive REOB
  */	
-		opts.opt_REOBseq = 'G';  /* --REOB */
-		opts.opt_tcpencoding = 'I';   /*  "--encoding" , "IEEE-754"  */
+		opts.opt_REOBseq 	= 'G';  /* --REOB */
 		m3l_send_receive_tcpipsocket((node_t *)data, (lmchar_t *)NULL, sockfd, Popts_1);
 // 		m3l_send_to_tcpipsocket((node_t *)END_OK, (lmchar_t *)NULL, sockfd, Popts_1);
 		
@@ -165,8 +154,7 @@ again:
  */
 // 		m3l_Send_receive_tcpipsocket((node_t *)data,(char *)NULL, sockfd, "--encoding" , "IEEE-754",  "--REOB", (char *)NULL);
 
-		opts.opt_REOBseq = 'G';  /* --REOB */
-		opts.opt_tcpencoding = 'I';   /*  "--encoding" , "IEEE-754"  */
+		opts.opt_REOBseq 	= 'G';  /* --REOB */
 		m3l_send_receive_tcpipsocket((node_t *)data, (lmchar_t *)NULL, sockfd, Popts_1);
 	
 	break;
@@ -176,7 +164,6 @@ again:
  * send data and receive confirmation that the data were received (--REOB)
  */
 // 		m3l_Send_to_tcpipsocket((node_t *)data,(char *)NULL, sockfd, "--encoding" , "IEEE-754",  "--REOB", (char *)NULL);
-		opts.opt_tcpencoding = 'I';   /*  "--encoding" , "IEEE-754"  */
 		m3l_send_to_tcpipsocket((node_t *)data, (lmchar_t *)NULL, sockfd, Popts_1);
 		
 		/* maybe adding REOB */
@@ -187,11 +174,9 @@ again:
 		Error("client_sender: Wrong mode - check KeepAlive and ATDT specifications");
 	break;
 	}
-	
+
 	return sockfd;
 }
-
-
 
 
 client_recevier_struct_t *client_recevier(const lmchar_t *hostname, lmint_t portno, client_fce_struct_t *ClientInPar, opts_t *Popts, opts_t *Popst_lm3l){
@@ -202,23 +187,18 @@ client_recevier_struct_t *client_recevier(const lmchar_t *hostname, lmint_t port
 	opts_t *Popts_1, opts;
 	
 	client_recevier_struct_t *Pretval;
-	
-	struct timespec tim, tim2;
-	tim.tv_sec = 0;
-	tim.tv_nsec = 100000000L;    /* 0.1 secs */
 
-	opts.opt_linkscleanemptlinks = '\0';  // clean empty links
-	opts.opt_nomalloc = '\0'; // if 'm', do not malloc (used in Mklist --no_malloc
-	opts.opt_linkscleanemptrefs = '\0'; // clean empty link references
-	opts.opt_tcpencoding = 't'; // serialization and encoding when sending over TCP/IP
-	opts.opt_shutdown = '\0'; // shutdown when finished with sending
-	opts.opt_MEMCP = 'S';  // type of buffering
-	opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
-	opts.opt_REOBseq = '\0'; // read EOFbuff sequence only
+// 	opts.opt_linkscleanemptlinks = '\0';  // clean empty links
+// 	opts.opt_nomalloc = '\0'; // if 'm', do not malloc (used in Mklist --no_malloc
+// 	opts.opt_linkscleanemptrefs = '\0'; // clean empty link references
+// 	opts.opt_tcpencoding = 'I'; // serialization and encoding when sending over TCP/IP
+// 	opts.opt_shutdown = '\0'; // shutdown when finished with sending
+// 	opts.opt_MEMCP = 'S';  // type of buffering
+// 	opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
+// 	opts.opt_REOBseq = '\0'; // read EOFbuff sequence only
 	
 	Popts_1 = &opts;
-	
-// 	printf(" Client receiver \n");
+	m3l_set_Send_receive_tcpipsocket(&Popts_1);
 	
 	if ( (Pretval = (client_recevier_struct_t *)malloc(sizeof(client_recevier_struct_t))) == NULL)
 		Error("client_recevier: allocating Pretval failed ");
@@ -226,73 +206,15 @@ client_recevier_struct_t *client_recevier(const lmchar_t *hostname, lmint_t port
  * if required, open socket 
  */
 	if(hostname != NULL){
-		/*
- * create header which will identify name of data set and Sender (S) or Receiver (R)
- */
-		Gnode = Header(ClientInPar->data_name, ClientInPar->SR_MODE);
-
-again:
-		if ( (sockfd =  m3l_cli_open_socket(hostname, portno, (lmchar_t *)NULL)) < 0)
-			Error("Could not open socket");
-
-		Pretval->sockfd = sockfd;
-
-// 	printf(" Client receiver after socket\n");
-	
-
-// 	if(  (TmpNode = m3l_Send_receive_tcpipsocket(Gnode,(lmchar_t *)NULL, sockfd, "--encoding" , "IEEE-754", (lmchar_t *)NULL)) == NULL)
-// 		Error("Receiving data");
-/*
- * send header identifying name which connection will be used. Upon receiving this info, 
- * server will send back the answer
- */
-		opts.opt_tcpencoding = 'I';  /*  "--encoding" , "IEEE-754"  */
-		if( (TmpNode = m3l_send_receive_tcpipsocket(Gnode, (lmchar_t *)NULL, sockfd, Popts_1)) == NULL){
-			Perror("m3l_send_receive_tcpipsocket error");
-			
-			if(m3l_Umount(&Gnode) != 1)
-				Perror("m3l_Umount");
-			
-			Pretval->sockfd = -1;
-			return (client_recevier_struct_t *)NULL;
-		}
-/*
- * get the value of the /RR/val
- */
-		retval = TmpNode->child->data.i[0];
-/*
- * if retval == 1 the data_thread is prepared to transmit the data, 
- * if retval == 0 the data_thread is busy, close socket and try again
- */		
-		if(retval == 0){
-
-			if(m3l_Umount(&TmpNode) != 1)
-				Perror("m3l_Umount");
-			
-			if(hostname != NULL){
-				if( close(sockfd) == -1)
-					Perror("close");
-			}
-			if(nanosleep(&tim , &tim2) < 0 )
-				Error("Nano sleep system call failed \n");
-			goto again;
-		}
-
-		if(m3l_Umount(&Gnode) != 1)
-			Perror("m3l_Umount");
-		if(m3l_Umount(&TmpNode) != 1)
-			Perror("m3l_Umount");
-		}
+		if( (sockfd = open_connection_to_server(hostname, portno, ClientInPar, Popts_1)))
+			Error("client_recevier: Error when opening socket");
+	}
 	else
 		sockfd = portno;
-	
-// 		printf(" Client receiver sending data \n");
-
 /*
  * confirm the header was received (--SEOB)
  */
-	opts.opt_tcpencoding = 'I';  /*  "--encoding" , "IEEE-754"  */
-	opts.opt_EOBseq = 'E';       /* --SEOB */
+	opts.opt_EOBseq 	= 'E';       /* --SEOB */
 // 	m3l_Send_to_tcpipsocket((node_t *)NULL, (char *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB", (char *)NULL);
 	m3l_send_to_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts_1);
 	
@@ -304,15 +226,13 @@ again:
  */
 // 	if( (Gnode = m3l_Receive_tcpipsocket((char *)NULL, sockfd, "--encoding" , "IEEE-754", (char *)NULL)) == NULL)
 // 		Error("Receiving data");
-		opts.opt_tcpencoding = 'I';   /*  "--encoding" , "IEEE-754"  */
 		if( (Gnode = m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts_1)) == NULL)
 			Error("Receiving data");
 /*
  * confirm the data was received (--SEOB)
  */
 // 	m3l_Send_to_tcpipsocket(NULL,(char *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB", (char *)NULL);
-		opts.opt_tcpencoding = 'I';  /*  "--encoding" , "IEEE-754"  */
-		opts.opt_EOBseq = 'E';   /* --SEOB */
+		opts.opt_EOBseq 	= 'E';   /* --SEOB */
 		m3l_send_to_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts_1);
 		
 		if(hostname != NULL){
@@ -322,7 +242,6 @@ again:
 	break;
 	
 	case 2:
-		opts.opt_tcpencoding = 'I';   /*  "--encoding" , "IEEE-754"  */
 		opts.opt_REOBseq     = '\0';  /* --REOB */
 		if( (Gnode = m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts_1)) == NULL)
 			Error("Receiving data");
@@ -341,7 +260,6 @@ again:
 	break;
 
 	case 3:
-		opts.opt_tcpencoding = 'I';   /*  "--encoding" , "IEEE-754"  */
 		if( (Gnode = m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts_1)) == NULL)
 			Error("Receiving data");
 // 		m3l_send_to_tcpipsocket((node_t *)END_OK, (lmchar_t *)NULL, sockfd, Popts_1);
@@ -354,11 +272,9 @@ again:
 	
 
 	case 4:
-		opts.opt_tcpencoding = 'I';   /*  "--encoding" , "IEEE-754"  */
 		if( (Gnode = m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts_1)) == NULL)
 			Error("Receiving data");
-		
-		opts.opt_REOBseq = 'G';  /* --REOB */
+		opts.opt_REOBseq 	= 'G';  /* --REOB */
 // 		m3l_send_receive_tcpipsocket((node_t *)END_OK, (lmchar_t *)NULL, sockfd, Popts_1);
 		
 	break;
@@ -370,7 +286,6 @@ again:
 // 	if( (Gnode = m3l_Receive_tcpipsocket((char *)NULL, sockfd, "--encoding" , "IEEE-754", (char *)NULL)) == NULL)
 // 		Error("Receiving data");
 
-		opts.opt_tcpencoding = 'I';   /*  "--encoding" , "IEEE-754"  */
 		if( (Gnode = m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts_1)) == NULL)
 			Error("Receiving data");
 /*
@@ -378,14 +293,12 @@ again:
  */
 // 	m3l_Send_to_tcpipsocket(NULL,(char *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB", (char *)NULL);
 
-		opts.opt_tcpencoding = 'I';  /*  "--encoding" , "IEEE-754"  */
 		opts.opt_EOBseq = 'E';   /* --SEOB */
 		m3l_send_to_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts_1);
 
 	break;
 	
 	case 6:
-		opts.opt_tcpencoding = 'I';   /*  "--encoding" , "IEEE-754"  */
 		if( (Gnode = m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts_1)) == NULL){
 			if(m3l_Umount(&Gnode) != 1)
 				Perror("m3l_Umount");
@@ -404,3 +317,4 @@ again:
 	Pretval->data = Gnode;
 	return Pretval;
 }
+
