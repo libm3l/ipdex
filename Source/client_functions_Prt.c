@@ -63,14 +63,18 @@ lmint_t client_sender(void *data, const lmchar_t *hostname, lmint_t portno, clie
 	lmint_t sockfd, retval;
 	
 	opts_t *Popts_1, opts;
-/*
- * set default opt parameters
- */
+
+// 	opts.opt_linkscleanemptlinks = '\0';  // clean empty links
+// 	opts.opt_nomalloc = '\0'; // if 'm', do not malloc (used in Mklist --no_malloc
+// 	opts.opt_linkscleanemptrefs = '\0'; // clean empty link references
+// 	opts.opt_tcpencoding = 'I'; // serialization and encoding when sending over TCP/IP
+// 	opts.opt_shutdown = '\0'; // shutdown when finished with sending
+// 	opts.opt_MEMCP = 'S';  // type of buffering
+// 	opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
+// 	opts.opt_REOBseq = '\0'; // read EOFbuff sequence only
+
 	Popts_1 = &opts;
 	m3l_set_Send_receive_tcpipsocket(&Popts_1);
-	
-	if( data == NULL)
-		Error("client_sender: null data pointer");
 /* 
  * if required, open socket 
  */
@@ -95,6 +99,7 @@ lmint_t client_sender(void *data, const lmchar_t *hostname, lmint_t portno, clie
 			if( close(sockfd) == -1)
 				Perror("close");
 		}
+	
 	break;
 		
 	case 2:
@@ -182,6 +187,15 @@ client_recevier_struct_t *client_recevier(const lmchar_t *hostname, lmint_t port
 	opts_t *Popts_1, opts;
 	
 	client_recevier_struct_t *Pretval;
+
+// 	opts.opt_linkscleanemptlinks = '\0';  // clean empty links
+// 	opts.opt_nomalloc = '\0'; // if 'm', do not malloc (used in Mklist --no_malloc
+// 	opts.opt_linkscleanemptrefs = '\0'; // clean empty link references
+// 	opts.opt_tcpencoding = 'I'; // serialization and encoding when sending over TCP/IP
+// 	opts.opt_shutdown = '\0'; // shutdown when finished with sending
+// 	opts.opt_MEMCP = 'S';  // type of buffering
+// 	opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
+// 	opts.opt_REOBseq = '\0'; // read EOFbuff sequence only
 	
 	Popts_1 = &opts;
 	m3l_set_Send_receive_tcpipsocket(&Popts_1);

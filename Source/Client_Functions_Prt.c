@@ -19,6 +19,8 @@
  */
 
 
+
+
 /*
  *     Function Client_Functions_Prt.c
  *
@@ -42,6 +44,9 @@
  *     Description
  * 
  */
+
+
+
 
 
 #include "libm3l.h"
