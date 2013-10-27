@@ -180,6 +180,6 @@ typedef struct client_fce_struct{
 typedef struct client_receiver_struct{
 	node_t *data;
 	lmint_t sockfd;
-}client_recevier_struct_t;
+}client_receiver_struct_t;
 
 #endif

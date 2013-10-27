@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
 	double *tmpdf;
 	
 	client_fce_struct_t InpPar, *PInpPar;
-	client_recevier_struct_t *Pretval;
+	client_receiver_struct_t *Pretval;
 
 	struct timespec tim, tim2;
 	tim.tv_sec  = 0;
@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
 		PInpPar->SR_MODE = 'R';
 		PInpPar->mode    = 2;
 		
-		Pretval = client_recevier(argv[1], portno, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
+		Pretval = client_receiver(argv[1], portno, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
 		Gnode  = Pretval->data;
 		sockfd = Pretval->sockfd;
 		printf(" SOCKET number is %d\n", sockfd);

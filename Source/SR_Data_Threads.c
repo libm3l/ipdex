@@ -470,7 +470,7 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 // 			printf(" SR---CASE 2\n");
 // 			/* handshake  SEOB-REOB */
 			opts.opt_REOBseq = 'G';  /* --REOB */
-			opts.opt_EOBseq = 'E';       /* --SEOB */
+			opts.opt_EOBseq = '0';       /* --SEOB */
 // 			m3l_receive_send_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts);
 			m3l_receive_tcpipsocket((lmchar_t *)NULL, sockfd, Popts);
 			opts.opt_REOBseq = '\0';  /* --REOB */
@@ -645,7 +645,7 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 		
 		case 2:
 			/* handshake  REOB-SEOB */
-			opts.opt_REOBseq = 'G';  /* --REOB */
+			opts.opt_REOBseq = '0';  /* --REOB */
 			opts.opt_EOBseq = 'E';       /* --SEOB */
 // 			m3l_send_receive_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts);
 			m3l_send_to_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts);

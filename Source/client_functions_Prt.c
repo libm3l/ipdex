@@ -179,14 +179,14 @@ lmint_t client_sender(void *data, const lmchar_t *hostname, lmint_t portno, clie
 }
 
 
-client_recevier_struct_t *client_recevier(const lmchar_t *hostname, lmint_t portno, client_fce_struct_t *ClientInPar, opts_t *Popts, opts_t *Popst_lm3l){
+client_receiver_struct_t *client_receiver(const lmchar_t *hostname, lmint_t portno, client_fce_struct_t *ClientInPar, opts_t *Popts, opts_t *Popst_lm3l){
 
 	node_t *Gnode, *TmpNode;
 	lmint_t sockfd, retval;
 	
 	opts_t *Popts_1, opts;
 	
-	client_recevier_struct_t *Pretval;
+	client_receiver_struct_t *Pretval;
 
 // 	opts.opt_linkscleanemptlinks = '\0';  // clean empty links
 // 	opts.opt_nomalloc = '\0'; // if 'm', do not malloc (used in Mklist --no_malloc
@@ -200,14 +200,14 @@ client_recevier_struct_t *client_recevier(const lmchar_t *hostname, lmint_t port
 	Popts_1 = &opts;
 	m3l_set_Send_receive_tcpipsocket(&Popts_1);
 	
-	if ( (Pretval = (client_recevier_struct_t *)malloc(sizeof(client_recevier_struct_t))) == NULL)
-		Error("client_recevier: allocating Pretval failed ");
+	if ( (Pretval = (client_receiver_struct_t *)malloc(sizeof(client_receiver_struct_t))) == NULL)
+		Error("client_receiver: allocating Pretval failed ");
 /* 
  * if required, open socket 
  */
 	if(hostname != NULL){
 		if( (sockfd = open_connection_to_server(hostname, portno, ClientInPar, Popts_1)) < 1 )
-			Error("client_recevier: Error when opening socket");
+			Error("client_receiver: Error when opening socket");
 	}
 	else
 		sockfd = portno;
@@ -315,6 +315,7 @@ client_recevier_struct_t *client_recevier(const lmchar_t *hostname, lmint_t port
 
 // 	return (void *)Gnode;
 	Pretval->data = Gnode;
+	Pretval->sockfd = sockfd;
 	return Pretval;
 }
 
