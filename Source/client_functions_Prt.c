@@ -79,7 +79,7 @@ lmint_t client_sender(void *data, const lmchar_t *hostname, lmint_t portno, clie
  * if required, open socket 
  */
 	if(hostname != NULL){
-		if( (sockfd = open_connection_to_server(hostname, portno, ClientInPar, Popts_1)))
+		if( (sockfd = open_connection_to_server(hostname, portno, ClientInPar, Popts_1)) < 1)
 			Error("client_sender: Error when opening socket");
 	}
 	else
@@ -206,7 +206,7 @@ client_recevier_struct_t *client_recevier(const lmchar_t *hostname, lmint_t port
  * if required, open socket 
  */
 	if(hostname != NULL){
-		if( (sockfd = open_connection_to_server(hostname, portno, ClientInPar, Popts_1)))
+		if( (sockfd = open_connection_to_server(hostname, portno, ClientInPar, Popts_1)) < 1 )
 			Error("client_recevier: Error when opening socket");
 	}
 	else

@@ -109,9 +109,10 @@ again:
 		if(m3l_Umount(&TmpNode) != 1)
 			Perror("m3l_Umount");
 	}
-	else
+	else{
 		Error("Hostname not given");
 		return -1;
+	}
 	
 	return sockfd;
 }
