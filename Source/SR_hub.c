@@ -56,6 +56,13 @@
 
 static lmint_t valueOfSharedVariable(SR_hub_thread_str_t *);
 
+//      mode 1: ATDTMode == 'D' && KeepAllive_Mode == 'N'  /* Direct transfer, close socket */
+//      mode 2: ATDTMode == 'A' && KeepAllive_Mode == 'N'  /* Alternate transfer, close socket */
+//      mode 3: ATDTMode == 'D' && KeepAllive_Mode == 'C'  /* Direct transfer, close socket after client request it*/
+//      mode 4: ATDTMode == 'A' && KeepAllive_Mode == 'C'  /* Alternate transfer, close socket after client request it*/
+//      mode 5: ATDTMode == 'D' && KeepAllive_Mode == 'Y'  /* Direct transfer, do not close socket*/
+//      mode 6: ATDTMode == 'A' && KeepAllive_Mode == 'Y'  /* Alternate transfer, do not close socket*/
+
 void *SR_hub(void *arg)
 {
 /*
@@ -166,27 +173,20 @@ void *SR_hub(void *arg)
 				break;
 				
 				case 2:
-					
 					IT = 2;
 					do{
-						
-// 						printf(" IT is %d\n", IT);
 /*
  * wait until all SR_threads reach barrier, then start actual transfer of the data from S to R(s)
  * 
  * for IT == 2 the barrier is locate at the beginning of the SR_Data_threads before they 
  * get value of SR mode and socket
- * 
  * for IT == 1 the barrier is located in case 2 between invoking S_KAN and R_KAN functions
  */
 						Pthread_barrier_wait(c->pbarr);
-// 						printf(" SR_hub After barrier \n");
 /*
  * once the data transfer is finished wait until all data is tranferred and S and R threads close their socket
  */
 						Sem_wait(c->psem_g);
-// 						printf(" After semaphore\n");
-						
 					}while(--IT != 0);
 				break;
 			
@@ -211,14 +211,23 @@ void *SR_hub(void *arg)
 				break;
 			
 				case 5:
+					
 				case 6:
-					while(1){
-						IT = 2;
-						do{
-							Pthread_barrier_wait(c->pbarr);
-							Sem_wait(c->psem_g);
-						}while(--IT == 0);
-					}
+					IT = 2;
+					do{
+/*
+ * wait until all SR_threads reach barrier, then start actual transfer of the data from S to R(s)
+ * 
+ * forth first time the barrier is locate at the beginning of the SR_Data_threads before they 
+ * get value of SR mode and socket
+ * for all other iterations the barrier is located in case 2 between invoking S_KAN and R_KAN functions
+ */
+						Pthread_barrier_wait(c->pbarr);
+/*
+ * once the data transfer is finished wait until all data is tranferred and S and R threads close their socket
+ */
+						Sem_wait(c->psem_g);
+					}while(1);
 				break;
 			}
 
