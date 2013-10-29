@@ -94,7 +94,8 @@ int main(int argc, char *argv[])
 
 		PInpPar->data_name = name;
 		PInpPar->SR_MODE = 'R';
-		PInpPar->mode    = 2;
+		if ( (PInpPar->mode = get_exchange_channel_mode('A', 'N')) == -1)
+			Error("wrong client mode");
 		
 		Pretval = client_receiver(argv[1], portno, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
 		Gnode  = Pretval->data;

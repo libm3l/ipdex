@@ -120,7 +120,8 @@ int main(int argc, char *argv[])
 		
 		PInpPar->data_name = name;
 		PInpPar->SR_MODE = 'S';
-		PInpPar->mode = 1;
+		if ( (PInpPar->mode = get_exchange_channel_mode('D', 'N')) == -1)
+			Error("wrong client mode");
 		
 		client_sender(Gnode, argv[1], portno, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
 
