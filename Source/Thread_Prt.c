@@ -58,6 +58,17 @@
 
 void *Data_Threads(void *arg)
 {
+/* 
+ * this is a thread which is associated to a specific data set name
+ * the thread identifies incomming requests by comparing data set name with the 
+ * arriving data set name and if possitive, decrement number of available threads 
+ * for the particular data set (the numbet of available threads at the beginning = S + number_o_R threads
+ * Once the number of available threads == 0, (ie. all S + R threads arrived) the 
+ * thread notifies SR_Hub which synchronizes the S_R transfer (SR_Data_Threads)
+ *
+ * Number of all active Thread_Prt == number of transferred data sets + 1. The values is set in 
+ * Data_Thread (*Data_Thread->sync->nthreads = Data_Thread->n_data_threads + 1;
+ */
 	data_thread_args_t *c = (data_thread_args_t *)arg;
 	lmint_t local_cntr;
 	node_t *List, *TmpNode;
@@ -99,7 +110,8 @@ void *Data_Threads(void *arg)
 					Error("Thread_Prt: NULL Name_of_Data_Set");
 			
 				data_set_name = m3l_get_data_pointer(List);
-				len = m3l_get_List_totdim(List)-1;
+				if( (len = m3l_get_List_totdim(List)-1) < 1)
+					Error("Thread_Prt: too short name of data set");
 				if( snprintf(local_set_name, MAX_NAME_LENGTH,"%s",data_set_name) < 0)
 					Perror("snprintf");
 				local_set_name[len] ='\0';
@@ -117,7 +129,7 @@ void *Data_Threads(void *arg)
  * there is only one writing processes
  */
 		if( (SFounds = m3l_Locate(c->Node, "./Data_Set/Receiving_Processes", "./*/*",  (lmchar_t *)NULL)) != NULL){
-			
+
 			if( m3l_get_Found_number(SFounds) != 1)
 				Error("Thread_Prt: Only one Receiving_Processes per Data_Set allowed");
 /* 
@@ -125,9 +137,12 @@ void *Data_Threads(void *arg)
  */
 				if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
 					Error("NULThread_Prt: Missing Receiving_Processes");
-			
+
 				data_rec_proc = (lmsize_t *)m3l_get_data_pointer(List);
-				n_rec_proc = data_rec_proc[0];
+				if(  ( n_rec_proc = data_rec_proc[0]) < 1){
+					printf("Thread_Prt - name of data set is %s\n", local_set_name);
+					Error("Thread_Prt - number of receiving processes too low");
+				}
 /* 
  * free memory allocated in m3l_Locate
  */
@@ -239,6 +254,8 @@ void *Data_Threads(void *arg)
 		do{
 /*
  * if already went through do loop, wait here at sync point until all threads are here
+ * set the value of for syncing thread to number of data sets + 1 (it. sync all Thread_Prt (n_data_threads) + 
+ * 1 for Server_Body (one synchronization point is in Server_Body
  */
 			pt_sync(c->psync);
 
@@ -297,55 +314,72 @@ void *Data_Threads(void *arg)
 		}while(n_avail_loc_theads != 0);  /* all connecting thread arrivied, ie. one Sender and n_rec_proc Receivers */
 		
 		n_avail_loc_theads = n_rec_proc + 1;
-		Sem_post(&loc_sem);   /* SR_hub sem_wait() for this semaphore */
-
-		}
+/*
+ * SR_hub sem_wait(c->psem) for this semaphore 
+ */
+		Sem_post(&loc_sem);
+/*
+ * now this thread signalled its own SR_hub that all connections arrived and SR_hub start synchronizing all 
+ * SR_Data_Threads which are taking care of actual data transfer from S to R threads
+ * 
+ * This thread does not need to wait for it and goes to while(1) loop again and waits on synchronization 
+ * point pt_sync(c->psync). The thread is classified as taken (*Thread_Status == 1).
+ * The reason why it is done so is that the number of threads being synchronized has to be still the same.
+ * Thats why the synchronization of the S-R transfer is done by SR_hub instead of this thread.
+ * Once the SR_hub is finished with all data transfer it sets *Thread_Status = 0 (in SR_hub: *c->pThread_Status = 0)
+ * so that this thread can be again considered as being available.
+ * 
+ * NOTE: before this thread took case of syncyng SR_Data_Threads instead of SR_hub. The problem was that it needed to 
+ * decrement a number of synchronized threads which (the value used in pt_sync(c->psync).
+ * Some of the threads were already waiting and it gave rise to dead-lock
+ */
+	}
 /*
  * join SR_Threads and release memory
  */
-		for(i=0; i< n_avail_loc_theads; i++)
-			if( pthread_join(SR_Threads->data_threads[i], NULL) != 0)
-				Error(" Joining thread failed");
+	for(i=0; i< n_avail_loc_theads; i++)
+		if( pthread_join(SR_Threads->data_threads[i], NULL) != 0)
+			Error(" Joining thread failed");
 				
-		Pthread_mutex_destroy(&SR_Threads->lock);
-  		Pthread_barrier_destroy(&SR_Threads->barr);
-		Pthread_cond_destroy(&SR_Threads->dcond);
- 		Sem_destroy(&SR_Threads->sem);
+	Pthread_mutex_destroy(&SR_Threads->lock);
+  	Pthread_barrier_destroy(&SR_Threads->barr);
+	Pthread_cond_destroy(&SR_Threads->dcond);
+ 	Sem_destroy(&SR_Threads->sem);
 		
-		free(SR_Threads->data_threads);
-		free(SR_Threads->SR_mode);
-		free(SR_Threads->ATDT_mode);
-		free(SR_Threads->KA_mode);
-		free(SR_Threads->mode);
-		free(SR_Threads->EOFC_END);
-		free(SR_Threads->thr_cntr);
-		free(SR_Threads->sockfd);
-		free(SR_Threads->buffer);
-		free(SR_Threads->R_availth_counter);
-		free(SR_Threads->R_remainth_counter);
-		free(SR_Threads->ngotten);
-		free(SR_Threads->EofBuff);
-		free(SR_Threads->sync);
+	free(SR_Threads->data_threads);
+	free(SR_Threads->SR_mode);
+	free(SR_Threads->ATDT_mode);
+	free(SR_Threads->KA_mode);
+	free(SR_Threads->mode);
+	free(SR_Threads->EOFC_END);
+	free(SR_Threads->thr_cntr);
+	free(SR_Threads->sockfd);
+	free(SR_Threads->buffer);
+	free(SR_Threads->R_availth_counter);
+	free(SR_Threads->R_remainth_counter);
+	free(SR_Threads->ngotten);
+	free(SR_Threads->EofBuff);
+	free(SR_Threads->sync);
 		
-		free(SR_Threads->sync_loc->nsync);
-		free(SR_Threads->sync_loc->nthreads);
-		Pthread_mutex_destroy(&SR_Threads->sync_loc->mutex);
-		Pthread_mutex_destroy(&SR_Threads->sync_loc->block);
-		Pthread_cond_destroy(&SR_Threads->sync_loc->condvar);
-		Pthread_cond_destroy(&SR_Threads->sync_loc->last);
-		free(SR_Threads->sync_loc);
+	free(SR_Threads->sync_loc->nsync);
+	free(SR_Threads->sync_loc->nthreads);
+	Pthread_mutex_destroy(&SR_Threads->sync_loc->mutex);
+	Pthread_mutex_destroy(&SR_Threads->sync_loc->block);
+	Pthread_cond_destroy(&SR_Threads->sync_loc->condvar);
+	Pthread_cond_destroy(&SR_Threads->sync_loc->last);
+	free(SR_Threads->sync_loc);
 		
-		free(SR_Threads);
+	free(SR_Threads);
 
 /*
  * free local semaphore
  */
- 		Sem_destroy(&loc_sem);
+ 	Sem_destroy(&loc_sem);
 /*
  * join SR_hub and release memory
  */
-		if( pthread_join(SR_Hub_Thread->data_thread[0], NULL) != 0)
-			Error(" Joining thread failed");
+	if( pthread_join(SR_Hub_Thread->data_thread[0], NULL) != 0)
+		Error(" Joining thread failed");
 /*
  * release borrowed memory, malloced before starting thread in Data_Thread()
  */

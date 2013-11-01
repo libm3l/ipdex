@@ -149,10 +149,8 @@ void *SR_hub(void *arg)
  * wait for semaphore from Thread_Prt that 
  * all requests arrived
  */
-// 		printf(" BEFORE CLIENT MODE ---  is %d\n", *c->pSRh_mode);
 		Sem_wait(c->psem);
 			
-// 			printf(" CLIENT MODE---  is %d\n", *c->pSRh_mode);
 			switch(*c->pSRh_mode){
 				case 1:
 /*

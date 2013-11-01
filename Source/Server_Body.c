@@ -297,7 +297,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 				Pthread_mutex_unlock(&Data_Threads->lock);
 /*
  * once all necessary data are set, send signal to all threads to start unloc mutex
- * and release borrowed memory
+ * and release borrowed memory. The following syncing point is the same as the syncing point in Thread_Prt.c
  */
 				pt_sync(Data_Threads->sync);
 /* 

@@ -63,7 +63,7 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
  * where 1 thread is Sender and n-1 threads are Receivers
  * 
  * Allocated data set in this function are freed when threads are finished (ie. satement free(c) in Thread_Prt.c) 
- * and the main data structure is freed in function invoking this function (ie. Serve_Body.c)
+ * and the main data structure is freed in function invoking this function (ie. Server_Body.c)
  */
 
 	lmsize_t i;
@@ -141,6 +141,10 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
 	*Data_Thread->data_threads_availth_counter  = 0;
 	*Data_Thread->data_threads_remainth_counter = 0;
 	*Data_Thread->sync->nsync    = 0;
+/*
+ * set the value of for syncing thread to number of data sets + 1 (it. sync all Thread_Prt (n_data_threads) + 
+ * 1 for Server_Body
+ */
 	*Data_Thread->sync->nthreads = Data_Thread->n_data_threads + 1;	
 /*
  * initialize mutex, barrier and condition variable
