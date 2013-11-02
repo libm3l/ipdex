@@ -370,7 +370,6 @@ void *Data_Threads(void *arg)
 	free(SR_Threads->sync_loc);
 		
 	free(SR_Threads);
-
 /*
  * free local semaphore
  */
@@ -386,5 +385,4 @@ void *Data_Threads(void *arg)
 	free(c);
 
 	return NULL;
-
 }

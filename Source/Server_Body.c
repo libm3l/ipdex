@@ -52,7 +52,7 @@
 #include "Data_Thread.h"
 #include "Server_Functions_Prt.h"
 #include "Server_Body.h"
-#include "arpa/inet.h"
+// #include "arpa/inet.h"
 #include "Allocate_DataBuffer.h"
 #include "Check_Request.h"
 #include "ACK.h"
@@ -286,7 +286,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * - set the return value to 0, once the thread is identified, the value is set to 1
  */
 				*Data_Threads->data_threads_remainth_counter 	= *Data_Threads->data_threads_availth_counter;	
-				*Data_Threads->sync->nthreads				= *Data_Threads->data_threads_availth_counter + 1;
+				*Data_Threads->sync->nthreads			= *Data_Threads->data_threads_availth_counter + 1;
 				*Data_Threads->retval = 0;
 				
 				if( snprintf(Data_Threads->name_of_data_set, MAX_NAME_LENGTH,"%s",name_of_required_data_set) < 0)
