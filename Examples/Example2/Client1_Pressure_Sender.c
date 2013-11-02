@@ -48,7 +48,7 @@
 
 
 #include "libm3l.h"
-#include "ipdex.h"
+#include "lsipdx.h"
 
 int main(int argc, char *argv[])
 {

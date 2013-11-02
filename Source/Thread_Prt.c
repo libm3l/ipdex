@@ -49,7 +49,7 @@
 
 
 #include "libm3l.h"
-#include "ipdex_header.h"
+#include "lsipdx_header.h"
 #include "Server_Functions_Prt.h"
 #include "Start_SR_Threads.h"
 #include "Start_SR_HubThread.h"
@@ -80,7 +80,8 @@ void *Data_Threads(void *arg)
 	
 	pthread_t  MyThreadID;
 	
-	lmint_t ii, *Thread_Status;
+	lmint_t ii, *Thread_Status, *Thread_S_Status;
+	lmsize_t *Thread_R_Status;
 	
 	SR_thread_str_t *SR_Threads;
 	SR_hub_thread_str_t  *SR_Hub_Thread;
@@ -155,20 +156,45 @@ void *Data_Threads(void *arg)
 /*
  * set number of available local thread equal to number of readers + 1 writing
  */
-	n_avail_loc_theads = n_rec_proc + 1;
-
+		n_avail_loc_theads = n_rec_proc + 1;
 
 		if( (THRStat_SFounds = m3l_Locate(c->Node, "./Data_Set/Thread_Status", "/*/*", (lmchar_t *)NULL)) == NULL){
-			printf("Thread_Status: did not find any Thread_Status\n");
+			printf("Thread_Prt: did not find any Thread_Status\n");
 			m3l_DestroyFound(&THRStat_SFounds);
 			exit(0);
 		}
-							
+/*
+ * find pointer the Thread_Status, Thread_S_Status and Thread_R_Status
+ */
 		TmpNode = m3l_get_Found_node(THRStat_SFounds, 0);
 		Thread_Status = (lmint_t *)m3l_get_data_pointer(TmpNode);
 
 		*Thread_Status = 0;
 		m3l_DestroyFound(&THRStat_SFounds);
+		
+		if( (THRStat_SFounds = m3l_Locate(c->Node, "./Data_Set/S_Status", "/*/*", (lmchar_t *)NULL)) == NULL){
+			printf("Thread_Prt: did not find any S_Status\n");
+			m3l_DestroyFound(&THRStat_SFounds);
+			exit(0);
+		}
+
+		TmpNode = m3l_get_Found_node(THRStat_SFounds, 0);
+		Thread_S_Status = (lmint_t *)m3l_get_data_pointer(TmpNode);
+		*Thread_S_Status = 0;
+		m3l_DestroyFound(&THRStat_SFounds);
+
+		if( (THRStat_SFounds = m3l_Locate(c->Node, "./Data_Set/R_Status", "/*/*", (lmchar_t *)NULL)) == NULL){
+			printf("Thread_Status: did not find any R_Status\n");
+			m3l_DestroyFound(&THRStat_SFounds);
+			exit(0);
+		}
+							
+		TmpNode = m3l_get_Found_node(THRStat_SFounds, 0);
+		Thread_R_Status = (lmsize_t *)m3l_get_data_pointer(TmpNode);
+		*Thread_R_Status = 0;
+		m3l_DestroyFound(&THRStat_SFounds);
+
+
 
 /*
  * spawn SR_thread, wait until all SR_threads for this data set are spawned. Use semafore for syncing
@@ -215,6 +241,8 @@ void *Data_Threads(void *arg)
 	SR_Hub_Thread->pn_avail_loc_theads	= &n_avail_loc_theads;
 	SR_Hub_Thread->pn_rec_proc		= &n_rec_proc;
 	SR_Hub_Thread->pThread_Status 	= Thread_Status;
+	SR_Hub_Thread->pThread_S_Status	= Thread_S_Status;
+	SR_Hub_Thread->pThread_R_Status = Thread_R_Status;
 	SR_Hub_Thread->prcounter 	= c->prcounter;
 	SR_Hub_Thread->psockfd		= SR_Threads->sockfd;
 	SR_Hub_Thread->pList		= c->Node;
@@ -277,6 +305,22 @@ void *Data_Threads(void *arg)
 					SR_Threads->SR_mode[local_cntr] = *c->pSR_mode;
 					local_cntr++;
 					*c->pretval = 1;
+/*
+ * if thread status is S, set Thread_S_Status = 1 to block any other arriving S thread from 
+ * being considered until the tranfer is finished (Check_Request.c and SR_Hub.c)
+ */
+					if( *c->pSR_mode == 'S'){
+						Thread_S_Status = 1;
+					}
+/*
+ * if thread status is R, increment Thread_R_Status. Once the counter reaches value of requested
+ * R_Thread any other arriving R_thread will be blocked until the tranfer is finished (Check_Request.c and SR_Hub.c)
+ */
+					else if(*c->pSR_mode == 'R'){
+						Thread_R_Status++;
+					}
+					else
+						Error("Thread_Prt: Wrong SR_mode");
 /* 
  * when the thread is positively identified, decrement counter of available thread for next round of identification, 
  * once n_avail_loc_theads == 0 all SR threads arrived, leave do - while loop and decrement (*c->pcounter)--

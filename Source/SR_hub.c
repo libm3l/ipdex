@@ -49,7 +49,7 @@
 
 
 #include "libm3l.h"
-#include "ipdex_header.h"
+#include "lsipdx_header.h"
 #include "Server_Functions_Prt.h"
 
 #include "SR_hub.h"
@@ -240,9 +240,11 @@ void *SR_hub(void *arg)
  */
 			(*c->prcounter)++;
 /*
- * release thread, ie. set Thread_Status = 0
+ * release thread, ie. set Thread_Status = 0, S_Status and R_Status
  */
 			*c->pThread_Status = 0;
+			*c->pThread_S_Status = 0;
+			*c->pThread_R_Status = 0;
 /*
  * if all threads were occupied, ie *Data_Threads->data_threads_availth_counter == *c->pcounter == 0
  * the server is waiting for signal before the continuing with data process identification. 

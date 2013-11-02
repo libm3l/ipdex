@@ -49,7 +49,7 @@
 
 
 #include "libm3l.h"
-#include "ipdex_header.h"
+#include "lsipdx_header.h"
 #include "Check_Request.h"
 
 lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, lmchar_t *SR_mode, lmchar_t *Name_Of_SRProc){
@@ -67,10 +67,10 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
 	status = 0;
 
 
-	  if(m3l_Cat(DataBuffer, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
-		Error("CatData");
-
-	 exit(0);
+// 	  if(m3l_Cat(DataBuffer, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
+// 		Error("CatData");
+// 
+// 	 exit(0);
 	
 	len1 = strlen(name_of_required_data_set);
 /*

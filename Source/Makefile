@@ -1,7 +1,7 @@
 #FILES = $(shell find ./ -name "*.c" | sed 's/.\///' )
 FILES = $(shell ls  *.c )
 PATHL  = $(shell pwd )
-HFILES = $(shell ls  *.h  |   sed '/ipdex_header.h/d' | sed '/libm3l.h/d' | sort -df)
+HFILES = $(shell ls  *.h  |   sed '/lsipdx_header.h/d' | sed '/libm3l.h/d' | sort -df)
 
 
 # OBJS=$(FILES:%.c=%.o)
@@ -20,21 +20,21 @@ LFLAGS = -fbounds-check -fstack-check -g
 main:
 	ln -sf ../../libm3l/Source/libm3l.* .
 	
-	@cat COPYRIGHT_NOTICE > ipdex.h
-	@echo >> ipdex.h
-	@echo "#ifndef   __IPDEX_H__" >> ipdex.h
-	@echo "#define   __IPDEX_H__" >> ipdex.h
+	@cat COPYRIGHT_NOTICE > lsipdx.h
+	@echo >> lsipdx.h
+	@echo "#ifndef   __IPDEX_H__" >> lsipdx.h
+	@echo "#define   __IPDEX_H__" >> lsipdx.h
 
-	@echo "#include " \"$$PWD/ipdex_header.h\" >>ipdex.h
+	@echo "#include " \"$$PWD/lsipdx_header.h\" >>lsipdx.h
 	
-	@$(foreach file,$(HFILES),  echo "#include " \"$$PWD/$(file)\">>ipdex.h;)
-	@echo "#endif" >> ipdex.h
+	@$(foreach file,$(HFILES),  echo "#include " \"$$PWD/$(file)\">>lsipdx.h;)
+	@echo "#endif" >> lsipdx.h
 	
 	make prog
 
 prog: $(OBJS)
-	gcc -shared -Wl,-soname,libipdex.so.1.0 -o libipdex.so.1.0   $(OBJS)
-	ln -sf libipdex.so.1.0 libipdex.so
+	gcc -shared -Wl,-soname,liblsipdx.so.1.0 -o liblsipdx.so.1.0   $(OBJS)
+	ln -sf liblsipdx.so.1.0 liblsipdx.so
 	
 	gcc -g -o Server_Main.out Server_Main.c $(OBJS) -L$(PATHL)  -lm3l -Wl,-rpath=$(PATHL) -lpthread
 # 	gcc -g -o Server_Main.out  $(OBJS) libm3l.a   -lpthread

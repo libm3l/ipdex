@@ -50,7 +50,7 @@
 
 
 #include "libm3l.h"
-#include "ipdex_header.h"
+#include "lsipdx_header.h"
 #include "Allocate_DataBuffer.h"
 
 node_t *Allocate_DataBuffer(node_t *Gnode){
@@ -114,7 +114,7 @@ node_t *Allocate_DataBuffer(node_t *Gnode){
 			Error("m3l_Mklist");
 		tmpint = (lmint_t *)m3l_get_data_pointer(TmpNode1);
 		tmpint[0] = 0;
-		if(  (TmpNode1 = m3l_Mklist("R_Status", "I", 1, dim, &TmpNode, "./Data_Set", "./", (char *)NULL)) == 0)
+		if(  (TmpNode1 = m3l_Mklist("R_Status", "ST", 1, dim, &TmpNode, "./Data_Set", "./", (char *)NULL)) == 0)
 			Error("m3l_Mklist");
 		tmpint = (lmint_t *)m3l_get_data_pointer(TmpNode1);
 		tmpint[0] = 0;	}

@@ -22,7 +22,7 @@
 
 
 /*
- *     Header file ipdex_header.h
+ *     Header file lsipdx_header.h
  *
  *     Date: 2013-09-07
  * 
@@ -149,7 +149,8 @@ typedef struct SR_hub_thread_str{
 	pthread_mutex_t   	*plock;	
 	pthread_cond_t    	*pcond;
 	lmsize_t  		*pcounter, *pn_avail_loc_theads, *pn_rec_proc, *prcounter;
-	lmint_t 		*pThread_Status;
+	lmint_t 		*pThread_Status, *pThread_S_Status;
+	lmsize_t		*pThread_R_Status;
 	pthread_t 		*data_thread;					/* thread ID */
 	lmint_t 		*psockfd;					/* pointer to array of opened sockets */
 	node_t 			*pList;
