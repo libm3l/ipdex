@@ -117,7 +117,7 @@ node_t *Allocate_DataBuffer(node_t *Gnode){
 		if(  (TmpNode1 = m3l_Mklist("R_Status", "ST", 1, dim, &TmpNode, "./Data_Set", "./", (char *)NULL)) == 0)
 			Error("m3l_Mklist");
 		tmpint = (lmint_t *)m3l_get_data_pointer(TmpNode1);
-		tmpint[0] = 0;	}
+		tmpint[0] = 0;}
 	
 // 	if(m3l_Cat(BuffNode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
 // 		Error("CatData");

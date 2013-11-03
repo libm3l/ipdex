@@ -57,9 +57,14 @@ lmint_t open_connection_to_server(const lmchar_t *hostname, lmint_t portno, clie
 	lmint_t sockfd, retval;
 	node_t *Gnode, *TmpNode;
 	struct timespec tim, tim2;
+	
+	lmsize_t conn_retry_counter;
+	lmsize_t max_conn_attemps = 100;
 
 	tim.tv_sec = 0;
 	tim.tv_nsec = 100000000L;    /* 0.1 secs */
+	
+	conn_retry_counter = 0;
 
 	if(hostname != NULL){
 /*
@@ -92,10 +97,7 @@ again:
  * if retval == 0 the data_thread is busy, close socket and try again
  */		
 		if(retval == 0){
-		
-			
-			printf("Connection not accepted, tryign again\n");
-			
+
 			if(m3l_Umount(&TmpNode) != 1)
 				Perror("m3l_Umount");
 
@@ -104,7 +106,16 @@ again:
 				
 			if(nanosleep(&tim , &tim2) < 0 )
 				Error("Nano sleep system call failed \n");
-			goto again;
+			
+// 			printf("retrying %ld\n", conn_retry_counter);
+
+			if( ++conn_retry_counter > max_conn_attemps){
+				printf(" Number of connecitons exceeded max_conn_attemps\n");
+				return -2;
+			}
+			else{
+				goto again;
+			}
 		}
 
 		if(m3l_Umount(&Gnode) != 1)
@@ -116,6 +127,6 @@ again:
 		Error("Hostname not given");
 		return -1;
 	}
-	
+
 	return sockfd;
 }

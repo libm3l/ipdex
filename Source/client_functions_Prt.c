@@ -64,15 +64,6 @@ lmint_t client_sender(void *data, const lmchar_t *hostname, lmint_t portno, clie
 	
 	opts_t *Popts_1, opts;
 
-// 	opts.opt_linkscleanemptlinks = '\0';  // clean empty links
-// 	opts.opt_nomalloc = '\0'; // if 'm', do not malloc (used in Mklist --no_malloc
-// 	opts.opt_linkscleanemptrefs = '\0'; // clean empty link references
-// 	opts.opt_tcpencoding = 'I'; // serialization and encoding when sending over TCP/IP
-// 	opts.opt_shutdown = '\0'; // shutdown when finished with sending
-// 	opts.opt_MEMCP = 'S';  // type of buffering
-// 	opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
-// 	opts.opt_REOBseq = '\0'; // read EOFbuff sequence only
-
 	Popts_1 = &opts;
 	m3l_set_Send_receive_tcpipsocket(&Popts_1);
 /* 
@@ -188,15 +179,6 @@ client_receiver_struct_t *client_receiver(const lmchar_t *hostname, lmint_t port
 	
 	client_receiver_struct_t *Pretval;
 
-// 	opts.opt_linkscleanemptlinks = '\0';  // clean empty links
-// 	opts.opt_nomalloc = '\0'; // if 'm', do not malloc (used in Mklist --no_malloc
-// 	opts.opt_linkscleanemptrefs = '\0'; // clean empty link references
-// 	opts.opt_tcpencoding = 'I'; // serialization and encoding when sending over TCP/IP
-// 	opts.opt_shutdown = '\0'; // shutdown when finished with sending
-// 	opts.opt_MEMCP = 'S';  // type of buffering
-// 	opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
-// 	opts.opt_REOBseq = '\0'; // read EOFbuff sequence only
-	
 	Popts_1 = &opts;
 	m3l_set_Send_receive_tcpipsocket(&Popts_1);
 	

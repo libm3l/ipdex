@@ -317,7 +317,8 @@ void *Data_Threads(void *arg)
  * R_Thread any other arriving R_thread will be blocked until the tranfer is finished (Check_Request.c and SR_Hub.c)
  */
 					else if(*c->pSR_mode == 'R'){
-						*Thread_R_Status++;
+						(*Thread_R_Status)++;
+// 						printf(" Increasing number of connections %ld \n", *Thread_R_Status);
 					}
 					else
 						Error("Thread_Prt: Wrong SR_mode");

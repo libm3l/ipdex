@@ -74,7 +74,7 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
  * find if the data set thread is available
  */
 	if( (DATA_SFounds = m3l_Locate(DataBuffer, "/Buffer/Data_Set", "/*/*", (lmchar_t *)NULL)) != NULL){
-		
+
 		n_data_threads = m3l_get_Found_number(DATA_SFounds);
 		
 		if(n_data_threads == 0){
@@ -95,7 +95,7 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
  * find name of data thread and compare it to tested data thread name
  */
 		if( (THRName_SFounds = m3l_Locate(m3l_get_Found_node(DATA_SFounds, i), "./Data_Set/Name_of_Data_Set", "/*/*", (lmchar_t *)NULL)) != NULL){
-			
+
 			if(n_data_threads == 0){
 				Error("Server: did not find any Name_of_Data_Set");
 				m3l_DestroyFound(&THRName_SFounds);
@@ -121,7 +121,7 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
  * check status of the thread
  */
 			if( (THRStat_SFounds = m3l_Locate(m3l_get_Found_node(DATA_SFounds, i), "./Data_Set/Thread_Status", "/*/*", (lmchar_t *)NULL)) != NULL){
-				
+
 				if(n_data_threads == 0){
 					Error("Server: did not find any Thread_Status");
 					m3l_DestroyFound(&THRStat_SFounds);
@@ -140,6 +140,9 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
  * The vales 1 is set in Thread_Prt (the thread is blocked there) the value is set to 0 in SR_hub (the thread is unblocked after 
  * transfer of the data set is finished
  */
+
+// 			printf(" Check_Request: %d\n", Thread_Status);
+
 			if(Thread_Status == 1){
 				status = 1;
 			}
@@ -150,7 +153,7 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
  * 
  */			else if( *SR_mode == 'S'){
 				if( (THRStat_SFounds = m3l_Locate(m3l_get_Found_node(DATA_SFounds, i), "./Data_Set/S_Status", "/*/*", (lmchar_t *)NULL)) != NULL){
-				
+
 					if(n_data_threads == 0){
 						Error("Server: did not find any S_Status");
 						m3l_DestroyFound(&THRName_SFounds);
@@ -162,18 +165,18 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
 					printf("Server: did not find any S_Status\n");
 					exit(0);
 				}
-				
+
 				TmpNode = m3l_get_Found_node(THRStat_SFounds, 0);
 				if( (S_Status = *(lmint_t *)m3l_get_data_pointer(TmpNode))){
 					status = 1;}
-				
+
 			}
 			else if( *SR_mode == 'R'){
 /*
  * find actual number of Receiving processes
  */
 				if( (THRStat_SFounds = m3l_Locate(m3l_get_Found_node(DATA_SFounds, i), "./Data_Set/R_Status", "/*/*", (lmchar_t *)NULL)) != NULL){
-				
+
 					if(n_data_threads == 0){
 						Error("Server: did not find any S_Status");
 						m3l_DestroyFound(&THRName_SFounds);
@@ -192,7 +195,7 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
  * find required number of Receiving_Processes
  */
 				if( (THRStat_SFounds = m3l_Locate(m3l_get_Found_node(DATA_SFounds, i), "./Data_Set/Receiving_Processes", "/*/*", (lmchar_t *)NULL)) != NULL){
-				
+
 					if(n_data_threads == 0){
 						Error("Server: did not find any S_Status");
 						m3l_DestroyFound(&THRName_SFounds);
@@ -209,7 +212,7 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
 				
 				if( Receiving_Processes == R_Status) status=1;
 			}
-			
+
 			m3l_DestroyFound(&THRStat_SFounds);
 			m3l_DestroyFound(&THRName_SFounds);
 			break;
@@ -227,13 +230,13 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
 }
 
 
-find_t *find_Queued_Reqst(node_t *DataBuffer){
-	find_t *Tqst_SFounds;
-/*
- * find Queued_Reqst 
- */
-	if( (Tqst_SFounds = m3l_Locate(DataBuffer, "/Buffer/Queued_Reqst/Header", "/*/*/*", (lmchar_t *)NULL)) == NULL)
-		return (find_t *)NULL;
-
-	return Tqst_SFounds;
-}
+// find_t *find_Queued_Reqst(node_t *DataBuffer){
+// 	find_t *Tqst_SFounds;
+// /*
+//  * find Queued_Reqst 
+//  */
+// 	if( (Tqst_SFounds = m3l_Locate(DataBuffer, "/Buffer/Queued_Reqst/Header", "/*/*/*", (lmchar_t *)NULL)) == NULL)
+// 		return (find_t *)NULL;
+// 
+// 	return Tqst_SFounds;
+// }
