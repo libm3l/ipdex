@@ -66,12 +66,9 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
 
 	status = 0;
 
-
 // 	  if(m3l_Cat(DataBuffer, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
 // 		Error("CatData");
-// 
-// 	 exit(0);
-	
+
 	len1 = strlen(name_of_required_data_set);
 /*
  * find if the data set thread is available

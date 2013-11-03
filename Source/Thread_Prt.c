@@ -310,14 +310,14 @@ void *Data_Threads(void *arg)
  * being considered until the tranfer is finished (Check_Request.c and SR_Hub.c)
  */
 					if( *c->pSR_mode == 'S'){
-						Thread_S_Status = 1;
+						*Thread_S_Status = 1;
 					}
 /*
  * if thread status is R, increment Thread_R_Status. Once the counter reaches value of requested
  * R_Thread any other arriving R_thread will be blocked until the tranfer is finished (Check_Request.c and SR_Hub.c)
  */
 					else if(*c->pSR_mode == 'R'){
-						Thread_R_Status++;
+						*Thread_R_Status++;
 					}
 					else
 						Error("Thread_Prt: Wrong SR_mode");

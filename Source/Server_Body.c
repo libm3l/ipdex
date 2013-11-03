@@ -173,23 +173,15 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 // 		if( (RecNode = m3l_Receive_tcpipsocket((const char *)NULL, newsockfd, "--encoding" , "IEEE-754", (char *)NULL)) == NULL)
 // 			Error("Error during reading data from socket");
 
-			opts.opt_REOBseq = '\0'; // send EOFbuff sequence only
-			opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
-
+		opts.opt_REOBseq = '\0'; // send EOFbuff sequence only
 		if( (RecNode = m3l_receive_tcpipsocket((const char *)NULL, newsockfd, Popts)) == NULL)
 			Error("Error during reading data from socket");
-
-// 		printf(" ... .Header arrived  %d \n", newsockfd);
 
 		dim[0] = 1;
 
 		if(  (TmpNode = m3l_Mklist("socket_nr", "I", 1, dim, &RecNode, "/Header", "./", (char *)NULL)) == 0)
 			Error("m3l_Mklist");
 		TmpNode->data.i[0] = newsockfd;
-
-// 		printf(" Received DATA set from Socket:\n");
-// 		if(m3l_Cat(RecNode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
-// 			Error("CatData");
 /* 
  * find Name_of_Data_Set
  * make sure the ./ path is used instead of /
@@ -257,8 +249,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  */
 // 					if( m3l_Send_to_tcpipsocket(RR_POS, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754",  (char *)NULL) < 1)
 // 						Error("Error during sending data from socket");
-					
-					opts.opt_REOBseq = '\0'; // send EOFbuff sequence only
+
 					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
 					if( m3l_send_to_tcpipsocket(RR_POS, (const char *)NULL, newsockfd, Popts) < 1)
 						Error("Error during sending data from socket");
@@ -332,7 +323,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  */
 // 				if( m3l_Send_to_tcpipsocket(RR_NEG, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754",  (char *)NULL) < 1)
 // 					Error("Error during sending data from socket");
-					opts.opt_REOBseq = '\0'; // send EOFbuff sequence only
 					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
 					if( m3l_send_to_tcpipsocket(RR_NEG, (const char *)NULL, newsockfd, Popts) < 1)
 						Error("Error during sending data from socket");
@@ -340,7 +330,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 				}
 				else if(*SR_mode == 'R'){
 // 					m3l_Send_to_tcpipsocket(RR_NEG, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754", (char *)NULL);
-					opts.opt_REOBseq = '\0'; // send EOFbuff sequence only
 					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
 					if( m3l_send_to_tcpipsocket(RR_NEG, (const char *)NULL, newsockfd, Popts) < 1)
 						Error("Error during sending data from socket");
