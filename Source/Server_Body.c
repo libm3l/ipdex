@@ -238,6 +238,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  		Pthread_mutex_lock(&Data_Threads->lock);
 
 		switch ( Check_Request(DataBuffer, name_of_required_data_set, SR_mode, name_of_required_data_set)) {
+// 		switch ( 0 ) {
 			case 0:
 /* 
  * Legal request, not in buffer, data_thread available 
@@ -296,7 +297,11 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * the last thread unlock the semaphore so that the next loop can start
  */		
 				pt_sync(Data_Threads->sync);
-		
+/*
+ * when data set is identified in Thread_Prt the retval is set to 1
+ * If all threads went attempted to evaluate the incoming request and 
+ * none of them identifed the thread, give error message
+ */
 				if(*Data_Threads->retval == 1){
 /*
  * data set was identified
