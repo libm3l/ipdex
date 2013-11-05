@@ -345,11 +345,14 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 	lmssize_t n;
 	Popts = &opts;
 	
-	opts.opt_linkscleanemptlinks = '\0';  // clean empty links
-	opts.opt_nomalloc = '\0'; // if 'm', do not malloc (used in Mklist --no_malloc
-	opts.opt_linkscleanemptrefs = '\0'; // clean empty link references
-	opts.opt_tcpencoding = 't'; // serialization and encoding when sending over TCP/IP
-	opts.opt_MEMCP = 'M';  // type of buffering
+// 	opts.opt_linkscleanemptlinks = '\0';  // clean empty links
+// 	opts.opt_nomalloc = '\0'; // if 'm', do not malloc (used in Mklist --no_malloc
+// 	opts.opt_linkscleanemptrefs = '\0'; // clean empty link references
+// 	opts.opt_tcpencoding = 't'; // serialization and encoding when sending over TCP/IP
+// 	opts.opt_MEMCP = 'M';  // type of buffering
+	
+	
+	m3l_set_Send_receive_tcpipsocket(&Popts);
 /*
  * Receiver threads, set R_done = 0, once the 
  * transfer of entire message is done (ie. Sender sends EOMB sequence
@@ -465,21 +468,16 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 		break;
 
 		case 2:
-// 			printf(" SR---CASE 2\n");
-// 			/* handshake  SEOB-REOB */
 			opts.opt_REOBseq = 'G';  /* --REOB */
 			opts.opt_EOBseq = '0';       /* --SEOB */
-// 			m3l_receive_send_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts);
 			m3l_receive_tcpipsocket((lmchar_t *)NULL, sockfd, Popts);
 			opts.opt_REOBseq = '\0';  /* --REOB */
 			opts.opt_EOBseq = '\0';       /* --SEOB */
-// 			printf(" ATER SR----CASE 2\n");
 /*
  * close the socket 
  */
 			if( close(sockfd) == -1)
 				Perror("close");
-// 			printf(" R----closing socket\n");
 			
 		break;
 		
@@ -563,11 +561,13 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 	opts_t *Popts, opts;
 	Popts = &opts;
 
-	opts.opt_linkscleanemptlinks = '\0';  // clean empty links
-	opts.opt_nomalloc = '\0'; // if 'm', do not malloc (used in Mklist --no_malloc
-	opts.opt_linkscleanemptrefs = '\0'; // clean empty link references
-	opts.opt_tcpencoding = 't'; // serialization and encoding when sending over TCP/IP
-	opts.opt_MEMCP = 'M';  // type of buffering
+// 	opts.opt_linkscleanemptlinks = '\0';  // clean empty links
+// 	opts.opt_nomalloc = '\0'; // if 'm', do not malloc (used in Mklist --no_malloc
+// 	opts.opt_linkscleanemptrefs = '\0'; // clean empty link references
+// 	opts.opt_tcpencoding = 't'; // serialization and encoding when sending over TCP/IP
+// 	opts.opt_MEMCP = 'M';  // type of buffering
+
+	m3l_set_Send_receive_tcpipsocket(&Popts);
 
 	bzero(prevbuff, EOBlen+1);
 /*
@@ -642,10 +642,8 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 		break;
 		
 		case 2:
-			/* handshake  REOB-SEOB */
 			opts.opt_REOBseq = '0';  /* --REOB */
 			opts.opt_EOBseq = 'E';       /* --SEOB */
-// 			m3l_send_receive_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts);
 			m3l_send_to_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts);
 			opts.opt_REOBseq = '\0';  /* --REOB */
 			opts.opt_EOBseq = '\0';       /* --SEOB */
@@ -654,7 +652,6 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
  */
 			if( close(sockfd) == -1)
 				Perror("close");
-// 			printf(" S----closing socket\n");
 		break;
 			
 		case 3:

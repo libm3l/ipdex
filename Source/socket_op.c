@@ -62,7 +62,8 @@ lmint_t open_connection_to_server(const lmchar_t *hostname, lmint_t portno, clie
 	lmsize_t max_conn_attemps = 100;
 
 	tim.tv_sec = 0;
-	tim.tv_nsec = 100000000L;    /* 0.1 secs */
+// 	tim.tv_nsec = 100000000L;    /* 0.1 secs */
+	tim.tv_nsec = 10000000L;    /* 0.1 secs */
 	
 	conn_retry_counter = 0;
 
