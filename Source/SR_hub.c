@@ -56,6 +56,13 @@
 
 static lmint_t valueOfSharedVariable(SR_hub_thread_str_t *);
 
+//      mode 1: ATDTMode == 'D' && KeepAlive_Mode == 'N'  /* Direct transfer, close socket */
+//      mode 2: ATDTMode == 'A' && KeepAlive_Mode == 'N'  /* Alternate transfer, close socket */
+//      mode 3: ATDTMode == 'D' && KeepAlive_Mode == 'C'  /* Direct transfer, close socket after client request it*/
+//      mode 4: ATDTMode == 'A' && KeepAlive_Mode == 'C'  /* Alternate transfer, close socket after client request it*/
+//      mode 5: ATDTMode == 'D' && KeepAlive_Mode == 'Y'  /* Direct transfer, do not close socket*/
+//      mode 6: ATDTMode == 'A' && KeepAlive_Mode == 'Y'  /* Alternate transfer, do not close socket*/
+
 void *SR_hub(void *arg)
 {
 /*
@@ -66,7 +73,7 @@ void *SR_hub(void *arg)
 	lmint_t IT;
 	node_t *List;
 	find_t *SFounds;
-	lmchar_t *ATDTMode, *KeepAllive_Mode;
+	lmchar_t *ATDTMode, *KeepAlive_Mode;
 /*
  * NOTE in previuous version, this function was run after the while(n_avail_loc_theads != 0);  // all connecting thread arrivied, ie. one Sender and n_rec_proc Receivers 
  * in Thread_Prt ended. It did not work when more then one data set arrived and pt_sync in Thread_Prt in do loop was not behaving properly
@@ -117,8 +124,8 @@ void *SR_hub(void *arg)
 				if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
 					Error("SR_hub: NULL KEEP_CONN_ALIVE_Mode");
 			
-				KeepAllive_Mode = (lmchar_t *)m3l_get_data_pointer(List);
-				*c->pKA_mode 	= *KeepAllive_Mode;
+				KeepAlive_Mode = (lmchar_t *)m3l_get_data_pointer(List);
+				*c->pKA_mode 	= *KeepAlive_Mode;
 /* 
  * free memory allocated in m3l_Locate
  */
@@ -139,7 +146,7 @@ void *SR_hub(void *arg)
 /*
  * determine mode number
  */
-	if ( (*c->pSRh_mode = get_exchange_channel_mode(*ATDTMode, *KeepAllive_Mode)) == -1)
+	if ( (*c->pSRh_mode = get_exchange_channel_mode(*ATDTMode, *KeepAlive_Mode)) == -1)
 		Error("SR_hub: Wrong transfer mode");
 /*
  * start loop for transfer

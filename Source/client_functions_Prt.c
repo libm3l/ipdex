@@ -50,12 +50,12 @@
 #include "ACK.h"
 #include "socket_op.h"
 
-//      mode 1: ATDTMode == 'D' && KeepAllive_Mode == 'N'  /* Direct transfer, close socket */
-//      mode 2: ATDTMode == 'A' && KeepAllive_Mode == 'N'  /* Alternate transfer, close socket */
-//      mode 3: ATDTMode == 'D' && KeepAllive_Mode == 'C'  /* Direct transfer, close socket after client request it*/
-//      mode 4: ATDTMode == 'A' && KeepAllive_Mode == 'C'  /* Alternate transfer, close socket after client request it*/
-//      mode 5: ATDTMode == 'D' && KeepAllive_Mode == 'Y'  /* Direct transfer, do not close socket*/
-//      mode 6: ATDTMode == 'A' && KeepAllive_Mode == 'Y'  /* Alternate transfer, do not close socket*/
+//      mode 1: ATDTMode == 'D' && KeepAlive_Mode == 'N'  /* Direct transfer, close socket */
+//      mode 2: ATDTMode == 'A' && KeepAlive_Mode == 'N'  /* Alternate transfer, close socket */
+//      mode 3: ATDTMode == 'D' && KeepAlive_Mode == 'C'  /* Direct transfer, close socket after client request it*/
+//      mode 4: ATDTMode == 'A' && KeepAlive_Mode == 'C'  /* Alternate transfer, close socket after client request it*/
+//      mode 5: ATDTMode == 'D' && KeepAlive_Mode == 'Y'  /* Direct transfer, do not close socket*/
+//      mode 6: ATDTMode == 'A' && KeepAlive_Mode == 'Y'  /* Alternate transfer, do not close socket*/
 
 lmint_t client_sender(void *data, const lmchar_t *hostname, lmint_t portno, client_fce_struct_t *ClientInPar, opts_t *Popts, opts_t *Popst_lm3l){
 
