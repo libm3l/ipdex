@@ -226,13 +226,23 @@ void *SR_Data_Threads(void *arg)
 /*
  * R(eceivers)
  */
-				while(1) if( R_KAN(c, sockfd, 5) != 1) return NULL;
+				while(1){
+					Pthread_barrier_wait(c->pbarr);
+					if(R_KAN(c, sockfd, 5) != 1) return NULL;
+				}
+
+// 				return NULL;
 			}
 			else if(SR_mode == 'S'){
 /*
  * S(ender)
  */
-				while(1) if( S_KAN(c, sockfd, 5) != 1) return NULL;
+				while(1){
+					Pthread_barrier_wait(c->pbarr);
+					if( S_KAN(c, sockfd, 5) != 1) return NULL;
+				}
+
+// 					return NULL;
 			}
 			else{
 				Error("SR_Data_Threads: Wrong SR_mode");
@@ -339,13 +349,6 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 	opts_t *Popts, opts;
 	lmssize_t n;
 	Popts = &opts;
-	
-// 	opts.opt_linkscleanemptlinks = '\0';  // clean empty links
-// 	opts.opt_nomalloc = '\0'; // if 'm', do not malloc (used in Mklist --no_malloc
-// 	opts.opt_linkscleanemptrefs = '\0'; // clean empty link references
-// 	opts.opt_tcpencoding = 't'; // serialization and encoding when sending over TCP/IP
-// 	opts.opt_MEMCP = 'M';  // type of buffering
-	
 	
 	m3l_set_Send_receive_tcpipsocket(&Popts);
 /*
@@ -555,12 +558,6 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 	lmint_t eofbuffcond, retval;
 	opts_t *Popts, opts;
 	Popts = &opts;
-
-// 	opts.opt_linkscleanemptlinks = '\0';  // clean empty links
-// 	opts.opt_nomalloc = '\0'; // if 'm', do not malloc (used in Mklist --no_malloc
-// 	opts.opt_linkscleanemptrefs = '\0'; // clean empty link references
-// 	opts.opt_tcpencoding = 't'; // serialization and encoding when sending over TCP/IP
-// 	opts.opt_MEMCP = 'M';  // type of buffering
 
 	m3l_set_Send_receive_tcpipsocket(&Popts);
 

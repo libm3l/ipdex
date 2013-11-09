@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
 	
 	PInpPar->data_name = name;
 	PInpPar->SR_MODE = 'R';
-	if ( (PInpPar->mode = get_exchange_channel_mode('D', 'N')) == -1)
+	if ( (PInpPar->mode = get_exchange_channel_mode('D', 'Y')) == -1)
 		Error("wrong client mode");
 	
 	Popts_1 = &opts;

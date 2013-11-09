@@ -69,25 +69,11 @@ int main(int argc, char *argv[])
 	opts_t *Popts_1, opts;
 	
 	struct timespec tim, tim2;
-// 	tim.tv_sec = 1;
 	tim.tv_sec = 0;
-// 	tim.tv_nsec = 300000000L;    /* 0.1 secs */
 	tim.tv_nsec = 1000000L;    /* 0.1 secs */
 
 	nmax = 100000;
 	PInpPar = &InpPar;
-	
-	
-	PInpPar->data_name = name;
-	PInpPar->SR_MODE = 'S';
-	if ( (PInpPar->mode = get_exchange_channel_mode('D', 'Y')) == -1)
-		Error("wrong client mode");
-	
-	Popts_1 = &opts;
-	m3l_set_Send_receive_tcpipsocket(&Popts_1);
-	
-	if( (sockfd = open_connection_to_server(argv[1], portno, PInpPar, Popts_1)) < 1)
-		Error("client_sender: Error when opening socket");
 /*
  * get port number
  */
@@ -96,6 +82,19 @@ int main(int argc, char *argv[])
        exit(1);
      }
  	portno = atoi(argv[2]);
+	
+	
+	PInpPar->data_name = name;
+	PInpPar->SR_MODE = 'S';
+	if ( (PInpPar->mode = get_exchange_channel_mode('D', 'Y')) == -1)
+		Error("wrong client mode");
+
+	Popts_1 = &opts;
+	m3l_set_Send_receive_tcpipsocket(&Popts_1);
+	
+	if( (sockfd = open_connection_to_server(argv[1], portno, PInpPar, Popts_1)) < 1)
+		Error("client_sender: Error when opening socket");
+	
 /*
  * open socket - because we use more then just send - receive scenario
  * we need to open socket manualy and used Send_receive function with hostname = NULL, ie. as server
@@ -139,8 +138,8 @@ int main(int argc, char *argv[])
 // 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
 // 			Error("CatData");
 		
-		if(nanosleep(&tim , &tim2) < 0 )
-			Error("Nano sleep system call failed \n");
+// 		if(nanosleep(&tim , &tim2) < 0 )
+// 			Error("Nano sleep system call failed \n");
  	}
  	
  	close(sockfd);

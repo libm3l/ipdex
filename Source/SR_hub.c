@@ -211,6 +211,21 @@ void *SR_hub(void *arg)
 				break;
 			
 				case 5:
+/*
+ * connection is kept allive, do while(1) loop
+ */
+					Pthread_barrier_wait(c->pbarr);
+					while(1){
+/*
+ * wait until all SR_threads reach barrier, then start actual transfer of the data from S to R(s)
+ */
+						Pthread_barrier_wait(c->pbarr);
+/*
+ * once the data transfer is finished wait until all data is tranferred and S and R threads close their socket
+*/
+						Sem_wait(c->psem_g);
+					}
+
 				case 6:
 					while(1){
 						IT = 2;
