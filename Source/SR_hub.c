@@ -174,8 +174,6 @@ void *SR_hub(void *arg)
 					
 					IT = 2;
 					do{
-						
-// 						printf(" IT is %d\n", IT);
 /*
  * wait until all SR_threads reach barrier, then start actual transfer of the data from S to R(s)
  * 
@@ -185,13 +183,10 @@ void *SR_hub(void *arg)
  * for IT == 1 the barrier is located in case 2 between invoking S_KAN and R_KAN functions
  */
 						Pthread_barrier_wait(c->pbarr);
-// 						printf(" SR_hub After barrier \n");
 /*
  * once the data transfer is finished wait until all data is tranferred and S and R threads close their socket
  */
 						Sem_wait(c->psem_g);
-// 						printf(" After semaphore\n");
-						
 					}while(--IT != 0);
 				break;
 			
@@ -249,7 +244,7 @@ void *SR_hub(void *arg)
 /*
  * release thread, ie. set Thread_Status = 0, S_Status and R_Status
  */
-			*c->pThread_Status = 0;
+			*c->pThread_Status   = 0;
 			*c->pThread_S_Status = 0;
 			*c->pThread_R_Status = 0;
 /*

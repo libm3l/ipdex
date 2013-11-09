@@ -141,15 +141,9 @@ void *SR_Data_Threads(void *arg)
  * when finishing with R, do not signal SR_hub to go to another loop, 
  * the Receiver process will now send the data 
  */
-// 				printf(" R-R_KAN\n");
 				if( R_KAN(c, sockfd, 0) == -1) return NULL;
-// 				printf(" R- Before barrier \n");
 				Pthread_barrier_wait(c->pbarr);
-				
-// 				printf(" R - After barrier \n");
-// 				printf(" R-S_KAN\n");
 				if( S_KAN(c, sockfd, 2) == -1) return NULL;
-// 				printf(" R-DONE\n");
 			}
 			else if(SR_mode == 'S'){
 /*
@@ -157,15 +151,9 @@ void *SR_Data_Threads(void *arg)
  * after that signal SR_hhub that SR operation is finished and it can do 
  * another loop
  */
-// 				printf(" S-S_KAN\n");
 				if( S_KAN(c, sockfd, 0) == -1) return NULL;
-// 				printf(" S- Before barrier \n");
 				Pthread_barrier_wait(c->pbarr);
-				
-// 				printf(" S- After barrier \n");
-// 				printf(" S-R_KAN\n");
 				if( R_KAN(c, sockfd, 2) == -1) return NULL;
-// 				printf(" S-DONE\n");
 			}
 			else{
 				Error("SR_Data_Threads: Wrong SR_mode");
