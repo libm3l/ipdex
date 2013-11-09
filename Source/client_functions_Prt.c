@@ -190,15 +190,21 @@ client_receiver_struct_t *client_receiver(const lmchar_t *hostname, lmint_t port
 	if(hostname != NULL){
 		if( (sockfd = open_connection_to_server(hostname, portno, ClientInPar, Popts_1)) < 1 )
 			Error("client_receiver: Error when opening socket");
+/*
+ * confirm the header was received (--SEOB). When Client-Receiver opens connection and send the name of data set 
+ * it will operate with, the server acknowledges with sending --REOB
+ */
+		opts.opt_EOBseq 	= 'E';       /* --SEOB */
+		m3l_send_to_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts_1);
 	}
 	else
 		sockfd = portno;
-/*
- * confirm the header was received (--SEOB)
- */
-	opts.opt_EOBseq 	= 'E';       /* --SEOB */
-// 	m3l_Send_to_tcpipsocket((node_t *)NULL, (char *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB", (char *)NULL);
-	m3l_send_to_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts_1);
+// /*
+//  * confirm the header was received (--SEOB)
+//  */
+// 	opts.opt_EOBseq 	= 'E';       /* --SEOB */
+// // 	m3l_Send_to_tcpipsocket((node_t *)NULL, (char *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB", (char *)NULL);
+// 	m3l_send_to_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts_1);
 	
 	
 	switch(ClientInPar->mode){
