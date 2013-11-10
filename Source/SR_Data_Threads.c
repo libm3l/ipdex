@@ -83,7 +83,7 @@ void *SR_Data_Threads(void *arg)
 	while(1){
 /*
  * wait until all requests (all Receiver + Sender) for a particular data_set arrived 
- * the last invoking of Pthread_barrier_wait is done in Thread_Prt.c
+ * the last invoking of Pthread_barrier_wait is done in SR_hub.c
  */
 		*c->pthr_cntr = 0;
 
@@ -142,6 +142,9 @@ void *SR_Data_Threads(void *arg)
  * the Receiver process will now send the data 
  */
 				if( R_KAN(c, sockfd, 0) == -1) return NULL;
+/*
+ * last Pthread_barrier_wait is done in SR_hub.c
+ */
 				Pthread_barrier_wait(c->pbarr);
 				if( S_KAN(c, sockfd, 2) == -1) return NULL;
 			}
@@ -152,6 +155,9 @@ void *SR_Data_Threads(void *arg)
  * another loop
  */
 				if( S_KAN(c, sockfd, 0) == -1) return NULL;
+/*
+ * last Pthread_barrier_wait is done in SR_hub.c
+ */
 				Pthread_barrier_wait(c->pbarr);
 				if( R_KAN(c, sockfd, 2) == -1) return NULL;
 			}
@@ -227,8 +233,11 @@ void *SR_Data_Threads(void *arg)
  * R(eceivers)
  */
 				while(1){
-					Pthread_barrier_wait(c->pbarr);
 					if(R_KAN(c, sockfd, 5) != 1) return NULL;
+/*
+ * last Pthread_barrier_wait is done in SR_hub.c
+ */
+					Pthread_barrier_wait(c->pbarr);
 				}
 
 // 				return NULL;
@@ -238,8 +247,11 @@ void *SR_Data_Threads(void *arg)
  * S(ender)
  */
 				while(1){
-					Pthread_barrier_wait(c->pbarr);
 					if( S_KAN(c, sockfd, 5) != 1) return NULL;
+/*
+ * last Pthread_barrier_wait is done in SR_hub.c
+ */
+					Pthread_barrier_wait(c->pbarr);
 				}
 
 // 					return NULL;
@@ -516,6 +528,9 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 		break;
 			
 		case 5:
+/*
+ * same as case 1, just do not close the socket
+ */
 			opts.opt_REOBseq = 'G'; // send EOFbuff sequence only
 			if( m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts) < 0){
 				Error("SR_Data_Threads: Error when receiving  REOB\n");
@@ -691,7 +706,10 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 
 		break;
 
-		case 5:
+		case 5:  
+/*
+ * same as case 1, just do not close the socket
+ */
 			opts.opt_EOBseq = 'E'; // send EOFbuff sequence only	
 			if( m3l_send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, Popts) < 0){
 				Error("SR_Data_Threads: Error when sending  SEOB\n");

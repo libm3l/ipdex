@@ -214,10 +214,12 @@ void *SR_hub(void *arg)
 /*
  * connection is kept allive, do while(1) loop
  */
-					Pthread_barrier_wait(c->pbarr);
 					while(1){
 /*
  * wait until all SR_threads reach barrier, then start actual transfer of the data from S to R(s)
+ * in the very first loop the barrier is reached in SR_Data_Threads
+ * in any subsequent loop the barrier is reached after while(1) loop in case 5 of SR_Data_Threads
+ * after R_KAN and S_KAN
  */
 						Pthread_barrier_wait(c->pbarr);
 /*
