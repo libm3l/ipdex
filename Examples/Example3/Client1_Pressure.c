@@ -99,8 +99,8 @@ int main(int argc, char *argv[])
 	if( (sockfd = open_connection_to_server(argv[1], portno, PInpPar, Popts_1)) < 1)
 		Error("client_sender: Error when opening socket");
 	
-	opts.opt_EOBseq = 'E';       /* --SEOB */
-	m3l_send_to_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts_1);
+// 	opts.opt_EOBseq = 'E';       /* --SEOB */
+// 	m3l_send_to_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts_1);
 /*
  * open socket - because we use more then just send - receive scenario
  * we need to open socket manualy and used Send_receive function with hostname = NULL, ie. as server

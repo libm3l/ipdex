@@ -234,10 +234,6 @@ void *SR_Data_Threads(void *arg)
  */
 				while(1){
 					if(R_KAN(c, sockfd, 5) != 1) return NULL;
-/*
- * last Pthread_barrier_wait is done in SR_hub.c
- */
-					Pthread_barrier_wait(c->pbarr);
 				}
 
 // 				return NULL;
@@ -248,10 +244,6 @@ void *SR_Data_Threads(void *arg)
  */
 				while(1){
 					if( S_KAN(c, sockfd, 5) != 1) return NULL;
-/*
- * last Pthread_barrier_wait is done in SR_hub.c
- */
-					Pthread_barrier_wait(c->pbarr);
 				}
 
 // 					return NULL;

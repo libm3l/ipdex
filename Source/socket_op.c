@@ -60,6 +60,7 @@ lmint_t open_connection_to_server(const lmchar_t *hostname, lmint_t portno, clie
 	
 	lmsize_t conn_retry_counter;
 	lmsize_t max_conn_attemps = 100;
+	opts_t *Popts_1, opts;   /* NOTE:  URGENT Popts_1 is the same as Popts */
 
 	tim.tv_sec = 0;
 // 	tim.tv_nsec = 100000000L;    /* 0.1 secs */
@@ -127,6 +128,18 @@ again:
 	else{
 		Error("Hostname not given");
 		return -1;
+	}
+	
+	if(ClientInPar->SR_MODE == 'R'){
+		Popts_1 = &opts;
+		m3l_set_Send_receive_tcpipsocket(&Popts_1);
+/*
+ * confirm the header was received (--SEOB). When Client-Receiver opens connection and send the name of data set 
+ * it will operate with, the server acknowledges with sending --REOB
+ * Only Receiver does it
+ */
+		opts.opt_EOBseq 	= 'E';       /* --SEOB */
+		m3l_send_to_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts_1);
 	}
 
 	return sockfd;
