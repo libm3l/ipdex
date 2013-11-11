@@ -184,10 +184,5 @@ typedef struct client_fce_struct{
 	lmint_t mode;
 }client_fce_struct_t;
 
-// typedef struct client_receiver_struct{
-// 	node_t *data;
-// 	lmint_t sockfd;
-// }client_receiver_struct_t;
-
 
 #endif

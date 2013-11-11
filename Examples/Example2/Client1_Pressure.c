@@ -91,7 +91,9 @@ int main(int argc, char *argv[])
  	for(i=0; i<nmax; i++){
 
  		printf("\n\n--------------------------------    i = %ld\n\n", i);
-
+/*
+ * open socket
+ */
 		PInpPar->data_name = name;
 		PInpPar->SR_MODE = 'R';
 		if ( (PInpPar->mode = get_exchange_channel_mode('A', 'N')) == -1)
@@ -124,10 +126,12 @@ int main(int argc, char *argv[])
 	
 		if(m3l_Umount(&Gnode) != 1)
 			Perror("m3l_Umount");
-				
-
-		close(sockfd);
-
+/* 
+ * close socket
+ */
+		if( close(sockfd) == -1)
+			Perror("close");
+		
 // 		if(nanosleep(&tim , &tim2) < 0 )
 // 			Error("Nano sleep system call failed \n");
 

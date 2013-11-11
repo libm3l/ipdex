@@ -82,8 +82,9 @@ int main(int argc, char *argv[])
        exit(1);
      }
  	portno = atoi(argv[2]);
-	
-	
+/*
+ * open socket
+ */
 	PInpPar->data_name = name;
 	PInpPar->SR_MODE = 'S';
 	if ( (PInpPar->mode = get_exchange_channel_mode('D', 'Y')) == -1)
@@ -134,15 +135,13 @@ int main(int argc, char *argv[])
 
 		if(m3l_Umount(&Gnode) != 1)
 			Perror("m3l_Umount");
-		
-// 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
-// 			Error("CatData");
-		
-// 		if(nanosleep(&tim , &tim2) < 0 )
-// 			Error("Nano sleep system call failed \n");
+
  	}
- 	
- 	close(sockfd);
+/*
+ * close socket
+ */
+	if( close(sockfd) == -1)
+		Perror("close");
 
 
      return 0; 

@@ -68,12 +68,6 @@ int main(int argc, char *argv[])
 	
 	client_fce_struct_t InpPar, *PInpPar;
 	opts_t *Popts_1, opts;
-	
-	struct timespec tim, tim2;
-	tim.tv_sec = 0;
-	tim.tv_nsec = 100000000L;    /* 0.1 secs */
-	tim.tv_sec = 0;
-	tim.tv_nsec = 10000000L;    /* 0.01 secs */
 
 	PInpPar = &InpPar;
 
@@ -85,8 +79,10 @@ int main(int argc, char *argv[])
        fprintf(stderr,"ERROR, no IPaddress and port number provided\n");
        exit(1);
      }
- 	portno = atoi(argv[2]);
-	
+	portno = atoi(argv[2]);
+/*
+ * open socket
+ */	
 	PInpPar->data_name = name;
 	PInpPar->SR_MODE = 'R';
 	if ( (PInpPar->mode = get_exchange_channel_mode('D', 'Y')) == -1)
@@ -117,14 +113,12 @@ int main(int argc, char *argv[])
 		
 		if(m3l_Umount(&Gnode) != 1)
 			Perror("m3l_Umount");
-
-// 		if(nanosleep(&tim , &tim2) < 0 )
-// 			Error("Nano sleep system call failed \n");
-
  	}
- 	
- 	close(sockfd);
-
+/* 
+ * close socket
+ */
+	if( close(sockfd) == -1)
+		Perror("close");
 
      return 0; 
 }

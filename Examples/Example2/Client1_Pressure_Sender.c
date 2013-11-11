@@ -117,7 +117,9 @@ int main(int argc, char *argv[])
 		
 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
 			Error("CatData");
-		
+/*
+ * open socket
+ */
 		PInpPar->data_name = name;
 		PInpPar->SR_MODE = 'S';
 		if ( (PInpPar->mode = get_exchange_channel_mode('A', 'N')) == -1)
@@ -140,8 +142,11 @@ int main(int argc, char *argv[])
 // 		sleep(2);
 
 		Gnode = client_receiver(sockfd, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
-		
-		close(sockfd);
+/* 
+ * close socket
+ */
+		if( close(sockfd) == -1)
+			Perror("close");
 		
 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
 			Error("CatData");
