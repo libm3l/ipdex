@@ -266,8 +266,12 @@ void *SR_Data_Threads(void *arg)
  * the Receiver process will now send the data 
  */
 				while(1){
-					if( R_KAN(c, sockfd, 6) != 1) return NULL;
-					if( S_KAN(c, sockfd, 6) != 1) return NULL;
+					if( R_KAN(c, sockfd, 0) == -1) return NULL;
+/*
+ * last Pthread_barrier_wait is done in SR_hub.c
+ */
+					Pthread_barrier_wait(c->pbarr);
+					if( S_KAN(c, sockfd, 6) == -1) return NULL;
 				}
 			}
 			else if(SR_mode == 'S'){
@@ -277,8 +281,12 @@ void *SR_Data_Threads(void *arg)
  * another loop
  */
 				while(1){
-					if( S_KAN(c, sockfd, 6) != 1) return NULL;
-					if( R_KAN(c, sockfd, 6) != 1) return NULL;
+					if( S_KAN(c, sockfd, 0) == -1) return NULL;
+/*
+ * last Pthread_barrier_wait is done in SR_hub.c
+ */
+					Pthread_barrier_wait(c->pbarr);
+					if( R_KAN(c, sockfd, 6) == -1) return NULL;
 				}
 			}
 			else{
@@ -530,7 +538,19 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 			}
 		break;
 		
+		case 6:
+/*
+ * same as case 1, just do not close the socket
+ */
+			opts.opt_REOBseq = 'G';  /* --REOB */
+			opts.opt_EOBseq = '0';       /* --SEOB */
+			m3l_receive_tcpipsocket((lmchar_t *)NULL, sockfd, Popts);
+			opts.opt_REOBseq = '\0';  /* --REOB */
+			opts.opt_EOBseq = '\0';       /* --SEOB */		
+		break;
+		
 		default:
+			Error("R_KAN: Wrong mode");
 		break;
 	}
 // /*
@@ -709,7 +729,20 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 			}
 		break;
 		
-// 		case 6:  empty case
+		case 6:
+/*
+ * same as case 1, just do not close the socket
+ */
+			opts.opt_REOBseq = '0';  /* --REOB */
+			opts.opt_EOBseq = 'E';       /* --SEOB */
+			m3l_send_to_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts);
+			opts.opt_REOBseq = '\0';  /* --REOB */
+			opts.opt_EOBseq = '\0';       /* --SEOB */
+		break;
+		
+		default:
+			Error("S_KAN: Wrong mode");
+		break;
 	}
 /*
  * synck before letting SR_hub to close sockets
