@@ -255,13 +255,6 @@ void *SR_hub(void *arg)
  */
 			*c->pn_avail_loc_theads = *c->pn_rec_proc + 1;
 /*
- * close sockets (moved to SR_Data_Thread)
- * 
-// 			for(i=0; i<*c->pn_avail_loc_theads; i++){
-// 				if( close(c->psockfd[i]) == -1)
-// 					Perror("close");
-// 			}
-/*
  * increase ncount of available Data_Threads
  */
 			(*c->prcounter)++;

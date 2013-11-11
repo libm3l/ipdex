@@ -90,7 +90,6 @@ lmint_t client_sender(void *data, lmint_t sockfd, client_fce_struct_t *ClientInP
  *  Only Receiver closes socket, before that wait for client confirming all data were sent
  */
 		if(ClientInPar->SR_MODE == 'R'){
-			
 			opts.opt_REOBseq = 'G';  /* --REOB */
 			m3l_receive_tcpipsocket((lmchar_t *)NULL, sockfd, Popts_1);
 			opts.opt_REOBseq = '\0';  /* --REOB */			
@@ -134,14 +133,12 @@ lmint_t client_sender(void *data, lmint_t sockfd, client_fce_struct_t *ClientInP
 /*
  * send data and receive confirmation that the data were received (--REOB)
  */
-// 		m3l_Send_to_tcpipsocket((node_t *)data,(char *)NULL, sockfd, "--encoding" , "IEEE-754",  "--REOB", (char *)NULL);
 		opts.opt_EOBseq 	= '\0';  /* --REOB */
 		m3l_send_to_tcpipsocket((node_t *)data, (lmchar_t *)NULL, sockfd, Popts_1);
 /* 
  *  Only Receiver closes socket, before that wait for client confirming all data were sent
  */
 		if(ClientInPar->SR_MODE == 'R'){
-			
 			opts.opt_REOBseq = 'G';  /* --REOB */
 			m3l_receive_tcpipsocket((lmchar_t *)NULL, sockfd, Popts_1);
 			opts.opt_REOBseq = '\0';  /* --REOB */			
@@ -165,23 +162,16 @@ node_t *client_receiver(lmint_t sockfd, client_fce_struct_t *ClientInPar, opts_t
 	
 	opts_t *Popts_1, opts;
 	
-// 	client_receiver_struct_t *Pretval;
-
 	Popts_1 = &opts;
 	m3l_set_Send_receive_tcpipsocket(&Popts_1);
-	
-// 	if ( (Pretval = (client_receiver_struct_t *)malloc(sizeof(client_receiver_struct_t))) == NULL)
-// 		Error("client_receiver: allocating Pretval failed ");
 	
 	switch(ClientInPar->mode){
 	case 1:
 /*
  * receive payload
  */
-// 	if( (Gnode = m3l_Receive_tcpipsocket((char *)NULL, sockfd, "--encoding" , "IEEE-754", (char *)NULL)) == NULL)
-// 		Error("Receiving data");
-		if( (Gnode = m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts_1)) == NULL)
-			Error("Receiving data");
+	if( (Gnode = m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts_1)) == NULL)
+		Error("Receiving data");
 /*
  * confirm the data was received (--SEOB)
  */
@@ -198,7 +188,6 @@ node_t *client_receiver(lmint_t sockfd, client_fce_struct_t *ClientInPar, opts_t
  * Sender closes socket, before that it conforms all data were transferred
  */
 		if(ClientInPar->SR_MODE == 'S'){  /* Sender closes socket */
-			
 			opts.opt_EOBseq  = 'E';       /* --SEOB */
 			m3l_send_to_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts_1);
 			opts.opt_EOBseq = '\0';       /* --SEOB */
@@ -229,8 +218,6 @@ node_t *client_receiver(lmint_t sockfd, client_fce_struct_t *ClientInPar, opts_t
 /*
  * receive payload
  */
-// 	if( (Gnode = m3l_Receive_tcpipsocket((char *)NULL, sockfd, "--encoding" , "IEEE-754", (char *)NULL)) == NULL)
-// 		Error("Receiving data");
 
 		if( (Gnode = m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts_1)) == NULL)
 			Error("Receiving data");
@@ -252,7 +239,6 @@ node_t *client_receiver(lmint_t sockfd, client_fce_struct_t *ClientInPar, opts_t
  * Sender closes socket, before that it conforms all data were transferred
  */
 		if(ClientInPar->SR_MODE == 'S'){  /* Sender closes socket */
-			
 			opts.opt_EOBseq  = 'E';       /* --SEOB */
 			m3l_send_to_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts_1);
 			opts.opt_EOBseq = '\0';       /* --SEOB */
