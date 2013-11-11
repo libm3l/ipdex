@@ -66,12 +66,13 @@ int main(int argc, char *argv[])
 	lmint_t nmax, retval;
 	lmdouble_t *tmpdf;
 	client_fce_struct_t InpPar, *PInpPar;
+	opts_t opts, *Popts_1;
 	
 	struct timespec tim, tim2;
 // 	tim.tv_sec = 1;
 	tim.tv_sec = 0;
 // 	tim.tv_nsec = 300000000L;    /* 0.1 secs */
-	tim.tv_nsec = 1000000L;    /* 0.1 secs */
+	tim.tv_nsec = 10000000L;    /* 0.1 secs */
 
 	nmax = 100000;
 	PInpPar = &InpPar;
@@ -105,7 +106,7 @@ int main(int argc, char *argv[])
 				Error("m3l_Mklist");
 		TmpNode->data.i[0] = i;
 /*
- * add pressure array, array has 10 pressure with some values
+ * add pressure array, array has 5 pressure with some values
  */	
 		dim[0] = 10;
 		if(  (TmpNode = m3l_Mklist("numbers", "D", 1, dim, &Gnode, "/Client_Data", "./", (char *)NULL)) == 0)
@@ -122,14 +123,18 @@ int main(int argc, char *argv[])
 		PInpPar->SR_MODE = 'S';
 		if ( (PInpPar->mode = get_exchange_channel_mode('D', 'N')) == -1)
 			Error("wrong client mode");
+		Popts_1 = &opts;
+		m3l_set_Send_receive_tcpipsocket(&Popts_1);
+	
+		if( (sockfd = open_connection_to_server(argv[1], portno, PInpPar, Popts_1)) < 1)
+			Error("client_sender: Error when opening socket");
 		
-		sockfd=client_sender(Gnode, argv[1], portno, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
+		client_sender(Gnode, sockfd,  PInpPar, (opts_t *)NULL, (opts_t *)NULL);
+		
+		close(sockfd);
 
 		if(m3l_Umount(&Gnode) != 1)
 			Perror("m3l_Umount");
-		
-// 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
-// 			Error("CatData");
 		
 		if(nanosleep(&tim , &tim2) < 0 )
 			Error("Nano sleep system call failed \n");

@@ -67,7 +67,6 @@ int main(int argc, char *argv[])
 	double *tmpdf;
 	
 	client_fce_struct_t InpPar, *PInpPar;
-	client_receiver_struct_t *Pretval;
 	opts_t *Popts_1, opts;
 	
 	struct timespec tim, tim2;
@@ -111,9 +110,7 @@ int main(int argc, char *argv[])
  		printf("\n\n--------------------------------    i = %ld\n\n", i);
 
 		
-		Pretval = client_receiver((const char *)NULL, sockfd, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
-		Gnode = Pretval->data;
-		free(Pretval);
+		Gnode = client_receiver(sockfd, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
 
 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
 			Error("CatData");

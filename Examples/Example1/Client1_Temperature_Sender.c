@@ -66,6 +66,7 @@ int main(int argc, char *argv[])
 	lmint_t nmax, retval;
 	lmdouble_t *tmpdf;
 	client_fce_struct_t InpPar, *PInpPar;
+	opts_t opts, *Popts_1;
 	
 	struct timespec tim, tim2;
 // 	tim.tv_sec = 1;
@@ -105,7 +106,7 @@ int main(int argc, char *argv[])
 				Error("m3l_Mklist");
 		TmpNode->data.i[0] = i;
 /*
- * add pressure array, array has 7 pressure with some values
+ * add pressure array, array has 5 pressure with some values
  */	
 		dim[0] = 7;
 		if(  (TmpNode = m3l_Mklist("numbers", "D", 1, dim, &Gnode, "/Client_Data", "./", (char *)NULL)) == 0)
@@ -122,8 +123,15 @@ int main(int argc, char *argv[])
 		PInpPar->SR_MODE = 'S';
 		if ( (PInpPar->mode = get_exchange_channel_mode('D', 'N')) == -1)
 			Error("wrong client mode");
+		Popts_1 = &opts;
+		m3l_set_Send_receive_tcpipsocket(&Popts_1);
+	
+		if( (sockfd = open_connection_to_server(argv[1], portno, PInpPar, Popts_1)) < 1)
+			Error("client_sender: Error when opening socket");
 		
-		client_sender(Gnode, argv[1], portno, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
+		client_sender(Gnode, sockfd,  PInpPar, (opts_t *)NULL, (opts_t *)NULL);
+		
+		close(sockfd);
 
 		if(m3l_Umount(&Gnode) != 1)
 			Perror("m3l_Umount");

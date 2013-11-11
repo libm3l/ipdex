@@ -50,7 +50,6 @@
 #include "libm3l.h"
 #include "lsipdx.h"
 
-
 int main(int argc, char *argv[])
 {
 	node_t *Gnode=NULL, *RecNode=NULL, *TmpNode = NULL;
@@ -65,20 +64,19 @@ int main(int argc, char *argv[])
 
 	int nmax, retval;
 	double *tmpdf;
+	opts_t opts, *Popts_1;
 	
 	client_fce_struct_t InpPar, *PInpPar;
-	client_receiver_struct_t *Pretval;
 
-	
 	struct timespec tim, tim2;
 	tim.tv_sec = 0;
 	tim.tv_nsec = 100000000L;    /* 0.1 secs */
 	tim.tv_sec = 0;
 	tim.tv_nsec = 10000000L;    /* 0.01 secs */
 
-	PInpPar = &InpPar;
-
 	nmax = 100000;
+	
+	PInpPar = &InpPar;
 /*
  * get port number
  */
@@ -100,16 +98,23 @@ int main(int argc, char *argv[])
 		PInpPar->SR_MODE = 'R';
 		if ( (PInpPar->mode = get_exchange_channel_mode('D', 'N')) == -1)
 			Error("wrong client mode");
+	
+		Popts_1 = &opts;
+		m3l_set_Send_receive_tcpipsocket(&Popts_1);
+	
+		if( (sockfd = open_connection_to_server(argv[1], portno, PInpPar, Popts_1)) < 1)
+			Error("client_sender: Error when opening socket");
 		
-		Pretval = client_receiver(argv[1], portno, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
-		Gnode = Pretval->data;
-		free(Pretval);
-
+		Gnode = client_receiver(sockfd, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
+		
 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
 			Error("CatData");
 		
 		if(m3l_Umount(&Gnode) != 1)
 			Perror("m3l_Umount");
+		
+		close(sockfd);
+		
 
 // 		if(nanosleep(&tim , &tim2) < 0 )
 // 			Error("Nano sleep system call failed \n");

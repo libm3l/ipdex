@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
 	lmint_t nmax, retval;
 	lmdouble_t *tmpdf;
 	client_fce_struct_t InpPar, *PInpPar;
-	client_receiver_struct_t *Pretval;
+	opts_t opts, *Popts_1;
 	
 	struct timespec tim, tim2;
 // 	tim.tv_sec = 1;
@@ -123,7 +123,14 @@ int main(int argc, char *argv[])
 		if ( (PInpPar->mode = get_exchange_channel_mode('A', 'N')) == -1)
 			Error("wrong client mode");
 		
-		sockfd = client_sender(Gnode, argv[1], portno, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
+		Popts_1 = &opts;
+		m3l_set_Send_receive_tcpipsocket(&Popts_1);
+	
+		if( (sockfd = open_connection_to_server(argv[1], portno, PInpPar, Popts_1)) < 1)
+			Error("client_sender: Error when opening socket");
+		
+		
+		client_sender(Gnode, sockfd, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
 
 // 		printf(" DATA sent , socket number is %d\n", sockfd);
 		
@@ -132,9 +139,10 @@ int main(int argc, char *argv[])
 
 // 		sleep(2);
 
-		Pretval = client_receiver((char *)NULL, sockfd, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
-		Gnode = Pretval->data;
-		free(Pretval);
+		Gnode = client_receiver(sockfd, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
+		
+		close(sockfd);
+		
 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
 			Error("CatData");
 

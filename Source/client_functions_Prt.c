@@ -57,25 +57,16 @@
 //      mode 5: ATDTMode == 'D' && KeepAlive_Mode == 'Y'  /* Direct transfer, do not close socket*/
 //      mode 6: ATDTMode == 'A' && KeepAlive_Mode == 'Y'  /* Alternate transfer, do not close socket*/
 
-lmint_t client_sender(void *data, const lmchar_t *hostname, lmint_t portno, client_fce_struct_t *ClientInPar, opts_t *Popts, opts_t *Popst_lm3l){
+lmint_t client_sender(void *data, lmint_t sockfd, client_fce_struct_t *ClientInPar, opts_t *Popts, opts_t *Popst_lm3l){
 
 	node_t *Gnode, *TmpNode;
-	lmint_t sockfd, retval;
+	lmint_t retval;
 	
 	opts_t *Popts_1, opts;
 
 	Popts_1 = &opts;
 	m3l_set_Send_receive_tcpipsocket(&Popts_1);
-/* 
- * if required, open socket 
- */
-	if(hostname != NULL){
-		if( (sockfd = open_connection_to_server(hostname, portno, ClientInPar, Popts_1)) < 1)
-			Error("client_sender: Error when opening socket");
-	}
-	else
-		sockfd = portno;
-	
+
 	switch(ClientInPar->mode){
 	case 1:
 /*
@@ -86,10 +77,10 @@ lmint_t client_sender(void *data, const lmchar_t *hostname, lmint_t portno, clie
 		opts.opt_REOBseq 	= 'G';  /* --REOB */
 		m3l_send_receive_tcpipsocket((node_t *)data, (lmchar_t *)NULL, sockfd, Popts_1);
 		
-		if(hostname != NULL){
-			if( close(sockfd) == -1)
-				Perror("close");
-		}
+// 		if(hostname != NULL){
+// 			if( close(sockfd) == -1)
+// 				Perror("close");
+// 		}
 	
 	break;
 		
@@ -109,8 +100,8 @@ lmint_t client_sender(void *data, const lmchar_t *hostname, lmint_t portno, clie
 			m3l_receive_tcpipsocket((lmchar_t *)NULL, sockfd, Popts_1);
 			opts.opt_REOBseq = '\0';  /* --REOB */			
 			
-			if( close(sockfd) == -1)
-				Perror("close");
+// 			if( close(sockfd) == -1)
+// 				Perror("close");
 		}
 
 	break;
@@ -143,8 +134,6 @@ lmint_t client_sender(void *data, const lmchar_t *hostname, lmint_t portno, clie
 /*
  * send data and receive confirmation that the data were received (--REOB)
  */
-// 		m3l_Send_receive_tcpipsocket((node_t *)data,(char *)NULL, sockfd, "--encoding" , "IEEE-754",  "--REOB", (char *)NULL);
-
 		opts.opt_REOBseq 	= 'G';  /* --REOB */
 		m3l_send_receive_tcpipsocket((node_t *)data, (lmchar_t *)NULL, sockfd, Popts_1);
 	
@@ -166,33 +155,24 @@ lmint_t client_sender(void *data, const lmchar_t *hostname, lmint_t portno, clie
 	break;
 	}
 
-	return sockfd;
+	return 1;
 }
 
 
-client_receiver_struct_t *client_receiver(const lmchar_t *hostname, lmint_t portno, client_fce_struct_t *ClientInPar, opts_t *Popts, opts_t *Popst_lm3l){
+node_t *client_receiver(lmint_t sockfd, client_fce_struct_t *ClientInPar, opts_t *Popts, opts_t *Popst_lm3l){
 
 	node_t *Gnode, *TmpNode;
-	lmint_t sockfd, retval;
+	lmint_t retval;
 	
 	opts_t *Popts_1, opts;
 	
-	client_receiver_struct_t *Pretval;
+// 	client_receiver_struct_t *Pretval;
 
 	Popts_1 = &opts;
 	m3l_set_Send_receive_tcpipsocket(&Popts_1);
 	
-	if ( (Pretval = (client_receiver_struct_t *)malloc(sizeof(client_receiver_struct_t))) == NULL)
-		Error("client_receiver: allocating Pretval failed ");
-/* 
- * if required, open socket 
- */
-	if(hostname != NULL){
-		if( (sockfd = open_connection_to_server(hostname, portno, ClientInPar, Popts_1)) < 1 )
-			Error("client_receiver: Error when opening socket");
-	}
-	else
-		sockfd = portno;
+// 	if ( (Pretval = (client_receiver_struct_t *)malloc(sizeof(client_receiver_struct_t))) == NULL)
+// 		Error("client_receiver: allocating Pretval failed ");
 	
 	switch(ClientInPar->mode){
 	case 1:
@@ -210,10 +190,10 @@ client_receiver_struct_t *client_receiver(const lmchar_t *hostname, lmint_t port
 		opts.opt_EOBseq 	= 'E';   /* --SEOB */
 		m3l_send_to_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts_1);
 		
-		if(hostname != NULL){
-			if( close(sockfd) == -1)
-				Perror("close");
-		}
+// 		if(hostname != NULL){
+// 			if( close(sockfd) == -1)
+// 				Perror("close");
+// 		}
 	break;
 	
 	case 2:
@@ -229,8 +209,8 @@ client_receiver_struct_t *client_receiver(const lmchar_t *hostname, lmint_t port
 			m3l_send_to_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts_1);
 			opts.opt_EOBseq = '\0';       /* --SEOB */
 			
-			if( close(sockfd) == -1)
-				Perror("close");
+// 			if( close(sockfd) == -1)
+// 				Perror("close");
 		}
 	break;
 
@@ -289,8 +269,8 @@ client_receiver_struct_t *client_receiver(const lmchar_t *hostname, lmint_t port
 	}
 
 // 	return (void *)Gnode;
-	Pretval->data = Gnode;
-	Pretval->sockfd = sockfd;
-	return Pretval;
+// 	Pretval->data = Gnode;
+// 	Pretval->sockfd = sockfd;
+	return Gnode;
 }
 
