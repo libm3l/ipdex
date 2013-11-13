@@ -138,11 +138,11 @@ lmint_t client_sender(void *data, lmint_t sockfd, client_fce_struct_t *ClientInP
 /* 
  *  Only Receiver closes socket, before that wait for client confirming all data were sent
  */
-		if(ClientInPar->SR_MODE == 'R'){
-			opts.opt_REOBseq = 'G';  /* --REOB */
-			m3l_receive_tcpipsocket((lmchar_t *)NULL, sockfd, Popts_1);
-			opts.opt_REOBseq = '\0';  /* --REOB */			
-		}
+// 		if(ClientInPar->SR_MODE == 'R'){
+// 			opts.opt_REOBseq = 'G';  /* --REOB */
+// 			m3l_receive_tcpipsocket((lmchar_t *)NULL, sockfd, Popts_1);
+// 			opts.opt_REOBseq = '\0';  /* --REOB */			
+// 		}
 		
 	break;
 	
@@ -238,11 +238,11 @@ node_t *client_receiver(lmint_t sockfd, client_fce_struct_t *ClientInPar, opts_t
 /*
  * Sender closes socket, before that it conforms all data were transferred
  */
-		if(ClientInPar->SR_MODE == 'S'){  /* Sender closes socket */
-			opts.opt_EOBseq  = 'E';       /* --SEOB */
-			m3l_send_to_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts_1);
-			opts.opt_EOBseq = '\0';       /* --SEOB */
-		}
+// 		if(ClientInPar->SR_MODE == 'S'){  /* Sender closes socket */
+// 			opts.opt_EOBseq  = 'E';       /* --SEOB */
+// 			m3l_send_to_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts_1);
+// 			opts.opt_EOBseq = '\0';       /* --SEOB */
+// 		}
 
 	break;
 	

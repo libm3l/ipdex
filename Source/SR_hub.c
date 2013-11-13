@@ -173,21 +173,16 @@ void *SR_hub(void *arg)
 				case 2:
 					
 					IT = 2;
-					do{
 /*
  * wait until all SR_threads reach barrier, then start actual transfer of the data from S to R(s)
- * 
- * for IT == 2 the barrier is locate at the beginning of the SR_Data_threads before they 
- * get value of SR mode and socket
- * 
- * for IT == 1 the barrier is located in case 2 between invoking S_KAN and R_KAN functions
  */
-						Pthread_barrier_wait(c->pbarr);
+					Pthread_barrier_wait(c->pbarr);
+
+					while(--IT != 0);
 /*
  * once the data transfer is finished wait until all data is tranferred and S and R threads close their socket
  */
-						Sem_wait(c->psem_g);
-					}while(--IT != 0);
+					Sem_wait(c->psem_g);
 				break;
 			
 				case 3:
@@ -211,20 +206,6 @@ void *SR_hub(void *arg)
 				break;
 			
 				case 5:
-/*
- * connection is kept allive, do while(1) loop
- *
- * wait until all SR_threads reach barrier, then start actual transfer of the data from S to R(s)
- * the barrier_wait is done in SR_Data_Threads
- */
-					Pthread_barrier_wait(c->pbarr);
-					while(1){
-/*
- * once the data transfer is finished wait until all data is tranferred and S and R threads close their socket
-*/
-						Sem_wait(c->psem_g);
-					}
-
 				case 6:
 /*
  * connection is kept allive, do while(1) loop
@@ -233,16 +214,11 @@ void *SR_hub(void *arg)
  * the barrier_wait is done in SR_Data_Threads
  */
 					Pthread_barrier_wait(c->pbarr);
-					while(1){
-/* 
- * this barrier is raeched in SR_Data_Threads between S_KAN and R_KAN for senders and R_KAN and S_KAN for receivers
- */
-					Pthread_barrier_wait(c->pbarr);
+					while(1);
 /*
  * once the data transfer is finished wait until all data is tranferred and S and R threads close their socket
 */
-						Sem_wait(c->psem_g);
-					}
+// 						Sem_wait(c->psem_g);
 				break;
 			}
 
