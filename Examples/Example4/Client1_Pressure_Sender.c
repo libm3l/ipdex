@@ -101,6 +101,9 @@ int main(int argc, char *argv[])
  * we need to open socket manualy and used Send_receive function with hostname = NULL, ie. as server
  * portno is then replaced by socket number
  */
+
+	dim = (size_t *) malloc( 1* sizeof(size_t));
+
 	for(i=0; i<nmax; i++){
 
  		printf("\n\n--------------------------------    i = %ld\n\n", i);
@@ -109,7 +112,6 @@ int main(int argc, char *argv[])
  */
 		Gnode = client_name("Text from Client1");
 // 	
-		dim = (size_t *) malloc( 1* sizeof(size_t));
 		dim[0] = 1;
 /*
  * add iteraztion number
@@ -126,19 +128,15 @@ int main(int argc, char *argv[])
 		tmpdf = (double *)m3l_get_data_pointer(TmpNode);
 		for(j=0; j<10; j++)
 			tmpdf[j] = (i+1)*j*1.1;
-		free(dim);
 		
-		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
-			Error("CatData");
+// 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
+// 			Error("CatData");
 		
 		client_sender(Gnode, sockfd, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
 
-// 		printf(" DATA sent , socket number is %d\n", sockfd);
 		
 		if(m3l_Umount(&Gnode) != 1)
 			Perror("m3l_Umount");
-
-// 		sleep(2);
 
 		Gnode = client_receiver(sockfd, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
 
@@ -149,11 +147,8 @@ int main(int argc, char *argv[])
 		if(m3l_Umount(&Gnode) != 1)
 			Perror("m3l_Umount");
 		
-		if(nanosleep(&tim , &tim2) < 0 )
-			Error("Nano sleep system call failed \n");
-
-// 		sleep(2);
  	}
+		free(dim);
 /* 
  * close socket
  */

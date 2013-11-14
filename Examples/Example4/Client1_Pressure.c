@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
 {
 	node_t *Gnode=NULL, *RecNode=NULL, *TmpNode = NULL;
 	pid_t  childpid;
-	size_t i, j, dim[1];
+	size_t i, j, *dim;
 
 	int sockfd, portno, n, status, ch_stat, *tmpint, *tmpi;
 
@@ -101,7 +101,9 @@ int main(int argc, char *argv[])
  * we need to open socket manualy and used Send_receive function with hostname = NULL, ie. as server
  * portno is then replaced by socket number
  */
- 	for(i=0; i<nmax; i++){
+	dim = (size_t *) malloc( 1* sizeof(size_t));
+
+	for(i=0; i<nmax; i++){
 
  		printf("\n\n--------------------------------    i = %ld\n\n", i);
 		
@@ -113,7 +115,7 @@ int main(int argc, char *argv[])
 		if(m3l_Umount(&Gnode) != 1)
 			Perror("m3l_Umount");
 				
-		Gnode = client_name("Text from Client2222222");
+		Gnode = client_name("T2222");
 		
 		dim[0] = 1;
 /*
@@ -132,6 +134,7 @@ int main(int argc, char *argv[])
 // 			Error("Nano sleep system call failed \n");
 
  	}
+	free(dim);
 /* 
  * close socket
  */
