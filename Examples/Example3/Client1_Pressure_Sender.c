@@ -101,25 +101,11 @@ int main(int argc, char *argv[])
  * we need to open socket manualy and used Send_receive function with hostname = NULL, ie. as server
  * portno is then replaced by socket number
  */
-	for(i=0; i<nmax; i++){
 
- 		printf("\n\n--------------------------------    i = %ld\n\n", i);
-/*
- * open socket, IP address of server is in argv[1], port number is in portno
- */
 		Gnode = client_name("Text from Client1");
 // 	
 		dim = (size_t *) malloc( 1* sizeof(size_t));
-		dim[0] = 1;
-/*
- * add iteraztion number
- */
-		if(  (TmpNode = m3l_Mklist("Iteration_Number", "I", 1, dim, &Gnode, "/Client_Data", "./", (char *)NULL)) == 0)
-				Error("m3l_Mklist");
-		TmpNode->data.i[0] = i;
-/*
- * add pressure array, array has 10 pressure with some values
- */	
+
 		dim[0] = 10;
 		if(  (TmpNode = m3l_Mklist("numbers", "D", 1, dim, &Gnode, "/Client_Data", "./", (char *)NULL)) == 0)
 				Error("m3l_Mklist");
@@ -127,16 +113,37 @@ int main(int argc, char *argv[])
 		for(j=0; j<10; j++)
 			tmpdf[j] = (i+1)*j*1.1;
 		free(dim);
-		
+
 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
 			Error("CatData");
+
+
+	for(i=0; i<nmax; i++){
+
+ 		if( i%1000 == 0)  printf("\n\n--------------------------------    i = %ld\n\n", i);
+/*
+ * open socket, IP address of server is in argv[1], port number is in portno
+ */
+// 		dim[0] = 1;
+// /*
+//  * add iteraztion number
+//  */
+// 		if(  (TmpNode = m3l_Mklist("Iteration_Number", "I", 1, dim, &Gnode, "/Client_Data", "./", (char *)NULL)) == 0)
+// 				Error("m3l_Mklist");
+// 		TmpNode->data.i[0] = i;
+/*
+ * add pressure array, array has 10 pressure with some values
+ */			
+// 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
+// 			Error("CatData");
 		
 		client_sender(Gnode, sockfd, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
+
+ 	}
 
 		if(m3l_Umount(&Gnode) != 1)
 			Perror("m3l_Umount");
 
- 	}
 /*
  * close socket
  */

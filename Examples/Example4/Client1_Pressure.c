@@ -83,7 +83,6 @@ int main(int argc, char *argv[])
        exit(1);
      }
  	portno = atoi(argv[2]);
-	
 /*
  * open socket
  */
@@ -102,44 +101,44 @@ int main(int argc, char *argv[])
  * portno is then replaced by socket number
  */
 	dim = (size_t *) malloc( 1* sizeof(size_t));
-
-	for(i=0; i<nmax; i++){
-
- 		printf("\n\n--------------------------------    i = %ld\n\n", i);
+	Gnode = client_name("T2222");
 		
-		Gnode = client_receiver(sockfd, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
-		
-		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
-			Error("CatData");
-		
-		if(m3l_Umount(&Gnode) != 1)
-			Perror("m3l_Umount");
-				
-		Gnode = client_name("T2222");
-		
-		dim[0] = 1;
+	dim[0] = 1;
 /*
  * add iteration number
  */
-		if(  (TmpNode = m3l_Mklist("Iteration_Number", "I", 1, dim, &Gnode, "/Client_Data", "./", (char *)NULL)) == 0)
-				Error("m3l_Mklist");
-		TmpNode->data.i[0] = i;
+	if(  (TmpNode = m3l_Mklist("Iteration_Number", "I", 1, dim, &Gnode, "/Client_Data", "./", (char *)NULL)) == 0)
+			Error("m3l_Mklist");
+	TmpNode->data.i[0] = i;
+
+
+	for(i=0; i<nmax; i++){
+
+ 		if(i%10000 == 0)printf("\n\n--------------------------------    i = %ld\n\n", i);
 		
-		client_sender(Gnode, sockfd, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
-	
-		if(m3l_Umount(&Gnode) != 1)
+		RecNode = client_receiver(sockfd, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
+		
+// 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
+// 			Error("CatData");
+		
+		if(m3l_Umount(&RecNode) != 1)
 			Perror("m3l_Umount");
+				
+		client_sender(Gnode, sockfd, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
+
 
 // 		if(nanosleep(&tim , &tim2) < 0 )
 // 			Error("Nano sleep system call failed \n");
 
  	}
 	free(dim);
-/* 
+	if(m3l_Umount(&Gnode) != 1)
+		Perror("m3l_Umount");/* 
+
  * close socket
  */
-		if( close(sockfd) == -1)
-			Perror("close");
+	if( close(sockfd) == -1)
+		Perror("close");
 		
 
      return 0; 

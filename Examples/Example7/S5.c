@@ -50,17 +50,18 @@
 #include "libm3l.h"
 #include "lsipdx.h"
 
+
 int main(int argc, char *argv[])
 {
 	node_t *Gnode=NULL, *RecNode=NULL, *TmpNode = NULL;
 	pid_t  childpid;
-	size_t *dim, i, j;
+	size_t *dim, i, j, k;
 
 	lmint_t sockfd, portno, n, status, ch_stat, *tmpint, *tmpi;
 
         socklen_t clilen;
         struct sockaddr_in cli_addr;
-	lmchar_t *name="Pressure";
+	lmchar_t *nameIn1="DATA_3";
 
 	lmint_t nmax, retval;
 	lmdouble_t *tmpdf;
@@ -68,8 +69,8 @@ int main(int argc, char *argv[])
 	opts_t opts, *Popts_1;
 	
 	struct timespec tim, tim2;
-// 	tim.tv_sec = 1;
-	tim.tv_sec = 0;
+ 	tim.tv_sec = 5;
+// 	tim.tv_sec = 0;
 // 	tim.tv_nsec = 300000000L;    /* 0.1 secs */
 	tim.tv_nsec = 10000000L;    /* 0.1 secs */
 
@@ -84,69 +85,58 @@ int main(int argc, char *argv[])
      }
  	portno = atoi(argv[2]);
 /*
+ * open socket - because we use more then just send - receive scenario
+ * we need to open socket manualy and used Send_receive function with hostname = NULL, ie. as server
+ * portno is then replaced by socket number
+ */
+	k = 1;
+	for(i=0; i<nmax; i++){
+
+ 		printf("\n\n--------------------------------    i = %ld\n\n", i);
+/*
  * open socket
  */
-		PInpPar->data_name = name;
-		PInpPar->SR_MODE = 'S';
-		if ( (PInpPar->mode = get_exchange_channel_mode('A', 'Y')) == -1)
+		PInpPar->data_name = nameIn1;
+		PInpPar->SR_MODE = 'R';
+		if ( (PInpPar->mode = get_exchange_channel_mode('D', 'N')) == -1)
 			Error("wrong client mode");
-		
 		Popts_1 = &opts;
 		m3l_set_Send_receive_tcpipsocket(&Popts_1);
 	
 		if( (sockfd = open_connection_to_server(argv[1], portno, PInpPar, Popts_1)) < 1)
 			Error("client_sender: Error when opening socket");
-/*
- * open socket - because we use more then just send - receive scenario
- * we need to open socket manualy and used Send_receive function with hostname = NULL, ie. as server
- * portno is then replaced by socket number
- */
-
-	dim = (size_t *) malloc( 1* sizeof(size_t));
-
-	Gnode = client_name("Text from Client1");
-/*
- * add pressure array, array has 10 pressure with some values
- */	
-	dim[0] = 10;
-	if(  (TmpNode = m3l_Mklist("numbers", "D", 1, dim, &Gnode, "/Client_Data", "./", (char *)NULL)) == 0)
-			Error("m3l_Mklist");
-	tmpdf = (double *)m3l_get_data_pointer(TmpNode);
-	for(j=0; j<10; j++)
-		tmpdf[j] = j*1.1;
-
-
-	for(i=0; i<nmax; i++){
-
- 		if(i%10 == 0) printf("\n\n--------------------------------    i = %ld\n\n", i);
-/*
- * open socket, IP address of server is in argv[1], port number is in portno
- */
 		
-// 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
-// 			Error("CatData");
-		
-		client_sender(Gnode, sockfd, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
-
-
-		RecNode = client_receiver(sockfd, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
-
-		
-// 		if(m3l_Cat(RecNode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
-// 			Error("CatData");
-
-		if(m3l_Umount(&RecNode) != 1)
-			Perror("m3l_Umount");
-		
- 	}
-	free(dim);
-	if(m3l_Umount(&Gnode) != 1)
-		Perror("m3l_Umount");
+		Gnode=client_receiver(sockfd,  PInpPar, (opts_t *)NULL, (opts_t *)NULL);
+		if(k == 1){
+			printf("\033[45m");
+		}
+		else if(k == 2){
+			printf("\033[46m");
+		}
+		else if(k == 3){
+			printf("\033[44m");
+		}
+		else if(k == 4){
+			printf("\033[42m");
+		}
+		else{
+			k=0;
+		}
+		k++;	
+		if(m3l_Cat(Gnode, "--all", "-L",  "*",   (char *)NULL) != 0)
+			Error("CatData");
+		printf("\033\e[30m\e[49m"); 
 /* 
  * close socket
  */
-	if( close(sockfd) == -1)
-		Perror("close");
+		if( close(sockfd) == -1)
+			Perror("close");
+		
+		if(m3l_Umount(&Gnode) != 1)
+			Perror("m3l_Umount");
+	
+ 	}
+
 
      return 0; 
 }

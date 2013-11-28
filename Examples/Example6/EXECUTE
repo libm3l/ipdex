@@ -1,0 +1,9 @@
+../../Source/Server_Main.out --port 31000 --input_file Definition_File_PDT_Modes_S1 --show
+../../Source/Server_Main.out --port 32000 --input_file Definition_File_PDT_Modes_S2 --show
+../../Source/Server_Main.out --port 33000 --input_file Definition_File_PDT_Modes_S3 --show
+
+./S1.out localhost 31000 33000
+./S2.out localhost 31000 
+./S3.out localhost 31000 32000
+./S4.out localhost 32000 33000
+./S5.out localhost 32000 33000
