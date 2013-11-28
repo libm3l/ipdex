@@ -85,8 +85,8 @@ data_thread_str_t *Data_Thread(node_t *Gnode){
  * find how many data sets - defines how many data_threads to spawn
  */
 
-// 	if( (SFounds = m3l_Locate(Gnode, "/COMM_DEF/Data_Sets/Data_Set", "/*/*/*", (lmchar_t *)NULL)) != NULL){
-	if( (SFounds = m3l_Locate(Gnode, "/Buffer/Data_Set", "/*/*", (lmchar_t *)NULL)) != NULL){
+// 	if( (SFounds = m3l_Locate(Gnode, "/COMM_DEF/Channels/Channel", "/*/*/*", (lmchar_t *)NULL)) != NULL){
+	if( (SFounds = m3l_Locate(Gnode, "/Buffer/Channel", "/*/*", (lmchar_t *)NULL)) != NULL){
 		
 		Data_Thread->n_data_threads = m3l_get_Found_number(SFounds);
 		

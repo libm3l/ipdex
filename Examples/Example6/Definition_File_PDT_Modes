@@ -2,9 +2,9 @@ COMM_DEF  DIR 2
 	Process_Specifications DIR 1
 		Name_of_Case  C 1 10 
 			`Test Case`
-	Data_Sets  DIR 4
-		Data_Set  DIR 4
-			Name_of_Data_Set C 1 7
+	Channels  DIR 4
+		Channel  DIR 4
+			Name_of_Channel C 1 7
 				`DATA_1`
 			Sending_Process I 1 1
 				1
@@ -15,8 +15,8 @@ COMM_DEF  DIR 2
 				`D`
 				KEEP_CONN_ALIVE_Mode C 1 2
 				`N`
-		Data_Set  DIR 4
-			Name_of_Data_Set C 1 7
+		Channel  DIR 4
+			Name_of_Channel C 1 7
 				`DATA_2`
 			Sending_Process I 1 1
 				1
@@ -27,8 +27,8 @@ COMM_DEF  DIR 2
 				`D`
 				KEEP_CONN_ALIVE_Mode C 1 2
 				`N`
-		Data_Set  DIR 4
-			Name_of_Data_Set C 1 7
+		Channel  DIR 4
+			Name_of_Channel C 1 7
 				`DATA_3`
 			Sending_Process I 1 1
 				1
@@ -39,8 +39,8 @@ COMM_DEF  DIR 2
 				`D`
 				KEEP_CONN_ALIVE_Mode C 1 2
 				`N`
-		Data_Set  DIR 4
-			Name_of_Data_Set C 1 7
+		Channel  DIR 4
+			Name_of_Channel C 1 7
 				`DATA_4`
 			Sending_Process I 1 1
 				1

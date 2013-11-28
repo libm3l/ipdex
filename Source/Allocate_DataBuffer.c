@@ -71,7 +71,7 @@ node_t *Allocate_DataBuffer(node_t *Gnode){
 /*
  * find how many data sets - defines how many data_threads will be required
  */
-	if( (SFounds = m3l_Locate(Gnode, "/COMM_DEF/Data_Sets/Data_Set", "/*/*/*", (lmchar_t *)NULL)) != NULL){
+	if( (SFounds = m3l_Locate(Gnode, "/COMM_DEF/Channels/Channel", "/*/*/*", (lmchar_t *)NULL)) != NULL){
 		
 		n_data_threads = m3l_get_Found_number(SFounds);
 		
@@ -98,23 +98,23 @@ node_t *Allocate_DataBuffer(node_t *Gnode){
 		Error("m3l_Mklist");
 	TmpNode->data.st[0] = n_data_threads;
 /*
- * move Data_Set lists to buffer 
+ * move Channel lists to buffer 
  * and add Thread_Status integer
  */
 	for(i=0; i < n_data_threads; i++){
 		TmpNode = m3l_get_Found_node(SFounds, i);
-		m3l_Mv(&TmpNode,  "./Data_Set", "./*", &BuffNode, "/Buffer", "/*", (lmchar_t *)NULL);
+		m3l_Mv(&TmpNode,  "./Channel", "./*", &BuffNode, "/Buffer", "/*", (lmchar_t *)NULL);
 		
 		dim[0] = 1;
-		if(  (TmpNode1 = m3l_Mklist("Thread_Status", "I", 1, dim, &TmpNode, "./Data_Set", "./", (char *)NULL)) == 0)
+		if(  (TmpNode1 = m3l_Mklist("Thread_Status", "I", 1, dim, &TmpNode, "./Channel", "./", (char *)NULL)) == 0)
 			Error("m3l_Mklist");
 		tmpint = (lmint_t *)m3l_get_data_pointer(TmpNode1);
 		tmpint[0] = 0;
-		if(  (TmpNode1 = m3l_Mklist("S_Status", "I", 1, dim, &TmpNode, "./Data_Set", "./", (char *)NULL)) == 0)
+		if(  (TmpNode1 = m3l_Mklist("S_Status", "I", 1, dim, &TmpNode, "./Channel", "./", (char *)NULL)) == 0)
 			Error("m3l_Mklist");
 		tmpint = (lmint_t *)m3l_get_data_pointer(TmpNode1);
 		tmpint[0] = 0;
-		if(  (TmpNode1 = m3l_Mklist("R_Status", "ST", 1, dim, &TmpNode, "./Data_Set", "./", (char *)NULL)) == 0)
+		if(  (TmpNode1 = m3l_Mklist("R_Status", "ST", 1, dim, &TmpNode, "./Channel", "./", (char *)NULL)) == 0)
 			Error("m3l_Mklist");
 		tmpint = (lmint_t *)m3l_get_data_pointer(TmpNode1);
 		tmpint[0] = 0;}

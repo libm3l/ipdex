@@ -126,7 +126,7 @@ node_t *Header(lmchar_t *name, lmchar_t RWmode){
 	dim = (size_t *) malloc( 1* sizeof(size_t));
 	dim[0] = strlen(name)+1;
 	
-	if(  (TmpNode = m3l_Mklist("Name_of_Data_Set", "C", 1, dim, &Gnode, "/Header", "./", "--no_malloc", (char *)NULL)) == 0)
+	if(  (TmpNode = m3l_Mklist("Name_of_Channel", "C", 1, dim, &Gnode, "/Header", "./", "--no_malloc", (char *)NULL)) == 0)
 		Error("m3l_Mklist");
 	TmpNode->data.c = name;
 	

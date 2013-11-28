@@ -100,15 +100,15 @@ void *Data_Threads(void *arg)
  * find name of data set
  * if it does not exist or more then one data set is found, give error message
  */
-		if( (SFounds = m3l_Locate(c->Node, "./Data_Set/Name_of_Data_Set", "./*/*",  (lmchar_t *)NULL)) != NULL){
+		if( (SFounds = m3l_Locate(c->Node, "./Channel/Name_of_Channel", "./*/*",  (lmchar_t *)NULL)) != NULL){
 			
 			if( m3l_get_Found_number(SFounds) != 1)
-				Error("Thread_Prt: Only one Name_of_Data_Set per Data_Set allowed");
+				Error("Thread_Prt: Only one Name_of_Channel per Channel allowed");
 /* 
  * pointer to list of found nodes
  */
 				if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
-					Error("Thread_Prt: NULL Name_of_Data_Set");
+					Error("Thread_Prt: NULL Name_of_Channel");
 			
 				data_set_name = m3l_get_data_pointer(List);
 				if( (len = m3l_get_List_totdim(List)-1) < 1)
@@ -123,16 +123,16 @@ void *Data_Threads(void *arg)
 		}
 		else
 		{
-			Error("Thread_Prt: Name_of_Data_Set not found\n");
+			Error("Thread_Prt: Name_of_Channel not found\n");
 		}
 /*
  * find name of process which will read the data set
  * there is only one writing processes
  */
-		if( (SFounds = m3l_Locate(c->Node, "./Data_Set/Receiving_Processes", "./*/*",  (lmchar_t *)NULL)) != NULL){
+		if( (SFounds = m3l_Locate(c->Node, "./Channel/Receiving_Processes", "./*/*",  (lmchar_t *)NULL)) != NULL){
 
 			if( m3l_get_Found_number(SFounds) != 1)
-				Error("Thread_Prt: Only one Receiving_Processes per Data_Set allowed");
+				Error("Thread_Prt: Only one Receiving_Processes per Channel allowed");
 /* 
  * pointer to list of found nodes
  */
@@ -158,7 +158,7 @@ void *Data_Threads(void *arg)
  */
 		n_avail_loc_theads = n_rec_proc + 1;
 
-		if( (THRStat_SFounds = m3l_Locate(c->Node, "./Data_Set/Thread_Status", "/*/*", (lmchar_t *)NULL)) == NULL){
+		if( (THRStat_SFounds = m3l_Locate(c->Node, "./Channel/Thread_Status", "/*/*", (lmchar_t *)NULL)) == NULL){
 			printf("Thread_Prt: did not find any Thread_Status\n");
 			m3l_DestroyFound(&THRStat_SFounds);
 			exit(0);
@@ -172,7 +172,7 @@ void *Data_Threads(void *arg)
 		*Thread_Status = 0;
 		m3l_DestroyFound(&THRStat_SFounds);
 		
-		if( (THRStat_SFounds = m3l_Locate(c->Node, "./Data_Set/S_Status", "/*/*", (lmchar_t *)NULL)) == NULL){
+		if( (THRStat_SFounds = m3l_Locate(c->Node, "./Channel/S_Status", "/*/*", (lmchar_t *)NULL)) == NULL){
 			printf("Thread_Prt: did not find any S_Status\n");
 			m3l_DestroyFound(&THRStat_SFounds);
 			exit(0);
@@ -183,7 +183,7 @@ void *Data_Threads(void *arg)
 		*Thread_S_Status = 0;
 		m3l_DestroyFound(&THRStat_SFounds);
 
-		if( (THRStat_SFounds = m3l_Locate(c->Node, "./Data_Set/R_Status", "/*/*", (lmchar_t *)NULL)) == NULL){
+		if( (THRStat_SFounds = m3l_Locate(c->Node, "./Channel/R_Status", "/*/*", (lmchar_t *)NULL)) == NULL){
 			printf("Thread_Status: did not find any R_Status\n");
 			m3l_DestroyFound(&THRStat_SFounds);
 			exit(0);

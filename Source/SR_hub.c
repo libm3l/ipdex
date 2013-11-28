@@ -92,10 +92,10 @@ void *SR_hub(void *arg)
  */
 	Pthread_mutex_lock(c->plock);
 
-		if( (SFounds = m3l_Locate(c->pList, "./Data_Set/CONNECTION/ATDT_Mode", "./*/*/*",  (lmchar_t *)NULL)) != NULL){
+		if( (SFounds = m3l_Locate(c->pList, "./Channel/CONNECTION/ATDT_Mode", "./*/*/*",  (lmchar_t *)NULL)) != NULL){
 			
 			if( m3l_get_Found_number(SFounds) != 1)
-				Error("SR_hub: Only one CONNECTION/ATDT_Mode per Data_Set allowed");
+				Error("SR_hub: Only one CONNECTION/ATDT_Mode per Channel allowed");
 /* 
  * pointer to list of found nodes
  */
@@ -114,10 +114,10 @@ void *SR_hub(void *arg)
 			Error("SR_hub: CONNECTION/ATDT_Mode not found\n");
 		}
 
-		if( (SFounds = m3l_Locate(c->pList, "./Data_Set/CONNECTION/KEEP_CONN_ALIVE_Mode", "./*/*/*",  (lmchar_t *)NULL)) != NULL){
+		if( (SFounds = m3l_Locate(c->pList, "./Channel/CONNECTION/KEEP_CONN_ALIVE_Mode", "./*/*/*",  (lmchar_t *)NULL)) != NULL){
 			
 			if( m3l_get_Found_number(SFounds) != 1)
-				Error("SR_hub: Only one CONNECTION/KEEP_CONN_ALIVE_Mode per Data_Set allowed");
+				Error("SR_hub: Only one CONNECTION/KEEP_CONN_ALIVE_Mode per Channel allowed");
 /* 
  * pointer to list of found nodes
  */

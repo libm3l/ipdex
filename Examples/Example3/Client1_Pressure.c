@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
  */
  	for(i=0; i<nmax; i++){
 
- 		 printf("\n\n--------------------------------    i = %ld\n\n", i);
+ 		if( i%1000 == 0) printf("\n\n--------------------------------    i = %ld\n\n", i);
 
 		Gnode = client_receiver(sockfd, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
 

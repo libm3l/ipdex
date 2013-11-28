@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
 
 	for(i=0; i<nmax; i++){
 
- 		if(i%10 == 0) printf("\n\n--------------------------------    i = %ld\n\n", i);
+ 		if(i%10000 == 0) printf("\n\n--------------------------------    i = %ld\n\n", i);
 /*
  * open socket, IP address of server is in argv[1], port number is in portno
  */

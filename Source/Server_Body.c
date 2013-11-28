@@ -183,16 +183,16 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			Error("m3l_Mklist");
 		TmpNode->data.i[0] = newsockfd;
 /* 
- * find Name_of_Data_Set
+ * find Name_of_Channel
  * make sure the ./ path is used instead of /
  * if the RecNode comes from socket it starts with /Header, if it comes from buffer
  * it is a subset
  */
-		if( (SFounds = m3l_Locate(RecNode, "./Header/Name_of_Data_Set", "./*/*",  (lmchar_t *)NULL)) != NULL){
+		if( (SFounds = m3l_Locate(RecNode, "./Header/Name_of_Channel", "./*/*",  (lmchar_t *)NULL)) != NULL){
 			if( m3l_get_Found_number(SFounds) != 1)
-				Error("Server_Body: Only one Name_of_Data_Set per Data_Set allowed");
+				Error("Server_Body: Only one Name_of_Channel per Channel allowed");
 			if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
-				Error("Server_Body: NULL Name_of_Data_Set");
+				Error("Server_Body: NULL Name_of_Channel");
 			name_of_required_data_set = m3l_get_data_pointer(List);
 /* 
  * free memory allocated in m3l_Locate
@@ -201,7 +201,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 		}
 		else
 		{
-			Error("Server_Body: Name_of_Data_Set not found\n");
+			Error("Server_Body: Name_of_Channel not found\n");
 		}
 /*
  * find type of process SR_Mode  S-sender, R-receiver
@@ -209,7 +209,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 		if( (SFounds = m3l_Locate(RecNode, "./Header/SR_mode", "./*/*",  (lmchar_t *)NULL)) != NULL){
 			
 			if( m3l_get_Found_number(SFounds) != 1)
-				Error("Server_Body: Only one SR_mode per Data_Set allowed");
+				Error("Server_Body: Only one SR_mode per Channel allowed");
 /* 
  * pointer to list of found nodes
  */
