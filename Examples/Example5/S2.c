@@ -61,15 +61,18 @@ int main(int argc, char *argv[])
 
         socklen_t clilen;
         struct sockaddr_in cli_addr;
-	lmchar_t *name="DATA_1";
+	lmchar_t *nameIn ="DATA_1";
+	lmchar_t *nameOut="DATA_2";
 
 	lmint_t nmax, retval;
 	lmdouble_t *tmpdf;
 	client_fce_struct_t InpPar, *PInpPar;
 	opts_t opts, *Popts_1;
+
+	lmint_t k = 1;
 	
 	struct timespec tim, tim2;
-	tim.tv_sec = 5;
+ 	tim.tv_sec = 1;
 // 	tim.tv_sec = 0;
 // 	tim.tv_nsec = 300000000L;    /* 0.1 secs */
 	tim.tv_nsec = 10000000L;    /* 0.1 secs */
@@ -92,10 +95,27 @@ int main(int argc, char *argv[])
 	for(i=0; i<nmax; i++){
 
  		printf("\n\n--------------------------------    i = %ld\n\n", i);
+
+		if(k == 1){
+			printf("\033[45m");
+		}
+		else if(k == 2){
+			printf("\033[46m");
+		}
+		else if(k == 3){
+			printf("\033[44m");
+		}
+		else if(k == 4){
+			printf("\033[42m");
+		}
+		else{
+			k=0;
+		}
+		k++;
 /*
  * open socket
  */
-		PInpPar->data_name = name;
+		PInpPar->data_name = nameIn;
 		PInpPar->SR_MODE = 'R';
 		if ( (PInpPar->mode = get_exchange_channel_mode('D', 'N')) == -1)
 			Error("wrong client mode");
@@ -104,11 +124,14 @@ int main(int argc, char *argv[])
 	
 		if( (sockfd = open_connection_to_server(argv[1], portno, PInpPar, Popts_1)) < 1)
 			Error("client_sender: Error when opening socket");
-		
+
 		Gnode=client_receiver(sockfd,  PInpPar, (opts_t *)NULL, (opts_t *)NULL);
 		
 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
 			Error("CatData");
+
+		printf("\033\e[30m\e[49m"); 
+
 /* 
  * close socket
  */
@@ -118,6 +141,60 @@ int main(int argc, char *argv[])
 		if(m3l_Umount(&Gnode) != 1)
 			Perror("m3l_Umount");
 		
+// 		if(nanosleep(&tim , &tim2) < 0 )
+// 			Error("Nano sleep system call failed \n");
+		
+/*
+ * open socket, IP address of server is in argv[1], port number is in portno
+ */
+		Gnode = client_name("Text from Solver_2");
+// 	
+		dim = (size_t *) malloc( 1* sizeof(size_t));
+		dim[0] = 1;
+/*
+ * add iteraztion number
+ */
+		if(  (TmpNode = m3l_Mklist("Iteration_Number", "I", 1, dim, &Gnode, "/Client_Data", "./", (char *)NULL)) == 0)
+				Error("m3l_Mklist");
+		TmpNode->data.i[0] = i;
+/*
+ * add pressure array, array has 5 pressure with some values
+ */	
+		dim[0] = 5;
+		if(  (TmpNode = m3l_Mklist("S2_numbers", "D", 1, dim, &Gnode, "/Client_Data", "./", (char *)NULL)) == 0)
+				Error("m3l_Mklist");
+		tmpdf = (double *)m3l_get_data_pointer(TmpNode);
+		for(j=0; j<5; j++)
+			tmpdf[j] = (i+1)*j*2.1;
+		free(dim);
+		
+// 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
+// 			Error("CatData");
+/*
+ * open socket
+ */
+		PInpPar->data_name = nameOut;
+		PInpPar->SR_MODE = 'S';
+		if ( (PInpPar->mode = get_exchange_channel_mode('D', 'N')) == -1)
+			Error("wrong client mode");
+		Popts_1 = &opts;
+		m3l_set_Send_receive_tcpipsocket(&Popts_1);
+	
+		if( (sockfd = open_connection_to_server(argv[1], portno, PInpPar, Popts_1)) < 1)
+			Error("client_sender: Error when opening socket");
+		
+		client_sender(Gnode, sockfd,  PInpPar, (opts_t *)NULL, (opts_t *)NULL);
+/* 
+ * close socket
+ */
+		if( close(sockfd) == -1)
+			Perror("close");
+		
+		if(m3l_Umount(&Gnode) != 1)
+			Perror("m3l_Umount");
+
+
+
 // 		if(nanosleep(&tim , &tim2) < 0 )
 // 			Error("Nano sleep system call failed \n");
  	}

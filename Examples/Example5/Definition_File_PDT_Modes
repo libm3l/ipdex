@@ -2,7 +2,7 @@ COMM_DEF  DIR 2
 	Process_Specifications DIR 1
 		Name_of_Case  C 1 10 
 			`Test Case`
-	Channels  DIR 4
+	Channels  DIR 5
 		Channel  DIR 4
 			Name_of_Channel C 1 7
 				`DATA_1`
@@ -21,7 +21,7 @@ COMM_DEF  DIR 2
 			Sending_Process I 1 1
 				1
 			Receiving_Processes ST 1 1
-				2
+				1
 			CONNECTION DIR 2
 				ATDT_Mode C 1 2
 				`D`
@@ -42,6 +42,18 @@ COMM_DEF  DIR 2
 		Channel  DIR 4
 			Name_of_Channel C 1 7
 				`DATA_4`
+			Sending_Process I 1 1
+				1
+			Receiving_Processes ST 1 1
+				1
+			CONNECTION DIR 2
+				ATDT_Mode C 1 2
+				`D`
+				KEEP_CONN_ALIVE_Mode C 1 2
+				`N`
+		Channel  DIR 4
+			Name_of_Channel C 1 7
+				`DATA_5`
 			Sending_Process I 1 1
 				1
 			Receiving_Processes ST 1 1

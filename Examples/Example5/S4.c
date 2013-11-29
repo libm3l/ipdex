@@ -62,15 +62,16 @@ int main(int argc, char *argv[])
         socklen_t clilen;
         struct sockaddr_in cli_addr;
 	lmchar_t *nameIn ="DATA_2";
-	lmchar_t *nameOut="DATA_3";
+	lmchar_t *nameOut="DATA_4";
 
 	lmint_t nmax, retval;
 	lmdouble_t *tmpdf;
 	client_fce_struct_t InpPar, *PInpPar;
 	opts_t opts, *Popts_1;
+	lmint_t k = 1;
 	
 	struct timespec tim, tim2;
- 	tim.tv_sec = 5;
+ 	tim.tv_sec = 1;
 // 	tim.tv_sec = 0;
 // 	tim.tv_nsec = 300000000L;    /* 0.1 secs */
 	tim.tv_nsec = 10000000L;    /* 0.1 secs */
@@ -93,6 +94,23 @@ int main(int argc, char *argv[])
 	for(i=0; i<nmax; i++){
 
  		printf("\n\n--------------------------------    i = %ld\n\n", i);
+
+		if(k == 1){
+			printf("\033[45m");
+		}
+		else if(k == 2){
+			printf("\033[46m");
+		}
+		else if(k == 3){
+			printf("\033[44m");
+		}
+		else if(k == 4){
+			printf("\033[42m");
+		}
+		else{
+			k=0;
+		}
+		k++;
 /*
  * open socket
  */
@@ -110,6 +128,8 @@ int main(int argc, char *argv[])
 		
 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
 			Error("CatData");
+		printf("\033\e[30m\e[49m"); 
+
 /* 
  * close socket
  */
@@ -121,7 +141,8 @@ int main(int argc, char *argv[])
 		
 		printf(" Data received \n");
 		
-		
+// 		if(nanosleep(&tim , &tim2) < 0 )
+// 			Error("Nano sleep system call failed \n");		
 		
 		
 		
@@ -151,6 +172,7 @@ int main(int argc, char *argv[])
 		
 // 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
 // 			Error("CatData");
+
 /*
  * open socket
  */
@@ -176,8 +198,8 @@ int main(int argc, char *argv[])
 
 
 
-		if(nanosleep(&tim , &tim2) < 0 )
-			Error("Nano sleep system call failed \n");
+// 		if(nanosleep(&tim , &tim2) < 0 )
+// 			Error("Nano sleep system call failed \n");
  	}
 
 
