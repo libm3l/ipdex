@@ -193,9 +193,6 @@ void *Data_Threads(void *arg)
 		Thread_R_Status = (lmsize_t *)m3l_get_data_pointer(TmpNode);
 		*Thread_R_Status = 0;
 		m3l_DestroyFound(&THRStat_SFounds);
-
-
-
 /*
  * spawn SR_thread, wait until all SR_threads for this data set are spawned. Use semafore for syncing
  */

@@ -38,9 +38,9 @@
 
 
 
-#ifndef  __DATA_THREAD_H__
-#define  __DATA_THREAD_H__
+#ifndef  __START_DATA_THREAD_H__
+#define  __START_DATA_THREAD_H__
 
-data_thread_str_t *Data_Thread(node_t *);
+data_thread_str_t *Start_Data_Thread(node_t *);
 
 #endif

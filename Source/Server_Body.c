@@ -49,7 +49,7 @@
 
 #include "libm3l.h"
 #include "lsipdx_header.h"
-#include "Data_Thread.h"
+#include "Start_Data_Thread.h"
 #include "Server_Functions_Prt.h"
 #include "Server_Body.h"
 // #include "arpa/inet.h"
@@ -96,7 +96,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 /*
  * spawn all threads
  */
-	if(  (Data_Threads = Data_Thread(DataBuffer)) == NULL)
+	if(  (Data_Threads = Start_Data_Thread(DataBuffer)) == NULL)
 		Perror("Server_Body: Data_Threads error");
 /*
  * fill the initial data to data_thread_str before threads start

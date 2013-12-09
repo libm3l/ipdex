@@ -51,11 +51,11 @@
 
 #include "libm3l.h"
 #include "lsipdx_header.h"
-#include "Data_Thread.h"
+#include "Start_Data_Thread.h"
 #include "Thread_Prt.h"
 #include "Server_Functions_Prt.h"
 
-data_thread_str_t *Data_Thread(node_t *Gnode){
+data_thread_str_t *Start_Data_Thread(node_t *Gnode){
 /*
  * function spawns data_threads
  * the number of threads is defined by the number of data sets to be transferred
