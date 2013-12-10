@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
 	for(i=0; i<nmax; i++){
 
 		if((i+1)%5 == 0){	
-			printf("\033[48m");
+			printf("\033[44m");
  			printf("\n\n\n\n------- LOOP LEFT BRANCH-----------    i = %ld\n\n\n", i);
 		}
 		else
