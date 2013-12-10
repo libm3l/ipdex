@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
 	lmchar_t *nameOut1="DATA_1";
 	lmchar_t *nameOut2="DATA_2";
 
-	lmint_t nmax, retval;
+	lmint_t nmax, retval, k;
 	lmdouble_t *tmpdf;
 	client_fce_struct_t InpPar, *PInpPar;
 	opts_t opts, *Popts_1;
@@ -94,7 +94,19 @@ int main(int argc, char *argv[])
  */
 	for(i=0; i<nmax; i++){
 
- 		printf("\n\n--------------------------------    i = %ld\n\n", i);
+		if((i+1)%5 == 0){	
+			printf("\033[48m");
+ 			printf("\n\n\n\n------- LOOP LEFT BRANCH-----------    i = %ld\n\n\n", i);
+		}
+		else
+		{
+			printf("\033[47m");
+ 			printf("\n\n------- LOOP RIGHT BRANCH-----------    i = %ld\n\n", i);
+		}
+
+		printf("\033\e[30m\e[49m"); 
+ 		printf("\n\n");
+
 /*
  * open socket, IP address of server is in argv[1], port number is in portno
  */

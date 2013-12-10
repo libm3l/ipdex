@@ -64,11 +64,10 @@ int main(int argc, char *argv[])
 	lmchar_t *nameIn="DATA_5";
 	lmchar_t *nameOut="DATA_1";
 
-	lmint_t nmax, retval;
+	lmint_t nmax, retval, k;
 	lmdouble_t *tmpdf;
 	client_fce_struct_t InpPar, *PInpPar;
 	opts_t opts, *Popts_1;
-	lmint_t k = 1;
 	
 	struct timespec tim, tim2;
 	tim.tv_sec = 1;
@@ -91,10 +90,9 @@ int main(int argc, char *argv[])
  * we need to open socket manualy and used Send_receive function with hostname = NULL, ie. as server
  * portno is then replaced by socket number
  */
+	k = 1;
 	for(i=0; i<nmax; i++){
 
- 		printf("\n\n--------------------------------    i = %ld\n\n", i);
-
 		if(k == 1){
 			printf("\033[45m");
 		}
@@ -111,25 +109,9 @@ int main(int argc, char *argv[])
 			k=0;
 		}
 
- 		printf("\n\n  =============================\n  STAR DATA TRANSFER CYCLE\n  =============================\n");
-		printf("\033\e[30m\e[49m"); 
- 		printf("\n\n ");
-		if(k == 1){
-			printf("\033[45m");
-		}
-		else if(k == 2){
-			printf("\033[46m");
-		}
-		else if(k == 3){
-			printf("\033[44m");
-		}
-		else if(k == 4){
-			printf("\033[42m");
-		}
-		else{
-			k=0;
-		}
-		k++;
+ 		printf("\n\n --------   LOOP ---------    i = %ld\n\n", i);
+		printf("\033\e[30m\e[49m");
+ 		printf("\n\n");
 
 /*
  * open socket, IP address of server is in argv[1], port number is in portno
@@ -185,6 +167,28 @@ int main(int argc, char *argv[])
 /*
  * open socket
  */
+
+
+
+		if(k == 1){
+			printf("\033[45m");
+		}
+		else if(k == 2){
+			printf("\033[46m");
+		}
+		else if(k == 3){
+			printf("\033[44m");
+		}
+		else if(k == 4){
+			printf("\033[42m");
+		}
+		else{
+			k=0;
+		}
+		k++;
+
+
+
 		PInpPar->data_name = nameIn;
 		PInpPar->SR_MODE = 'R';
 		if ( (PInpPar->mode = get_exchange_channel_mode('D', 'N')) == -1)
@@ -199,8 +203,6 @@ int main(int argc, char *argv[])
 		
 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
 			Error("CatData");
-		printf("\033\e[30m\e[49m"); 
-
 /* 
  * close socket
  */
@@ -209,6 +211,8 @@ int main(int argc, char *argv[])
 		
 		if(m3l_Umount(&Gnode) != 1)
 			Perror("m3l_Umount");
+
+		printf("\033\e[30m\e[49m");
 
  	}
 

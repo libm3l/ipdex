@@ -64,14 +64,13 @@ int main(int argc, char *argv[])
 	lmchar_t *nameIn ="DATA_1";
 	lmchar_t *nameOut="DATA_3";
 
-	lmint_t nmax, retval;
+	lmint_t nmax, retval, k;
 	lmdouble_t *tmpdf;
 	client_fce_struct_t InpPar, *PInpPar;
 	opts_t opts, *Popts_1;
-	lmint_t k = 1;
 	
 	struct timespec tim, tim2;
- 	tim.tv_sec = 1;
+ 	tim.tv_sec = 5;
 // 	tim.tv_sec = 0;
 // 	tim.tv_nsec = 300000000L;    /* 0.1 secs */
 	tim.tv_nsec = 10000000L;    /* 0.1 secs */
@@ -91,9 +90,13 @@ int main(int argc, char *argv[])
  * we need to open socket manualy and used Send_receive function with hostname = NULL, ie. as server
  * portno is then replaced by socket number
  */
+	k = 1;
 	for(i=0; i<nmax; i++){
 
  		printf("\n\n--------------------------------    i = %ld\n\n", i);
+/*
+ * open socket
+ */
 
 		if(k == 1){
 			printf("\033[45m");
@@ -111,9 +114,7 @@ int main(int argc, char *argv[])
 			k=0;
 		}
 		k++;
-/*
- * open socket
- */
+
 		PInpPar->data_name = nameIn;
 		PInpPar->SR_MODE = 'R';
 		if ( (PInpPar->mode = get_exchange_channel_mode('D', 'N')) == -1)
@@ -128,8 +129,6 @@ int main(int argc, char *argv[])
 		
 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
 			Error("CatData");
-		printf("\033\e[30m\e[49m"); 
-
 /* 
  * close socket
  */
@@ -139,6 +138,8 @@ int main(int argc, char *argv[])
 		if(m3l_Umount(&Gnode) != 1)
 			Perror("m3l_Umount");
 		
+		printf("\033\e[30m\e[49m");
+
 // 		if(nanosleep(&tim , &tim2) < 0 )
 // 			Error("Nano sleep system call failed \n");
 		
@@ -191,10 +192,6 @@ int main(int argc, char *argv[])
 		if(m3l_Umount(&Gnode) != 1)
 			Perror("m3l_Umount");
 
-
-
-// 		if(nanosleep(&tim , &tim2) < 0 )
-// 			Error("Nano sleep system call failed \n");
  	}
 
 

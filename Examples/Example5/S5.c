@@ -65,14 +65,13 @@ int main(int argc, char *argv[])
 	lmchar_t *nameIn2="DATA_4";
 	lmchar_t *nameOut="DATA_5";
 
-	lmint_t nmax, retval;
+	lmint_t nmax, retval, k;
 	lmdouble_t *tmpdf;
 	client_fce_struct_t InpPar, *PInpPar;
 	opts_t opts, *Popts_1;
-	lmint_t k = 1;
 	
 	struct timespec tim, tim2;
- 	tim.tv_sec = 1;
+ 	tim.tv_sec = 5;
 // 	tim.tv_sec = 0;
 // 	tim.tv_nsec = 300000000L;    /* 0.1 secs */
 	tim.tv_nsec = 10000000L;    /* 0.1 secs */
@@ -92,9 +91,13 @@ int main(int argc, char *argv[])
  * we need to open socket manualy and used Send_receive function with hostname = NULL, ie. as server
  * portno is then replaced by socket number
  */
+	k = 1;
 	for(i=0; i<nmax; i++){
 
  		printf("\n\n--------------------------------    i = %ld\n\n", i);
+/*
+ * open socket
+ */
 
 		if(k == 1){
 			printf("\033[45m");
@@ -111,9 +114,9 @@ int main(int argc, char *argv[])
 		else{
 			k=0;
 		}
-/*
- * open socket
- */
+
+
+
 		PInpPar->data_name = nameIn1;
 		PInpPar->SR_MODE = 'R';
 		if ( (PInpPar->mode = get_exchange_channel_mode('D', 'N')) == -1)
@@ -128,8 +131,6 @@ int main(int argc, char *argv[])
 		
 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
 			Error("CatData");
-		printf("\033\e[30m\e[49m"); 
-
 /* 
  * close socket
  */
@@ -139,12 +140,10 @@ int main(int argc, char *argv[])
 		if(m3l_Umount(&Gnode) != 1)
 			Perror("m3l_Umount");
 		
+		printf("\033\e[30m\e[49m"); 
 		
-		printf(" \n\n");
+		printf("\n\n");
 	
-		
-		
-		
 		if(k == 1){
 			printf("\033[45m");
 		}
@@ -160,7 +159,8 @@ int main(int argc, char *argv[])
 		else{
 			k=0;
 		}
-		k++;
+		k++;	
+
 /*
  * open socket
  */
@@ -178,7 +178,6 @@ int main(int argc, char *argv[])
 		
 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
 			Error("CatData");
-		printf("\033\e[30m\e[49m"); 
 /* 
  * close socket
  */
@@ -187,6 +186,11 @@ int main(int argc, char *argv[])
 		
 		if(m3l_Umount(&Gnode) != 1)
 			Perror("m3l_Umount");
+		
+		printf("\033\e[30m\e[49m"); 
+		
+	
+		
 /*
  * open socket, IP address of server is in argv[1], port number is in portno
  */
@@ -204,7 +208,7 @@ int main(int argc, char *argv[])
  * add pressure array, array has 5 pressure with some values
  */	
 		dim[0] = 3;
-		if(  (TmpNode = m3l_Mklist("S5_numbers", "D", 1, dim, &Gnode, "/Client_Data", "./", (char *)NULL)) == 0)
+		if(  (TmpNode = m3l_Mklist("S4_numbers", "D", 1, dim, &Gnode, "/Client_Data", "./", (char *)NULL)) == 0)
 				Error("m3l_Mklist");
 		tmpdf = (double *)m3l_get_data_pointer(TmpNode);
 		for(j=0; j<3; j++)
