@@ -62,7 +62,7 @@ data_thread_str_t *Start_Data_Thread(node_t *Gnode){
  * each data_thread then spawns additional n-threads which take care of communication
  * where 1 thread is Sender and n-1 threads are Receivers
  * 
- * Allocated data set in this function are freed when threads are finished (ie. satement free(c) in Thread_Prt.c) 
+ * Allocated data set in this function are freed when threads are finished (ie. satement free(c) in Data_Thread.c) 
  * and the main data structure is freed in function invoking this function (ie. Server_Body.c)
  */
 
@@ -102,7 +102,7 @@ data_thread_str_t *Start_Data_Thread(node_t *Gnode){
 	}
 /* 
  * malloca data in heap, will be used to share data between threads
- * the data is then freed in Thread_Prt.c function
+ * the data is then freed in Data_Thread.c function
  */
 	if( (Data_Thread->data_threads = (pthread_t *)malloc(sizeof(pthread_t) * Data_Thread->n_data_threads)) == NULL)
 		Perror("Data_Thread: Data_Thread->data_threads malloc");	
@@ -142,7 +142,7 @@ data_thread_str_t *Start_Data_Thread(node_t *Gnode){
 	*Data_Thread->data_threads_remainth_counter = 0;
 	*Data_Thread->sync->nsync    = 0;
 /*
- * set the value of for syncing thread to number of data sets + 1 (it. sync all Thread_Prt (n_data_threads) + 
+ * set the value of for syncing thread to number of data sets + 1 (it. sync all Data_Thread (n_data_threads) + 
  * 1 for Server_Body
  */
 	*Data_Thread->sync->nthreads = Data_Thread->n_data_threads + 1;	

@@ -22,7 +22,7 @@
 
 
 /*
- *     Function Thread_Prt.c
+ *     Function Data_Thread.c
  *
  *     Date: 2013-09-05
  * 
@@ -66,7 +66,7 @@ void *Data_Threads(void *arg)
  * Once the number of available threads == 0, (ie. all S + R threads arrived) the 
  * thread notifies SR_Hub which synchronizes the S_R transfer (SR_Data_Threads)
  *
- * Number of all active Thread_Prt == number of transferred data sets + 1. The values is set in 
+ * Number of all active Data_Thread == number of transferred data sets + 1. The values is set in 
  * Data_Thread (*Data_Thread->sync->nthreads = Data_Thread->n_data_threads + 1;
  */
 	data_thread_args_t *c = (data_thread_args_t *)arg;
@@ -103,16 +103,16 @@ void *Data_Threads(void *arg)
 		if( (SFounds = m3l_Locate(c->Node, "./Channel/Name_of_Channel", "./*/*",  (lmchar_t *)NULL)) != NULL){
 			
 			if( m3l_get_Found_number(SFounds) != 1)
-				Error("Thread_Prt: Only one Name_of_Channel per Channel allowed");
+				Error("Data_Thread: Only one Name_of_Channel per Channel allowed");
 /* 
  * pointer to list of found nodes
  */
 				if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
-					Error("Thread_Prt: NULL Name_of_Channel");
+					Error("Data_Thread: NULL Name_of_Channel");
 			
 				data_set_name = m3l_get_data_pointer(List);
 				if( (len = m3l_get_List_totdim(List)-1) < 1)
-					Error("Thread_Prt: too short name of data set");
+					Error("Data_Thread: too short name of data set");
 				if( snprintf(local_set_name, MAX_NAME_LENGTH,"%s",data_set_name) < 0)
 					Perror("snprintf");
 				local_set_name[len] ='\0';
@@ -123,7 +123,7 @@ void *Data_Threads(void *arg)
 		}
 		else
 		{
-			Error("Thread_Prt: Name_of_Channel not found\n");
+			Error("Data_Thread: Name_of_Channel not found\n");
 		}
 /*
  * find name of process which will read the data set
@@ -132,17 +132,17 @@ void *Data_Threads(void *arg)
 		if( (SFounds = m3l_Locate(c->Node, "./Channel/Receiving_Processes", "./*/*",  (lmchar_t *)NULL)) != NULL){
 
 			if( m3l_get_Found_number(SFounds) != 1)
-				Error("Thread_Prt: Only one Receiving_Processes per Channel allowed");
+				Error("Data_Thread: Only one Receiving_Processes set per Channel allowed");
 /* 
  * pointer to list of found nodes
  */
 				if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
-					Error("NULThread_Prt: Missing Receiving_Processes");
+					Error("NULData_Thread: Missing Receiving_Processes set");
 
 				data_rec_proc = (lmsize_t *)m3l_get_data_pointer(List);
 				if(  ( n_rec_proc = data_rec_proc[0]) < 1){
-					printf("Thread_Prt - name of data set is %s\n", local_set_name);
-					Error("Thread_Prt - number of receiving processes too low");
+					printf("Data_Thread - name of data set is %s\n", local_set_name);
+					Error("Data_Thread - number of receiving processes too low");
 				}
 /* 
  * free memory allocated in m3l_Locate
@@ -151,7 +151,7 @@ void *Data_Threads(void *arg)
 		}
 		else
 		{
-			printf("Thread_Prt: Receiving_Processes not found\n");
+			printf("Data_Thread: Receiving_Processes not found\n");
 		}
 /*
  * set number of available local thread equal to number of readers + 1 writing
@@ -159,7 +159,7 @@ void *Data_Threads(void *arg)
 		n_avail_loc_theads = n_rec_proc + 1;
 
 		if( (THRStat_SFounds = m3l_Locate(c->Node, "./Channel/Thread_Status", "/*/*", (lmchar_t *)NULL)) == NULL){
-			printf("Thread_Prt: did not find any Thread_Status\n");
+			printf("Data_Thread: did not find any Thread_Status\n");
 			m3l_DestroyFound(&THRStat_SFounds);
 			exit(0);
 		}
@@ -173,7 +173,7 @@ void *Data_Threads(void *arg)
 		m3l_DestroyFound(&THRStat_SFounds);
 		
 		if( (THRStat_SFounds = m3l_Locate(c->Node, "./Channel/S_Status", "/*/*", (lmchar_t *)NULL)) == NULL){
-			printf("Thread_Prt: did not find any S_Status\n");
+			printf("Data_Thread: did not find any S_Status\n");
 			m3l_DestroyFound(&THRStat_SFounds);
 			exit(0);
 		}
@@ -197,7 +197,7 @@ void *Data_Threads(void *arg)
  * spawn SR_thread, wait until all SR_threads for this data set are spawned. Use semafore for syncing
  */
 	if(  (SR_Threads = Start_SR_Threads(n_avail_loc_theads)) == NULL)
-		Perror("Thread_Prt: Start_SR_Threads error");
+		Perror("Data_Thread: Start_SR_Threads error");
 /*
  * all ST_threads were spawend
  */
@@ -215,7 +215,7 @@ void *Data_Threads(void *arg)
 	Sem_init(&loc_sem, 0);
 
 // 	if(  (SR_Hub_Thread = Start_SR_HubThread(SR_Threads, c, &n_avail_loc_theads, &n_rec_proc, Thread_Status, loc_sem)) == NULL)
-// 		Perror("Thread_Prt: Start_SR_HubThreads error");
+// 		Perror("Data_Thread: Start_SR_HubThreads error");
 /*
  * malloc the main node
  */
@@ -279,7 +279,7 @@ void *Data_Threads(void *arg)
 		do{
 /*
  * if already went through do loop, wait here at sync point until all threads are here
- * set the value of for syncing thread to number of data sets + 1 (it. sync all Thread_Prt (n_data_threads) + 
+ * set the value of for syncing thread to number of data sets + 1 (it. sync all Data_Thread (n_data_threads) + 
  * 1 for Server_Body (one synchronization point is in Server_Body
  */
 			pt_sync(c->psync);
@@ -318,7 +318,7 @@ void *Data_Threads(void *arg)
 // 						printf(" Increasing number of connections %ld \n", *Thread_R_Status);
 					}
 					else
-						Error("Thread_Prt: Wrong SR_mode");
+						Error("Data_Thread: Wrong SR_mode");
 /* 
  * when the thread is positively identified, decrement counter of available thread for next round of identification, 
  * once n_avail_loc_theads == 0 all SR threads arrived, leave do - while loop and decrement (*c->pcounter)--

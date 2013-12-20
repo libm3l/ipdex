@@ -137,7 +137,7 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
 			Thread_Status = *(lmint_t *)m3l_get_data_pointer(TmpNode);
 /*
  * thread is already occupied, ie. all S and R requests arrived
- * The vales 1 is set in Thread_Prt (the thread is blocked there) the value is set to 0 in SR_hub (the thread is unblocked after 
+ * The vales 1 is set in Data_Thread (the thread is blocked there) the value is set to 0 in SR_hub (the thread is unblocked after 
  * transfer of the data set is finished
  */
 

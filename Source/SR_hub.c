@@ -76,9 +76,9 @@ void *SR_hub(void *arg)
 	lmchar_t *ATDTMode, *KeepAlive_Mode;
 /*
  * NOTE in previuous version, this function was run after the while(n_avail_loc_theads != 0);  // all connecting thread arrivied, ie. one Sender and n_rec_proc Receivers 
- * in Thread_Prt ended. It did not work when more then one data set arrived and pt_sync in Thread_Prt in do loop was not behaving properly
+ * in Data_Thread ended. It did not work when more then one data set arrived and pt_sync in Data_Thread in do loop was not behaving properly
  * due to the fact that the number os synced threads was changing. To avoid that problem the process of signaling SR_threads are run in parallel 
- * with Thread_Prt
+ * with Data_Thread
  */
 	SR_hub_thread_str_t *c = (SR_hub_thread_str_t *)arg;
 
@@ -100,7 +100,7 @@ void *SR_hub(void *arg)
  * pointer to list of found nodes
  */
 				if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
-					Error("Thread_Prt: NULL ATDT_Mode");
+					Error("Data_Thread: NULL ATDT_Mode");
 			
 				ATDTMode = (lmchar_t *)m3l_get_data_pointer(List);
 				*c->pATDT_mode = *ATDTMode;
@@ -153,7 +153,7 @@ void *SR_hub(void *arg)
  */
 	while(1){
 /*
- * wait for semaphore from Thread_Prt that 
+ * wait for semaphore from Data_Thread that 
  * all requests arrived
  */
 		Sem_wait(c->psem);
@@ -225,8 +225,8 @@ void *SR_hub(void *arg)
 		Pthread_mutex_lock(c->plock);
 /*
  * set the number of available threads for SR transfer to S + R(s) number of threads
- * counter used in Thread_Prt function to determine if all threads arrived
- * the pn_avail_loc_theads is decremented in Thread_Prt every time the Thread_Prt identifies 
+ * counter used in Data_Thread function to determine if all threads arrived
+ * the pn_avail_loc_theads is decremented in Data_Thread every time the Data_Thread identifies 
  * arriving data set
  */
 			*c->pn_avail_loc_theads = *c->pn_rec_proc + 1;

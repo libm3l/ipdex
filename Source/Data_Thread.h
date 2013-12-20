@@ -22,7 +22,7 @@
 
 
 /*
- *     Header file Thread_Prt.h
+ *     Header file Data_Thread.h
  *
  *     Date: 2013-02-23
  * 

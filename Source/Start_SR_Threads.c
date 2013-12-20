@@ -171,7 +171,7 @@ SR_thread_str_t *Start_SR_Threads(lmint_t n_threads){
 			Perror("pthread_create()"); 
 	}
 /*
- * when all threads are spawned, signal Thread_Prt functions about it
+ * when all threads are spawned, signal Data_Thread functions about it
  */
 	Sem_post(&SR_Data_Thread->sem_g);
 	

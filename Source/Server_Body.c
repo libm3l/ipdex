@@ -214,7 +214,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * pointer to list of found nodes
  */
 				if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
-					Error("NULThread_Prt: Missing S_mode");
+					Error("NULData_Thread: Missing S_mode");
 			
 				SR_mode = (lmchar_t *)m3l_get_data_pointer(List);
 /* 
@@ -289,7 +289,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 				Pthread_mutex_unlock(&Data_Threads->lock);
 /*
  * once all necessary data are set, send signal to all threads to start unloc mutex
- * and release borrowed memory. The following syncing point is the same as the syncing point in Thread_Prt.c
+ * and release borrowed memory. The following syncing point is the same as the syncing point in Data_Thread.c
  */
 				pt_sync(Data_Threads->sync);
 /* 
@@ -298,7 +298,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  */		
 				pt_sync(Data_Threads->sync);
 /*
- * when data set is identified in Thread_Prt the retval is set to 1
+ * when data set is identified in Data_Thread the retval is set to 1
  * If all threads went attempted to evaluate the incoming request and 
  * none of them identifed the thread, give error message
  */
