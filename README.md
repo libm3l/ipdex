@@ -22,3 +22,4 @@ Dependency
 `lsipdx` depends on the `libm3l` library
 
 
+[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/c5c42b03225907b85a2df6a925a586aa "githalytics.com")](http://githalytics.com/github.com/libm3l)
