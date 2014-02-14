@@ -1,3 +1,15 @@
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-47978935-1', 'github.com');
+  ga('send', 'pageview');
+
+</script>
+
+
 lsipdx - Synchronization and Inter-Process Data eXchage Utility
 ===============================================================
 
@@ -20,6 +32,3 @@ Dependency
 ----------
 
 `lsipdx` depends on the `libm3l` library
-
-
-[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/4066d03ffed8d2b3f1672861489f440e "githalytics.com")](http://githalytics.com/libm3l/lsipdx)
