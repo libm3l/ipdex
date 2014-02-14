@@ -50,7 +50,6 @@
 #include "libm3l.h"
 #include "lsipdx_header.h"
 #include "Server_Functions_Prt.h"
-#include "SignalC.h"
 #include "Server_Body.h"
 
 
@@ -68,10 +67,10 @@ lmint_t main (int argc, char **argv){
 	
 	node_t *Gnode = NULL;	
 	char opt_s='\0';
-	
+/*
+ * set initial value of port numbe to -1 
+ */
 	portnum = -1;
-	
-	
 
 /*
  * get options 
@@ -156,16 +155,10 @@ lmint_t main (int argc, char **argv){
  * open definition file
  */
 
-
-// 	for(j=0; j<10; j++){
-// 
-// printf("   \n\n  CYCLE       %d\n\n ", j);
-
 	if( (Gnode = m3l_Fread(Filename, (lmchar_t *)NULL))  == NULL){
 		free(Filename);
 		Error("Server: m3l_Fread");
 	}
-	// 	free(Filename);
 /*
  * if specified, write the file on screen
  */	
@@ -173,9 +166,6 @@ lmint_t main (int argc, char **argv){
  		if(m3l_Cat(Gnode, "--all", "-L", "-P", "*",   (lmchar_t *)NULL) != 0)
  			Warning("CatData");
 	}
-	
-// 		exit(0);
-
 /*
  * Ctrl C signal handler
  */
@@ -193,14 +183,6 @@ lmint_t main (int argc, char **argv){
  */
 	if( (c = m3l_Umount(&Gnode)) != 1)
 		Perror("m3l_Umount");
-
-
-// 	}
-
-	
-// 	printf(" ------------------------------   Waiting for children \n");
-// 	wait(&status);
-// 	printf(" ------------------------------   DONE \n");
 
 	printf(" ------------------------------   Exiting main function () \n");
 

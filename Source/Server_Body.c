@@ -234,11 +234,9 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * Once the data transfer is finished, add the data thread to the pool of available data threads
  * (ie. increment  (*Data_Threads->data_threads_availth_counter)++)
  */
-
  		Pthread_mutex_lock(&Data_Threads->lock);
 
 		switch ( Check_Request(DataBuffer, name_of_required_data_set, SR_mode, name_of_required_data_set)) {
-// 		switch ( 0 ) {
 			case 0:
 /* 
  * Legal request, not in buffer, data_thread available 
