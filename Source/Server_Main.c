@@ -48,8 +48,7 @@
 
 
 #include "libm3l.h"
-#include "lsipdx_header.h"
-#include "Server_Functions_Prt.h"
+// #include "lsipdx_header.h"
 #include "Server_Body.h"
 
 
@@ -60,24 +59,24 @@ lmint_t main (int argc, char **argv){
  * inter-process communication
  * spawns a child for each data set.
  */
-
 	lmint_t c, portnum, status, j;
 	lmint_t digit_optind = 0;
 	lmchar_t *Filename=NULL;
 	
-	node_t *Gnode = NULL;	
-	char opt_s='\0';
+	node_t *Gnode = NULL;
+	lmchar_t opt_s='\0';
 /*
  * set initial value of port numbe to -1 
  */
 	portnum = -1;
-
 /*
  * get options 
  */
+	optind = 0;
 	while (1) {
 		lmint_t this_option_optind = optind ? optind : 1;
 		lmint_t option_index = 0;
+
 		static struct option long_options[] = {
 			{"port",    		required_argument, 	0, 'p' },
 			{"help",     		no_argument,       	0, 'h' },

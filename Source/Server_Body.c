@@ -56,6 +56,7 @@
 #include "Allocate_DataBuffer.h"
 #include "Check_Request.h"
 #include "ACK.h"
+#include "Sys_Comm_Channel.h"
 
 
 lmint_t Server_Body(node_t *Gnode, lmint_t portno){
@@ -176,12 +177,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 		opts.opt_REOBseq = '\0'; // send EOFbuff sequence only
 		if( (RecNode = m3l_receive_tcpipsocket((const char *)NULL, newsockfd, Popts)) == NULL)
 			Error("Error during reading data from socket");
-
-		dim[0] = 1;
-
-		if(  (TmpNode = m3l_Mklist("socket_nr", "I", 1, dim, &RecNode, "/Header", "./", (char *)NULL)) == 0)
-			Error("m3l_Mklist");
-		TmpNode->data.i[0] = newsockfd;
 /* 
  * find Name_of_Channel
  * make sure the ./ path is used instead of /
@@ -202,6 +197,17 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 		else
 		{
 			Error("Server_Body: Name_of_Channel not found\n");
+		}
+/*
+ * if name_of_required_data_set == SERVER_COMM_CHANNEL
+ * call subroutine and then skip the rest. 
+ * This happens if the client want to talk to server only
+ */
+		if(strncmp(name_of_required_data_set, "SERVER_COMM_CHANNEL", 19) == 0 
+			&& strlen(name_of_required_data_set==19){
+			
+			Sys_Comm_Channel()
+			continue;
 		}
 /*
  * find type of process SR_Mode  S-sender, R-receiver
@@ -226,6 +232,13 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 		{
 			printf("Server_Body: Receiving_Processes not found\n");
 		}
+/*
+ * save socket number in /Header structure
+ */
+		dim[0] = 1;
+		if(  (TmpNode = m3l_Mklist("socket_nr", "I", 1, dim, &RecNode, "/Header", "./", (char *)NULL)) == 0)
+			Error("m3l_Mklist");
+		TmpNode->data.i[0] = newsockfd;
 /*
  * loop over - identify thread correspoding to required data thread.
  * this thread spanws n SR threads (1 Sending thread and n-1 Reading threads) which take care of data transfer,
