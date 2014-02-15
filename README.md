@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+
+>>>>>>> 91d80ce... README update
 lsipdx - Synchronization and Inter-Process Data eXchage Utility
 ===============================================================
 
@@ -21,6 +25,7 @@ Dependency
 
 `lsipdx` depends on the `libm3l` library
 
+<<<<<<< HEAD
 
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -32,3 +37,6 @@ Dependency
   ga('send', 'pageview');
 
 </script>
+=======
+[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/4066d03ffed8d2b3f1672861489f440e "githalytics.com")](http://githalytics.com/libm3l/lsipdx)
+>>>>>>> 91d80ce... README update
