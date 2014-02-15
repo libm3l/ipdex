@@ -166,6 +166,14 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			else
 				Perror("accept()");
 		}
+/*
+ * number of socket is saved locally in  *Data_Threads->socket  = newsockfd;
+ * through that it is passed to all Data_Threads. Once the thread is identified as a 
+ * positive match - ie. the thread takes care of this data channel it will save the 
+ * value in its own local array (SR_Threads->sockfd[local_cntr]	= *c->psocket in Data_Thread)
+ */
+
+ 
 // 		inet_ntop(AF_INET, &(cli_addr.sin_addr), str, INET_ADDRSTRLEN);
 //    		printf("	CONNECTION --------------------   : %s:%d\n",str, ntohs(cli_addr.sin_port)); 
 /*
@@ -204,9 +212,9 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * This happens if the client want to talk to server only
  */
 		if(strncmp(name_of_required_data_set, "SERVER_COMM_CHANNEL", 19) == 0 
-			&& strlen(name_of_required_data_set==19){
+			&& strlen(name_of_required_data_set) == 19){
 			
-			Sys_Comm_Channel()
+			Sys_Comm_Channel();
 			continue;
 		}
 /*
