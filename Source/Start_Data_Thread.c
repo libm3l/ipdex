@@ -159,7 +159,11 @@ data_thread_str_t *Start_Data_Thread(node_t *Gnode){
 	for(i=0; i < Data_Thread->n_data_threads; i++){
 		if( (DataArgs = (data_thread_args_t *)malloc(sizeof(data_thread_args_t))) == NULL)
 			Perror("Data_Thread: DataArgs malloc");	
-		
+/*
+ * set Node pointer to i-th data set in /Buffer/Channel
+ * this determines that i-th thread will take care of channel with 
+ * name specified in /Buffer/Channel/Name_of_Channel
+ */
 		DataArgs->Node  		= m3l_get_Found_node(SFounds, i);
 		DataArgs->plock 		= &Data_Thread->lock;	
 		DataArgs->psem 			= &Data_Thread->sem;	

@@ -56,6 +56,7 @@
 #include "Allocate_DataBuffer.h"
 #include "Check_Request.h"
 #include "ACK.h"
+#include "Sys_Comm_Channel.h"
 
 
 lmint_t Server_Body(node_t *Gnode, lmint_t portno){
@@ -165,6 +166,14 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			else
 				Perror("accept()");
 		}
+/*
+ * number of socket is saved locally in  *Data_Threads->socket  = newsockfd;
+ * through that it is passed to all Data_Threads. Once the thread is identified as a 
+ * positive match - ie. the thread takes care of this data channel it will save the 
+ * value in its own local array (SR_Threads->sockfd[local_cntr]	= *c->psocket in Data_Thread)
+ */
+
+ 
 // 		inet_ntop(AF_INET, &(cli_addr.sin_addr), str, INET_ADDRSTRLEN);
 //    		printf("	CONNECTION --------------------   : %s:%d\n",str, ntohs(cli_addr.sin_port)); 
 /*
@@ -176,12 +185,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 		opts.opt_REOBseq = '\0'; // send EOFbuff sequence only
 		if( (RecNode = m3l_receive_tcpipsocket((const char *)NULL, newsockfd, Popts)) == NULL)
 			Error("Error during reading data from socket");
-
-		dim[0] = 1;
-
-		if(  (TmpNode = m3l_Mklist("socket_nr", "I", 1, dim, &RecNode, "/Header", "./", (char *)NULL)) == 0)
-			Error("m3l_Mklist");
-		TmpNode->data.i[0] = newsockfd;
 /* 
  * find Name_of_Channel
  * make sure the ./ path is used instead of /
@@ -202,6 +205,17 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 		else
 		{
 			Error("Server_Body: Name_of_Channel not found\n");
+		}
+/*
+ * if name_of_required_data_set == SERVER_COMM_CHANNEL
+ * call subroutine and then skip the rest. 
+ * This happens if the client want to talk to server only
+ */
+		if(strncmp(name_of_required_data_set, "SERVER_COMM_CHANNEL", 19) == 0 
+			&& strlen(name_of_required_data_set) == 19){
+			
+			Sys_Comm_Channel();
+			continue;
 		}
 /*
  * find type of process SR_Mode  S-sender, R-receiver
@@ -227,6 +241,13 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			printf("Server_Body: Receiving_Processes not found\n");
 		}
 /*
+ * save socket number in /Header structure
+ */
+		dim[0] = 1;
+		if(  (TmpNode = m3l_Mklist("socket_nr", "I", 1, dim, &RecNode, "/Header", "./", (char *)NULL)) == 0)
+			Error("m3l_Mklist");
+		TmpNode->data.i[0] = newsockfd;
+/*
  * loop over - identify thread correspoding to required data thread.
  * this thread spanws n SR threads (1 Sending thread and n-1 Reading threads) which take care of data transfer,
  * so once the data_thread is identified n-times, the thread is taken away from 
@@ -234,11 +255,9 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * Once the data transfer is finished, add the data thread to the pool of available data threads
  * (ie. increment  (*Data_Threads->data_threads_availth_counter)++)
  */
-
  		Pthread_mutex_lock(&Data_Threads->lock);
 
 		switch ( Check_Request(DataBuffer, name_of_required_data_set, SR_mode, name_of_required_data_set)) {
-// 		switch ( 0 ) {
 			case 0:
 /* 
  * Legal request, not in buffer, data_thread available 
