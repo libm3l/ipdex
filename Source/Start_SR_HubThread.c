@@ -58,7 +58,9 @@
 
 
 SR_hub_thread_str_t *Start_SR_HubThread(SR_thread_str_t *SR_Threads, data_thread_args_t *c, lmsize_t *n_avail_loc_theads, lmsize_t  *n_rec_proc, lmint_t *Thread_Status, sem_t *loc_sem, lmint_t *Thread_S_Status, lmsize_t *Thread_R_Status){
-
+/*
+ * function starts SR_Hub threads. Invoked from Data_Thread
+ */
 	lmsize_t i;
 	lmint_t pth_err;
 	SR_hub_thread_str_t  *SR_Hub_Thread;
@@ -73,7 +75,7 @@ SR_hub_thread_str_t *Start_SR_HubThread(SR_thread_str_t *SR_Threads, data_thread
 	if( (SR_Hub_Thread->data_thread = (pthread_t *)malloc(sizeof(pthread_t) )) == NULL)
 		Perror("Data_Thread: SR_Hub_Thread->data_thread malloc");
 /*
- * associate values in SR_Hub_Thread 
+ * associate values used in SR_Hub_Thread 
  */
 	SR_Hub_Thread->pbarr 	= &SR_Threads->barr;		/* wait until all SR_threads reach barrier, then 
 								start actual transfer of the data from S to R(s) */
