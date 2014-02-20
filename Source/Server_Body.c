@@ -207,14 +207,14 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			Error("Server_Body: Name_of_Channel not found\n");
 		}
 /*
- * if name_of_required_data_set == SERVER_COMM_CHANNEL
+ * if name_of_required_data_set == SERVER_SYS_LINK
  * call subroutine and then skip the rest. 
  * This happens if the client want to talk to server only
  */
-		if(strncmp(name_of_required_data_set, "SERVER_COMM_CHANNEL", 19) == 0 
-			&& strlen(name_of_required_data_set) == 19){
+		if(strncmp(name_of_required_data_set, "SERVER_SYS_LINK", 15) == 0 
+			&& strlen(name_of_required_data_set) == 15){
 			
-			Sys_Comm_Channel();
+			Sys_Comm_Channel(RecNode);
 			continue;
 		}
 /*

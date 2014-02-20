@@ -1,14 +1,65 @@
+/*
+ *     Copyright (C) 2014  Adam Jirasek
+ * 
+ *     This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU Lesser General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ * 
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU Lesser General Public License for more details.
+ * 
+ *     You should have received a copy of the GNU Lesser General Public License
+ *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *     
+ *     contact: libm3l@gmail.com
+ * 
+ */
+
+
+
+
+/*
+ *     Function Sys_Comm_Channel.c
+ *
+ *     Date: 2014-02-16
+ * 
+ * 
+ *     Description:
+ * 
+ *
+ *     Input parameters:
+ * 
+ *
+ *     Return value:
+ * 
+ * 
+ *
+ *     Modifications:
+ *     Date		Version		Patch number		CLA 
+ *
+ *
+ *     Description
+ * 
+ */
+
 
 #include "libm3l.h"
 #include "Sys_Comm_Channel.h"
 
 
-lmint_t Sys_Comm_Channel()
+lmint_t Sys_Comm_Channel(node_t *RecNode)
 {
 /*
- * function handles communication between client and server via SYSTEM_COMM channel
- * the primary task is to increase/dicrease a number of communication channels,  number of 
- * S_R threads and character (KA mode, ATDT mode) for a specified channel
+ * function handles communication between client and server via SERVER_SYS_LINK channel.
+ * This channel is used to process requests sent by clients to the server.
+ * Some of the stask managen through this channel are
+ * 	-	add/remove data channel
+ * 	-	leave Data_Thread (SR_Hub) for KA = Y
+ * 	-	increase/decrease number of S_R threads for a particular Data_Thread
+ * 	-	change KA and/or ATDRT mode
  */
 // 	if( (SFounds = m3l_Locate(Gnode, "/Buffer/Channel", "/*/*", (lmchar_t *)NULL)) != NULL){
 // 		
@@ -55,4 +106,5 @@ lmint_t Sys_Comm_Channel()
 // 		{
 // 			Error("Data_Thread: Name_of_Channel not found\n");
 // 		}
+
 }
