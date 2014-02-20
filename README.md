@@ -1,4 +1,3 @@
-
 lsipdx - Synchronization and Inter-Process Data eXchage Utility
 ===============================================================
 
@@ -22,4 +21,4 @@ Dependency
 
 `lsipdx` depends on the `libm3l` library
 
-[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/4066d03ffed8d2b3f1672861489f440e "githalytics.com")](http://githalytics.com/libm3l/lsipdx)
+[![Analytics](https://ga-beacon.appspot.com/UA-47978935-2/lsipdx/readme)](https://github.com/igrigorik/ga-beacon)
