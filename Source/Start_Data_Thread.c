@@ -65,7 +65,6 @@ data_thread_str_t *Start_Data_Thread(node_t *Gnode){
  * Allocated data set in this function are freed when threads are finished (ie. satement free(c) in Data_Thread.c) 
  * and the main data structure is freed in function invoking this function (ie. Server_Body.c)
  */
-
 	lmsize_t i;
 	lmint_t pth_err;
 	find_t *SFounds;

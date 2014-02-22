@@ -223,6 +223,131 @@ node_t *sender_identification(lmchar_t *Sender_data_set, lmchar_t RWmode)
 
 void pt_sync(pt_sync_t *sync)
 {
+/*
+ * function implemented according to : "POSIX Threads Tutorial by Mark Hays: http://math.arizona.edu/~swig/documentation/pthreads/"
+ * function pt_gate_init:
+ * 
+ * 
+ * First, let's look at the data structure:
+*
+* 231:  typedef struct _pt_gate_t_ {
+* 232:    int ngate;              
+* 233:    int nthreads;           
+* 234:    pthread_mutex_t mutex;  
+* 235:    pthread_mutex_t block;  
+* 236:    pthread_cond_t condvar; 
+* 237:    pthread_cond_t last;    
+* 238:  } pt_gate_t;
+* 239:  
+* v240:  extern void pt_gate_init(pt_gate_t *gate,int nthreads);
+* 241:  extern void pt_gate_destroy(pt_gate_t *gate);
+* 242:  extern void pt_gate_sync(pt_gate_t *gate);
+* 
+* The main data type, pt_gate_t, contains several pthreads objects. There are functions to initialize and destroy this compound object, and a * * function to perform the behavior specified above. The roles of the various structure members will become clear in a moment.
+* 
+* Now let's look at the C source:
+* 
+* 
+* 68: void pt_gate_init(pt_gate_t *gate,int nthreads)
+* 69: {
+* 70:   gate->ngate=0; gate->nthreads=nthreads;
+* 71:   pt_mutex_init(  &gate->mutex, "gate: init mutex");
+* 72:   pt_mutex_init(  &gate->block, "gate: init block");
+* 73:   pt_cond_init (&gate->condvar, "gate: init condvar");
+* 74:   pt_cond_init (   &gate->last, "gate: init last");
+* 75: }
+* 76: 
+* 77: /*************************************************
+* 78:  * destroy a gate variable
+* 79:  */
+/* 80: void pt_gate_destroy(pt_gate_t *gate)
+* 81: {
+* 82:   gate->ngate=gate->nthreads=0;
+* 83:   pt_mutex_destroy(  &gate->mutex, "gate: destroy mutex");
+* 84:   pt_mutex_destroy(  &gate->block, "gate: destroy block");
+* 85:   pt_cond_destroy (&gate->condvar, "gate: destroy condvar");
+* 86:   pt_cond_destroy (   &gate->last, "gate: destroy last");
+* 87: }
+* 88: 
+* 89: /*************************************************
+* 90:  * enter the gate
+* 91:  */
+/* 92: void pt_gate_sync(pt_gate_t *gate)
+* 93: {
+* 94:   if (gate->nthreads<2) return;           /* trivial case            */
+/* 95:   pt_mutex_lock(&gate->block,             /* lock the block -- new   */
+/* 96:            "gate: lock block");            /*   threads sleep here    */
+/* 97:   pt_mutex_lock(&gate->mutex,             /* lock the mutex          */
+/* 98:            "gate: lock mutex");
+/* 99:   if (++(gate->ngate) < gate->nthreads) { /* are we the last one in? */
+/* 100:     pt_mutex_unlock(&gate->block,         /* no, unlock block and    */
+/* 101:                "gate: unlock block 1");
+/* 102:     pt_cond_wait(&gate->condvar,          /*   go to sleep           */
+/* 103:             &gate->mutex,
+/* 104:             "gate: wait condvar");
+/* 105:   } else {                                /* yes, we're last         */
+/* 106:     pt_cond_broadcast(&gate->condvar,     /* wake everyone up and    */
+/* 107:                  "gate: bcast condvar");
+/* 108:     pt_cond_wait(&gate->last,&gate->mutex,/* go to sleep til they're */
+/* 109:             "gate: wait last");            /* all awake... then       */
+/* 110:     pt_mutex_unlock(&gate->block,         /* release the block       */
+/* 111:                "gate: unlock block 2");
+/* 112:   }
+/* 113:   if (--(gate->ngate)==1) {               /* next to last one out?   */
+/* 114:     pt_cond_broadcast(&gate->last,        /* yes, wake up last one   */
+/* 115:                  "gate: bcast last");
+/* 116:   }
+/* 117:   pt_mutex_unlock(&gate->mutex,           /* release the mutex       */
+/* 118:              "gate: unlock mutex");
+/* 119: }
+*/
+/*
+* The gate_init() function simply initializes the members of the gate_t structure. It takes two arguments: a pointer to the gate_t being * * * * initialized and N, the number of threads the gate is supposed to synchronize.
+* 
+* Gate_destroy() frees the resources associated with a gate_t structure.
+* 
+* The behavior we descibed earlier occurs in pt_gate_sync() and is implemented in lines 92-119. Ignore all statements involving gate->block 
+* for a moment. The mutex gate->mutex simply protects access to gate->ngate. The calling thread locks this mutex in line 97. The member 
+* gate->nthreads does not need protection: it's value is only updated by the gate_init() call. In line 99, the ngate member is incremented 
+* and compared to nthreads. If the calling thread is not the last one, pt_cond_wait is called. This puts the thread to sleep until the last
+* thread calls pt_gate_sync().
+* 
+* The last thread executes the else clause on line 105. First it calls pthread_cond_broadcast() (once this thread releases gate->mutex, the 
+* sleeping threads will begin waking up). Next, it goes to sleep on the gate->last condition variable (whose role will become clearer below),
+* which has the side effect of unlocking gate->mutex. At this point, the other threads wake up one at a time (after locking gate->mutex). Each
+* thread decrements gate->ngate, releases gate->mutex, and finally leaves pt_gate_sync(). Except for the last thread to wake up: it wakes up the
+* thread sleeping on gate->last before exiting pt_gate_sync().
+* 
+* In order to understand the role of gate->block, consider the following code fragment:
+* 
+* 
+* 
+*       gate_t gate;
+* 
+*         while (condition) {
+*           [do something]
+*           enter_gate(&gate);
+*           [do something else]
+*         }
+* 
+* If the computations in square brackets do not take very long (for example, you're doing a small problem because you're debugging your
+* algorithm), it would be possible for a thread that just woke up to almost instantly re-enter the gate and goof things up for the threads that
+* are still asleep. This happens more often than you would think, and results in your code mysteriously hanging up. The extra mutex prevents this
+* pathology at fairly low cost. In my opinion, tracking down these cases is the most time consuming part of threads programming; such bugs are
+* inherently intermittent and depend on the system load average, disk activity, etc.
+* 
+* Since the threads wake up from pthread_cond_wait() one at a time, it is necessary to restrict access to the gate until all the newly awakened
+* threads actually leave the gate (so that ngate==0 and the incoming thread does the right thing at the if in line 99). The code locks access to
+* the gate via the gate->block mutex; in fact, it is the first thing locked on entry to pt_gate_sync(). If a thread goes to sleep in line 102, it
+* must first release the block so that other threads can get in and open the gate. The last thread wakes the sleeping threads up with the gate
+* blocked. Thus, no other threads can enter the gate while the wakeup call occurs. The last thread to leave the gate unlocks the block mutex,
+* thus allowing other threads in. Why do we need the gate->last condition variable? Because, as far as I can tell, it is illegal for a thread to
+* unlock a mutex held by another thread.
+* 
+* 
+* 
+*/
+
 /*   
  *	*sync->pnthreads contains the values of number of threads which will be synchronized
  *	this value must be specified before this function is invoked
@@ -243,11 +368,11 @@ void pt_sync(pt_sync_t *sync)
 /*
  * no, unlock block and 
  */
-	Pthread_mutex_unlock(sync->pblock);
+		Pthread_mutex_unlock(sync->pblock);
 /*
  * wait for condvar
  */
-	Pthread_cond_wait(sync->pcondvar, sync->pmutex);
+		Pthread_cond_wait(sync->pcondvar, sync->pmutex);
 
 	} 
 /*
@@ -257,12 +382,12 @@ void pt_sync(pt_sync_t *sync)
 /*
  * wake up all waiting processes
  */
-	Pthread_cond_broadcast(sync->pcondvar);
+		Pthread_cond_broadcast(sync->pcondvar);
 /* 
  * got to sleep till they are all awake, then release block
  */
-	Pthread_cond_wait(sync->plast,sync->pmutex);
-	Pthread_mutex_unlock(sync->pblock);
+		Pthread_cond_wait(sync->plast,sync->pmutex);
+		Pthread_mutex_unlock(sync->pblock);
 	}
 /*
  * if next to last one out, wake up the last one
@@ -277,6 +402,79 @@ void pt_sync(pt_sync_t *sync)
 	Pthread_mutex_unlock(sync->pmutex);
 }
 
+
+
+
+void pt_sync_mod(pt_sync_t *sync, lmsize_t addjob, lmsize_t incrm)
+{
+/*   
+ *	*sync->pnthreads contains the values of number of threads which will be synchronized
+ *	this value must be specified before this function is invoked
+ * 
+ * 	in addition to pt_sync() this function enables 
+ * 	modification of *sync->pnthreads by incrm which is done when
+ * 	the last therad leavs the synchronizer
+ */
+	lmsize_t n_actual_sync_jobs;
+/*
+ * if number of synced jobs is larger then pnthreads by incrm add it
+ */
+	n_actual_sync_jobs = *sync->pnthreads + incrm;
+	
+	if (n_actual_sync_jobs<2) {
+		return;};           /* trivial case            */
+/*
+ * lock the block and mutex
+ */
+	Pthread_mutex_lock(sync->pblock);
+
+	Pthread_mutex_lock(sync->pmutex);
+/*
+ * find if the job is last or not  NOTE: *sync->pnsync has to be intialized to 0 before 
+ * syncing starts
+ */
+	if (++(*sync->pnsync) < n_actual_sync_jobs) { 
+/*
+ * no, unlock block and 
+ */
+		Pthread_mutex_unlock(sync->pblock);
+/*
+ * wait for condvar
+ */
+		Pthread_cond_wait(sync->pcondvar, sync->pmutex);
+
+	} 
+/*
+ * last process
+ */	else 
+  	{	
+/*
+ * wake up all waiting processes
+ */
+		Pthread_cond_broadcast(sync->pcondvar);
+/* 
+ * got to sleep till they are all awake, then release block
+ */
+		Pthread_cond_wait(sync->plast,sync->pmutex);
+/*
+ * modify number of jobs which are synced
+ */
+		if(  (*sync->pnthreads = *sync->pnthreads + incrm) < 0) *sync->pnthreads = 0;
+	
+		Pthread_mutex_unlock(sync->pblock);
+	}
+/*
+ * if next to last one out, wake up the last one
+ */
+	if (--(*sync->pnsync) == 1){
+// 		Pthread_cond_broadcast(sync->plast);
+ 		Pthread_cond_signal(sync->plast);
+	}
+/*
+ * release mutex
+ */
+	Pthread_mutex_unlock(sync->pmutex);
+}
 
 
 lmint_t get_exchange_channel_mode(lmchar_t ATDTMode, lmchar_t KeepAlive_Mode){
