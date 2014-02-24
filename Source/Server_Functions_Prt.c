@@ -300,8 +300,8 @@ void pt_sync(pt_sync_t *sync)
 /* 117:   pt_mutex_unlock(&gate->mutex,           /* release the mutex       */
 /* 118:              "gate: unlock mutex");
 /* 119: }
-*/
-/*
+*
+*
 * The gate_init() function simply initializes the members of the gate_t structure. It takes two arguments: a pointer to the gate_t being * * * * initialized and N, the number of threads the gate is supposed to synchronize.
 * 
 * Gate_destroy() frees the resources associated with a gate_t structure.
@@ -501,3 +501,95 @@ lmint_t get_exchange_channel_mode(lmchar_t ATDTMode, lmchar_t KeepAlive_Mode){
 	return retval;
 
 }
+
+lmlint_t Make_ID_Number(lmint_t sockfd){
+/* 
+ * function creates unique ID for a client
+ * the ID consists of 8 bytes of HW address + PID number of the server process + random number
+ * Unless specified otherwise, eth0 HWaddress is used
+ */	
+	lmchar_t buf[8192], macp[60], ip[INET6_ADDRSTRLEN];
+	struct ifconf ifc={0};
+	struct ifreq *ifr, *interf;
+	lmint_t nInterfaces, i, r;
+	struct sockaddr *addr;
+ 	lmlint_t ID;
+	
+	nInterfaces = 0;
+	buf[0] = '\0'; 
+	ifr = NULL;
+	ip[0] = '\0';
+	macp[0] = '\0';
+/*
+ * Search available interfaces 
+ */
+	ifc.ifc_len = sizeof(buf);
+	ifc.ifc_buf = buf;
+	if(ioctl(sockfd, SIOCGIFCONF, &ifc) < 0) {
+		Error("Make_ID_Number: ioctl(SIOCGIFCONF)");
+		return -1;
+	}
+/*
+ * Loop through the list of interfaces 
+ */
+	ifr = ifc.ifc_req;
+	nInterfaces = ifc.ifc_len / sizeof(struct ifreq);
+
+	for(i = 0; i < nInterfaces; i++) {
+		interf = &ifr[i];
+		addr = &(interf->ifr_addr);
+/*
+ * check if device is eth0
+ */		
+		if( strncmp(interf->ifr_name, "eth0", 4) == 0){
+// /*
+//  * get back with IP address
+//  */
+// 			if(ioctl(sockfd, SIOCGIFADDR, interf) < 0) 
+// 				Error("Make_ID_Number: ioctl(OSIOCGIFADDR)");
+// /*
+//  * get back with address of interface
+//  */
+// 			 if (inet_ntop(AF_INET, &(((struct sockaddr_in *)addr)->sin_addr), ip, sizeof ip) == NULL){
+// 				Error("Make_ID_Number: inet_ntop");
+// 				continue;
+// 			}
+/*
+ * get back with MAC (HWaddr)
+ */
+			if(ioctl(sockfd, SIOCGIFHWADDR, interf) < 0) {
+				Error("Make_ID_Number: ioctl(SIOCGIFHWADDR)");
+				return -1;
+			}
+			break;
+		}
+	}
+/* 
+ * seed random generator numbers
+ */  
+	srand(time(NULL));
+/* 
+ * generate rundom number
+ */
+	r = rand()%1000000;
+/*
+ * write up together first eight bytes of HWaddress + PID number + random number
+ * HWaddr written in upper case
+ */
+	if (snprintf(macp, 60, "%02X%02X%02X%02X%d%d\0",
+		(unsigned lmchar_t)interf->ifr_hwaddr.sa_data[0],
+		(unsigned lmchar_t)interf->ifr_hwaddr.sa_data[1],
+		(unsigned lmchar_t)interf->ifr_hwaddr.sa_data[2],
+		(unsigned lmchar_t)interf->ifr_hwaddr.sa_data[3],
+//     		(unsigned lmchar_t)interf->ifr_hwaddr.sa_data[4],
+//     		(unsigned lmchar_t)interf->ifr_hwaddr.sa_data[5],
+		getpid(), r
+		) < 0)
+		Error("Make_ID_Number: snprintf");	
+		
+	ID = hex2dec(macp);
+	return ID;
+}
+
+
+

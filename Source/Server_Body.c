@@ -52,7 +52,6 @@
 #include "Start_Data_Thread.h"
 #include "Server_Functions_Prt.h"
 #include "Server_Body.h"
-// #include "arpa/inet.h"
 #include "Allocate_DataBuffer.h"
 #include "Check_Request.h"
 #include "ACK.h"
@@ -74,9 +73,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 
 	opts_t *Popts, opts;
 	Popts = &opts;
-
-	char str[100];
-	
+ 
 	opts.opt_linkscleanemptlinks = '\0';  // clean empty links
 	opts.opt_nomalloc = '\0'; // if 'm', do not malloc (used in Mklist --no_malloc
 	opts.opt_linkscleanemptrefs = '\0'; // clean empty link references
@@ -135,6 +132,10 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  */
 	if ( (sockfd = m3l_server_openbindlistensocket(portno, (char *)NULL) ) < 0 )
 		Perror("Open_Bind_Listen");
+	
+	
+	printf(" Unique ID is %ld\n", Make_ID_Number(sockfd));
+	
 	
 	while(1){
 
@@ -207,12 +208,12 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			Error("Server_Body: Name_of_Channel not found\n");
 		}
 /*
- * if name_of_required_data_set == SERVER_SYS_LINK
+ * if name_of_required_data_set == _sys_link_
  * call subroutine and then skip the rest. 
  * This happens if the client want to talk to server only
  */
-		if(strncmp(name_of_required_data_set, "SERVER_SYS_LINK", 15) == 0 
-			&& strlen(name_of_required_data_set) == 15){
+		if(strncmp(name_of_required_data_set, "_sys_link_", 10) == 0 
+			&& strlen(name_of_required_data_set) == 10){
 			
 			Sys_Comm_Channel(RecNode);
 			continue;
@@ -267,15 +268,11 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * if process is sender, indicate Sender that header was received before receiving payload
  * if process is Receiver send acknowledgment and get back REOB
  */
-// 					if( m3l_Send_to_tcpipsocket(RR_POS, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754",  (char *)NULL) < 1)
-// 						Error("Error during sending data from socket");
-
 					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
 					if( m3l_send_to_tcpipsocket(RR_POS, (const char *)NULL, newsockfd, Popts) < 1)
 						Error("Error during sending data from socket");
 				}
 				else if(*SR_mode == 'R'){
-// 					m3l_Send_receive_tcpipsocket(RR_POS, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754", "--REOB", (char *)NULL);
 
 					opts.opt_REOBseq = 'G'; // send EOFbuff sequence only
 					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only	
@@ -289,15 +286,16 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 /*
  * at least one data thread is available:
  *  -  set number of remainign data threads equalt to available data threads
- *  (this values is used for syncig, ie. one the data thread is checked the coutner is decremented
+ *  (this values is used for syncig, ie. once the data thread is checked the coutner is decremented
  * -  set number of syncing threads to number of available threads + 1 (this is used to sync all processes - both this process and 
- * data threads are synced so that they all start at one point, Server_Body waits until all data threads arraive at syncing point before signaling 
- * them to analyze the data
+ * data threads are synced so that they all start at one point, Server_Body waits until all data threads arraive at syncing
+ * point before signaling them to analyze the data (this is disabled, set in Start_Data_Thread and potentially
+ * modified in pt_sync_mod()
  * - set data_set name, SR_Mode and socket number so that data_thread processes can start identification
  * - set the return value to 0, once the thread is identified, the value is set to 1
  */
 				*Data_Threads->data_threads_remainth_counter 	= *Data_Threads->data_threads_availth_counter;	
-				*Data_Threads->sync->nthreads			= *Data_Threads->data_threads_availth_counter + 1;
+// 				*Data_Threads->sync->nthreads			= *Data_Threads->data_threads_availth_counter + 1;
 				*Data_Threads->retval = 0;
 				
 				if( snprintf(Data_Threads->name_of_data_set, MAX_NAME_LENGTH,"%s",name_of_required_data_set) < 0)

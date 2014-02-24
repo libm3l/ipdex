@@ -36,7 +36,7 @@ prog: $(OBJS)
 	gcc -shared -Wl,-soname,liblsipdx.so.1.0 -o liblsipdx.so.1.0   $(OBJS)
 	ln -sf liblsipdx.so.1.0 liblsipdx.so
 	
-	gcc -g -o Server_Main.out Server_Main.c $(OBJS) -L$(PATHL)  -lm3l -Wl,-rpath=$(PATHL) -lpthread
+	gcc -g -o Server_Main.out Server_Main.c $(OBJS) -L$(PATHL)  -lm3l -Wl,-rpath=$(PATHL) -lpthread -lm
 # 	gcc -g -o Server_Main.out  $(OBJS) libm3l.a   -lpthread
 
 -include $(OBJS:.o=.d)

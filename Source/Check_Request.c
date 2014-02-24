@@ -56,6 +56,8 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
 /*
  * function compares data in RecNode to what is in DataBuffer
  * looking specifically on name_of_required_data_set and SR_mode
+ * return value is 1 (Sender or all Receivers already arrived) 
+ * or 0 ie. Sender or at least one Receiver is available
  */
 	find_t *DATA_SFounds,*THRStat_SFounds, *THRName_SFounds;
 	size_t n_data_threads, i, n_queue_reqst, len1, len2;
@@ -140,9 +142,6 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
  * The vales 1 is set in Data_Thread (the thread is blocked there) the value is set to 0 in SR_hub (the thread is unblocked after 
  * transfer of the data set is finished
  */
-
-// 			printf(" Check_Request: %d\n", Thread_Status);
-
 			if(Thread_Status == 1){
 				status = 1;
 			}
