@@ -41,6 +41,6 @@
 #ifndef  __START_DATA_THREAD_H__
 #define  __START_DATA_THREAD_H__
 
-data_thread_str_t *Start_Data_Thread(node_t *);
+lmint_t *Start_Data_Thread(node_t *, data_thread_str_t *);
 
 #endif

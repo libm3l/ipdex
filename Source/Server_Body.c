@@ -94,12 +94,15 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 /*
  * allocate Data_Thread used by Data_Thread.c and Start_Data_Thread.c
  */
-// 	if(  (Data_Threads = Allocate_Data_Thread_DataSet()) == NULL)
-// 		Perror("Server_Body: Allocate_Data_Thread_DataSet error");
+	if(  (Data_Threads = Allocate_Data_Thread_DataSet()) == NULL)
+		Perror("Server_Body: Allocate_Data_Thread_DataSet error");
 /*
  * spawn all threads
  */
-	if(  (Data_Threads = Start_Data_Thread(DataBuffer)) == NULL)
+// 	if(  (Data_Threads = Start_Data_Thread(DataBuffer)) == NULL)
+// 		Perror("Server_Body: Data_Threads error");
+	
+	if(  Start_Data_Thread(DataBuffer, Data_Threads) == -1)
 		Perror("Server_Body: Data_Threads error");
 /*
  * fill the initial data to data_thread_str before threads start
@@ -132,8 +135,11 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * fours lines above
  */
 	Pthread_barrier_wait(&Data_Threads->barr);
+/*
+ * release barrier, it was used in Data_Thread (the second wait for this barrier 
+ * and will not be used again
+ */
 	Pthread_barrier_destroy(&Data_Threads->barr);
-
 /*
  * create, bind and listen socket
  */
