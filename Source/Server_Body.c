@@ -56,7 +56,7 @@
 #include "Check_Request.h"
 #include "ACK.h"
 #include "Sys_Comm_Channel.h"
-
+#include "Allocate_Data_Thread_DataSet.h"
 
 lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	
@@ -91,6 +91,11 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  */
 	if( (DataBuffer = Allocate_DataBuffer(Gnode)) == NULL)
 		Error("Buffering problem");
+/*
+ * allocate Data_Thread used by Data_Thread.c and Start_Data_Thread.c
+ */
+// 	if(  (Data_Threads = Allocate_Data_Thread_DataSet()) == NULL)
+// 		Perror("Server_Body: Allocate_Data_Thread_DataSet error");
 /*
  * spawn all threads
  */
@@ -127,6 +132,8 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * fours lines above
  */
 	Pthread_barrier_wait(&Data_Threads->barr);
+	Pthread_barrier_destroy(&Data_Threads->barr);
+
 /*
  * create, bind and listen socket
  */
@@ -395,7 +402,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			Error(" Joining thread failed");
 				
 	Pthread_mutex_destroy(&Data_Threads->lock);
-	Pthread_barrier_destroy(&Data_Threads->barr);
+// 	Pthread_barrier_destroy(&Data_Threads->barr);
 	Pthread_cond_destroy(&Data_Threads->cond);
 	Sem_destroy(&Data_Threads->sem);
 	

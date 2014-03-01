@@ -213,56 +213,18 @@ void *Data_Threads(void *arg)
 	
 	SR_Hub_Thread = Start_SR_HubThread(SR_Threads, c, &n_avail_loc_theads, &n_rec_proc, Thread_Status, 
 					   &loc_sem, Thread_S_Status, Thread_R_Status);
-// /*
-//  * malloc the main node
-//  */
-// 	if( (SR_Hub_Thread = (SR_hub_thread_str_t *)malloc(sizeof(SR_hub_thread_str_t))) == NULL)
-// 		Perror("Data_Thread: SR_Hub_Thread malloc");
-// /* 
-//  * malloc data in heap, will be used to share data between threads
-//  */
-// 	if( (SR_Hub_Thread->data_thread = (pthread_t *)malloc(sizeof(pthread_t) )) == NULL)
-// 		Perror("Data_Thread: SR_Hub_Thread->data_thread malloc");
-// /*
-//  * associate values in SR_Hub_Thread 
-//  */
-// 	SR_Hub_Thread->pbarr 	= &SR_Threads->barr;		/* wait until all SR_threads reach barrier, then 
-// 								start actual transfer of the data from S to R(s) */
-// 	SR_Hub_Thread->psem 	= &loc_sem;
-// 	SR_Hub_Thread->psem_g	= &SR_Threads->sem_g;	/* once the data transfer is finished increase 
-// 							increment of available data_threads */
-// 	SR_Hub_Thread->plock	= c->plock;
-// 	SR_Hub_Thread->pcond	= c->pcond;
-// 	SR_Hub_Thread->pcounter	= c->pcounter;
-// 	SR_Hub_Thread->pn_avail_loc_theads	= &n_avail_loc_theads;
-// 	SR_Hub_Thread->pn_rec_proc		= &n_rec_proc;
-// 	SR_Hub_Thread->pThread_Status 	= Thread_Status;
-// 	SR_Hub_Thread->pThread_S_Status	= Thread_S_Status;
-// 	SR_Hub_Thread->pThread_R_Status = Thread_R_Status;
-// 	SR_Hub_Thread->prcounter 	= c->prcounter;
-// 	SR_Hub_Thread->psockfd		= SR_Threads->sockfd;
-// 	SR_Hub_Thread->pList		= c->Node;
-// 	SR_Hub_Thread->pATDT_mode	= SR_Threads->ATDT_mode;  /* associate pointer, the values will be filled in SR_hub */
-// 	SR_Hub_Thread->pKA_mode		= SR_Threads->KA_mode;    /* associate pointer, the values will be filled in SR_hub */
-// 	SR_Hub_Thread->pSRh_mode	= SR_Threads->mode;    /* associate pointer, the values will be filled in SR_hub */
-// 	SR_Hub_Thread->pEOFC_ENDh	= SR_Threads->EOFC_END;    /* if KeepAlive == C, use this value to signal the 
-// 								socket is closed */
-// 
-// 	while ( (pth_err = pthread_create(&SR_Hub_Thread->data_thread[0], NULL, &SR_hub,  SR_Hub_Thread)) != 0 && errno == EAGAIN);
-// 	if(pth_err != 0)
-// 		Perror("pthread_create()"); 
 
 	Pthread_mutex_unlock(c->plock);
 /*
  * wait on this barrier until all threads are started
  * the barrier is called n-times (n=number of Data_Threads + 1) where the last call is made
- * from Data_Thread which spawns this thread
+ * from Start_Data_Thread which spawns this thread
  * Once this barrier is reached, the main threads initializes some variables
  * and waits on another barrier
  */	
 	Pthread_barrier_wait(c->pbarr);
 /*
- * wait on this barrier until main thread *Server_Body) sets value of counter and lock c->plock
+ * wait on this barrier until main thread (Server_Body) sets value of counter and lock c->plock
  * the last call to _wait() is done in the main function after returning back from Data_Threads = Data_Thread(Gnode)
  * Once this barrier is reached, the main threads starts accepting requests from client
  * This barrier makes sure the initial start is properly done
