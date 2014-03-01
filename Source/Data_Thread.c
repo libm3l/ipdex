@@ -217,17 +217,17 @@ void *Data_Threads(void *arg)
 	Pthread_mutex_unlock(c->plock);
 /*
  * wait on this sync until all threads are started
- * the barrier is called n-times (n=number of Data_Threads + 1) where the last call is made
+ * the sync is called n-times (n=number of Data_Threads + 1) where the last call is made
  * from Start_Data_Thread which spawns this thread
- * Once this barrier is reached, the main threads initializes some variables
- * and waits on another barrier
- */	
+ * Once this sync is reached, the main threads initializes some variables
+ * and waits on another sync
+ */
 	pt_sync(c->psync);
 /*
  * wait on this sync until main thread (Server_Body) sets value of counter and lock c->plock
  * the last call to _wait() is done in the main function after returning back from Data_Threads = Data_Thread(Gnode)
- * Once this barrier is reached, the main threads starts accepting requests from client
- * This barrier makes sure the initial start is properly done
+ * Once this sync is reached, the main threads starts accepting requests from client
+ * This sync makes sure the initial start is properly done
  */
 	pt_sync(c->psync);
 	
