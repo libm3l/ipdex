@@ -100,7 +100,7 @@ data_thread_str_t *Start_Data_Thread(node_t *Gnode){
 		exit(0);
 	}
 /* 
- * malloca data in heap, will be used to share data between threads
+ * malloc data on heap, will be used to share data between threads
  * the data is then freed in Data_Thread.c function
  */
 	if( (Data_Thread->data_threads = (pthread_t *)malloc(sizeof(pthread_t) * Data_Thread->n_data_threads)) == NULL)
