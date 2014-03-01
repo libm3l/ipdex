@@ -55,7 +55,7 @@
 #include "Data_Thread.h"
 #include "Server_Functions_Prt.h"
 
-lmint_t *Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
+lmint_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
 /*
  * function spawns data_threads
  * the number of threads is defined by the number of data sets to be transferred
@@ -65,15 +65,11 @@ lmint_t *Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
  * Allocated data set in this function are freed when threads are finished (ie. satement free(c) in Data_Thread.c) 
  * and the main data structure is freed in function invoking this function (ie. Server_Body.c)
  * 
- * the heap memery was allocated in Allocate_Data_Thread_DataSet, the only thing which remain to be allocated is:
- * 	Data_Thread->data_threads
- * 	Pthread_barrier_init(&Data_Thread->barr,  Data_Thread->n_data_threads + 1);
- * 	and Data_Thread->n_data_threads need to be set to number fo spawn threads
+ * the heap memery was allocated in Allocate_Data_Thread_DataSet
  */
 	lmsize_t i;
 	lmint_t pth_err;
 	find_t *SFounds;
-// 	data_thread_str_t *Data_Thread;
 	data_thread_args_t *DataArgs;
 	
 	if(Gnode == NULL){
@@ -108,8 +104,8 @@ lmint_t *Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
  * malloc data Data_Thread->data_threads, will be used to share data between threads
  * the data is then freed in Data_Thread.c function
  */
-	if( (Data_Thread->data_threads = (pthread_t *)malloc(sizeof(pthread_t) * Data_Thread->n_data_threads)) == NULL)
-		Perror("Data_Thread: Data_Thread->data_threads malloc");	
+// 	if( (Data_Thread->data_threads = (pthread_t *)malloc(sizeof(pthread_t) * Data_Thread->n_data_threads)) == NULL)
+// 		Perror("Data_Thread: Data_Thread->data_threads malloc");	
 // 	if( (Data_Thread->data_threads_availth_counter = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
 // 		Perror("Data_Thread: Data_Thread->data_threads_availth_counter");
 // 	if( (Data_Thread->data_threads_remainth_counter = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
@@ -154,7 +150,7 @@ lmint_t *Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
  * initialize mutex, barrier and condition variable
  */
 // 	Pthread_mutex_init(&Data_Thread->lock);
-	Pthread_barrier_init(&Data_Thread->barr,  Data_Thread->n_data_threads + 1);
+// 	Pthread_barrier_init(&Data_Thread->barr,  Data_Thread->n_data_threads + 1);
 // 	Pthread_cond_init(&Data_Thread->cond);
 // 	Sem_init(&Data_Thread->sem, 0);
 /*
@@ -171,7 +167,6 @@ lmint_t *Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
 		DataArgs->Node  		= m3l_get_Found_node(SFounds, i);
 		DataArgs->plock 		= &Data_Thread->lock;	
 		DataArgs->psem 			= &Data_Thread->sem;	
-		DataArgs->pbarr 		= &Data_Thread->barr;	
 		DataArgs->pcond 		= &Data_Thread->cond;	
 		DataArgs->psocket    		=  Data_Thread->socket;	
 		DataArgs->pretval    		=  Data_Thread->retval;	
@@ -205,10 +200,10 @@ lmint_t *Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
  */
 	}
 /*
- * wait on this barrier until all threads are created - the barriers are _waited on in Data_Threads and this is the last one
+ * wait on this sync until all threads are created - the syncs are waited on in Data_Threads and this is the last one
  * makes sure we leave the function after all threads are created
  */
-	Pthread_barrier_wait(&Data_Thread->barr);
+	pt_sync(Data_Thread->sync);
 	m3l_DestroyFound(&SFounds);
 	
 	return Data_Thread->n_data_threads;

@@ -66,7 +66,6 @@
 
 typedef struct data_thread_args{
 	pthread_mutex_t   	*plock;	 	/* mutex */
-	pthread_barrier_t 	*pbarr;  	/* barrier */
 	pthread_cond_t    	*pcond;   	/* condition variable */
 	sem_t 		  	*psem;		/* semaphore */
 	node_t 			*Node;		/* libm3l node_t structure pointer specifying name and other data for Data_Thread*/
@@ -80,7 +79,6 @@ typedef struct data_thread_args{
 
 typedef struct data_thread_str{
 	pthread_mutex_t   	lock;	 	/* mutex */
-	pthread_barrier_t 	barr;  		/* barrier */
 	pthread_cond_t    	cond;   	/* condition variable */
 	sem_t 		 	sem;		/* semaphore */
 

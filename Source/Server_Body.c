@@ -94,7 +94,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 /*
  * allocate Data_Thread used by Data_Thread.c and Start_Data_Thread.c
  */
-	if(  (Data_Threads = Allocate_Data_Thread_DataSet()) == NULL)
+	if(  (Data_Threads = Allocate_Data_Thread_DataSet(DataBuffer)) == NULL)
 		Perror("Server_Body: Allocate_Data_Thread_DataSet error");
 /*
  * spawn all threads
@@ -129,17 +129,12 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  */
 	*Data_Threads->retval = 0;
 /*
- * wait for barrier, indicating all threads in Data_Thread were created
- * the _wait on this barrier is the second_wait call in Data_Thread for each thread and this is the last one
+ * wait for sync, indicating all threads in Data_Thread were created
+ * the _wait on this sync is the second_wait call in Data_Thread for each thread and this is the last one
  * makes sure we do not start Data_Thread before some of the data which are needed are filled abd mutex is locked - see 
  * fours lines above
- */
-	Pthread_barrier_wait(&Data_Threads->barr);
-/*
- * release barrier, it was used in Data_Thread (the second wait for this barrier 
- * and will not be used again
- */
-	Pthread_barrier_destroy(&Data_Threads->barr);
+ */	
+	pt_sync(Data_Threads->sync);
 /*
  * create, bind and listen socket
  */
@@ -408,7 +403,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			Error(" Joining thread failed");
 				
 	Pthread_mutex_destroy(&Data_Threads->lock);
-// 	Pthread_barrier_destroy(&Data_Threads->barr);
 	Pthread_cond_destroy(&Data_Threads->cond);
 	Sem_destroy(&Data_Threads->sem);
 	
