@@ -1,0 +1,36 @@
+ in separate terminals
+
+ 1. start server
+ 	../../Source/Server_Main.out --port 31000 --input_file Definition_File_PDT_Modes  --show
+
+ 2. start all clients, does not depend on order of their execution
+
+ a) 1 pressure sender  2 pressure receivers
+
+./Client1_Pressure_Sender.out localhost 31000
+
+./Client1_Pressure.out localhost 31000
+./Client1_Pressure.out localhost 31000
+
+	
+
+ b) 1 temperature sender 2 temperature receivers
+
+./Client1_Temperature_Sender.out localhost 31000
+./Client1_Temperature.out localhost 31000
+./Client1_Temperature.out localhost 31000
+
+
+
+ c) 1 density sender, 3 density receivers
+
+./Client1_Density_Sender.out localhost 31000
+
+./Client1_Density.out localhost 31000
+./Client1_Density.out localhost 31000
+./Client1_Density.out localhost 31000
+
+
+test with valgrind:
+
+valgrind --tool=memcheck  --trace-children=yes --vex-iropt-register-updates=allregs-at-mem-access --leak-check=full --leak-resolution=high --show-reachable=yes  --track-origins=yes ../../Source/Server_Main.out --port 31000 --input_file Definition_File_PDT_Modes  --show 
