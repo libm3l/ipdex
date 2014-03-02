@@ -125,6 +125,9 @@ int main(int argc, char *argv[])
 		
 // 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
 // 			Error("CatData");
+
+		for(j=0; j<10; j++)
+			tmpdf[j] = i*j*1.1;
 		
 		client_sender(Gnode, sockfd, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
 

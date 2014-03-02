@@ -100,7 +100,7 @@ typedef struct data_thread_str{
 
 
 typedef struct SR_thread_args{
-	pthread_barrier_t 	*pbarr;  			/* barrier */
+// 	pthread_barrier_t 	*pbarr;  			/* barrier */
 	pthread_mutex_t   	*plock;				/* mutex */
 	pthread_cond_t    	*pdcond;   			/* condition variable */
 	sem_t 		  	*psem, *psem_g;			/* semaphore */
