@@ -117,7 +117,7 @@ typedef struct SR_thread_args{
 
 
 typedef struct SR_thread_str{
- 	pthread_barrier_t 	barr;  								/* barrier */
+//  	pthread_barrier_t 	barr;  								/* barrier */
 	pthread_mutex_t   	lock;									/* mutex */
 	pthread_cond_t    	dcond;								/* condition variable */	
 	sem_t 		  	sem, sem_g;							/* semaphore */
@@ -139,7 +139,7 @@ typedef struct SR_thread_str{
 
 
 typedef struct SR_hub_thread_str{
-	pthread_barrier_t 	*pbarr;
+// 	pthread_barrier_t 	*pbarr;
 	sem_t 		  	*psem, *psem_g;
 	pthread_mutex_t   	*plock;	
 	pthread_cond_t    	*pcond;
@@ -151,6 +151,7 @@ typedef struct SR_hub_thread_str{
 	node_t 			*pList;
 	lmchar_t		*pATDT_mode, *pKA_mode;	
 	lmint_t 		*pSRh_mode, *pEOFC_ENDh;
+	pt_sync_t		*psync_loc;
 }SR_hub_thread_str_t;
 
 

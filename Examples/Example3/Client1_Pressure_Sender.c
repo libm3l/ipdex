@@ -120,7 +120,8 @@ int main(int argc, char *argv[])
 
 	for(i=0; i<nmax; i++){
 
- 		if( i%1000 == 0)  printf("\n\n--------------------------------    i = %ld\n\n", i);
+// 		if( i%1000 == 0)  printf("\n\n--------------------------------    i = %ld\n\n", i);
+ 		printf("\n\n--------------------------------    i = %ld\n\n", i);
 /*
  * open socket, IP address of server is in argv[1], port number is in portno
  */
@@ -134,8 +135,8 @@ int main(int argc, char *argv[])
 /*
  * add pressure array, array has 10 pressure with some values
  */			
-// 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
-// 			Error("CatData");
+		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
+ 			Error("CatData");
 		
 		client_sender(Gnode, sockfd, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
 

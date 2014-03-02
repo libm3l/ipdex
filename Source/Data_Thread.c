@@ -345,7 +345,7 @@ void *Data_Threads(void *arg)
 			Error(" Joining thread failed");
 				
 	Pthread_mutex_destroy(&SR_Threads->lock);
-  	Pthread_barrier_destroy(&SR_Threads->barr);
+//   	Pthread_barrier_destroy(&SR_Threads->barr);
 	Pthread_cond_destroy(&SR_Threads->dcond);
  	Sem_destroy(&SR_Threads->sem);
 		

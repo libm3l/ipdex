@@ -87,7 +87,13 @@ void *SR_Data_Threads(void *arg)
  */
 		*c->pthr_cntr = 0;
 
-		Pthread_barrier_wait(c->pbarr);
+// 		Pthread_barrier_wait(c->pbarr);
+/*
+ * wait until all SR_threads reach pt_sync, then start actual transfer of the data from S to R(s)
+ * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
+ * synced too
+ */
+		pt_sync_mod(c->psync_loc, 0, 1);
 /*
  * get SR_mode and socket number of each connected processes
  * protext by mutex
@@ -145,8 +151,13 @@ void *SR_Data_Threads(void *arg)
 				if( R_KAN(c, sockfd, 0) == -1) return NULL;
 /*
  * last Pthread_barrier_wait is done in SR_hub.c
+ *
+ * wait until all SR_threads reach pt_sync, then start actual transfer of the data from S to R(s)
+ * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
+ * synced too
  */
 // 				Pthread_barrier_wait(c->pbarr);
+// 				pt_sync_mod(c->psync_loc, 0, 1);
 				if( S_KAN(c, sockfd, 2) == -1) return NULL;
 			}
 			else if(SR_mode == 'S'){
@@ -158,8 +169,13 @@ void *SR_Data_Threads(void *arg)
 				if( S_KAN(c, sockfd, 0) == -1) return NULL;
 /*
  * last Pthread_barrier_wait is done in SR_hub.c
+ *
+ * wait until all SR_threads reach pt_sync, then start actual transfer of the data from S to R(s)
+ * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
+ * synced too
  */
 // 				Pthread_barrier_wait(c->pbarr);
+// 				pt_sync_mod(c->psync_loc, 0, 1);
 				if( R_KAN(c, sockfd, 2) == -1) return NULL;
 			}
 			else{
@@ -229,12 +245,18 @@ void *SR_Data_Threads(void *arg)
 /*
  * keep socket alive forever
  */
+
+// printf(" SRDATAFUB: here  on sync\n");
+
 			if(SR_mode == 'R'){
 /*
  * R(eceivers)
  */
 				while(1){
+// printf(" SRDATAFUB: R_In while\n");
+
 					if(R_KAN(c, sockfd, 5) != 1) return NULL;
+// printf(" SRDATAFUB: R_after while\n");
 				}
 
 // 				return NULL;
@@ -244,7 +266,9 @@ void *SR_Data_Threads(void *arg)
  * S(ender)
  */
 				while(1){
+// printf(" SRDATAFUB: S_In while\n");
 					if( S_KAN(c, sockfd, 5) != 1) return NULL;
+// printf(" SRDATAFUB: S_after while\n");
 				}
 
 // 				return NULL;
@@ -270,8 +294,13 @@ void *SR_Data_Threads(void *arg)
 					if( R_KAN(c, sockfd, 0) == -1) return NULL;
 /*
  * last Pthread_barrier_wait is done in SR_hub.c
+ *
+ * wait until all SR_threads reach pt_sync, then start actual transfer of the data from S to R(s)
+ * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
+ * synced too
  */
 // 					Pthread_barrier_wait(c->pbarr);
+// 					pt_sync_mod(c->psync_loc, 0, 1);
 					if( S_KAN(c, sockfd, 0) == -1) return NULL;
 				}
 			}
@@ -285,8 +314,13 @@ void *SR_Data_Threads(void *arg)
 					if( S_KAN(c, sockfd, 0) == -1) return NULL;
 /*
  * last Pthread_barrier_wait is done in SR_hub.c
+ *
+ * wait until all SR_threads reach pt_sync, then start actual transfer of the data from S to R(s)
+ * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
+ * synced too
  */
 // 					Pthread_barrier_wait(c->pbarr);
+// 					pt_sync_mod(c->psync_loc, 0, 1);
 					if( R_KAN(c, sockfd, 0) == -1) return NULL;
 				}
 			}

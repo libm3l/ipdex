@@ -148,7 +148,7 @@ lmsize_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
  */
 	*Data_Thread->sync->nthreads = Data_Thread->n_data_threads + 1;	
 /*
- * initialize mutex, barrier and condition variable
+ * initialize mutex and condition variable
  */
 // 	Pthread_mutex_init(&Data_Thread->lock);
 // 	Pthread_cond_init(&Data_Thread->cond);

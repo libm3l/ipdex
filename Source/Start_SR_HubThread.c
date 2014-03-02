@@ -77,8 +77,8 @@ SR_hub_thread_str_t *Start_SR_HubThread(SR_thread_str_t *SR_Threads, data_thread
 /*
  * associate values used in SR_Hub_Thread 
  */
-	SR_Hub_Thread->pbarr 	= &SR_Threads->barr;		/* wait until all SR_threads reach barrier, then 
-								start actual transfer of the data from S to R(s) */
+// 	SR_Hub_Thread->pbarr 	= &SR_Threads->barr;		/* wait until all SR_threads reach barrier, then 
+// 								start actual transfer of the data from S to R(s) */
 	SR_Hub_Thread->psem 	= loc_sem;
 	SR_Hub_Thread->psem_g	= &SR_Threads->sem_g;	/* once the data transfer is finished increase 
 							increment of available data_threads */
@@ -98,6 +98,14 @@ SR_hub_thread_str_t *Start_SR_HubThread(SR_thread_str_t *SR_Threads, data_thread
 	SR_Hub_Thread->pSRh_mode	= SR_Threads->mode;    /* associate pointer, the values will be filled in SR_hub */
 	SR_Hub_Thread->pEOFC_ENDh	= SR_Threads->EOFC_END;    /* if KeepAlive == C, use this value to signal the 
 								socket is closed */
+								
+	SR_Hub_Thread->psync_loc 		= SR_Threads->sync_loc;
+	SR_Hub_Thread->psync_loc->pnsync 	= SR_Threads->sync_loc->nsync;
+	SR_Hub_Thread->psync_loc->pnthreads	= SR_Threads->sync_loc->nthreads;
+	SR_Hub_Thread->psync_loc->pmutex 	= &SR_Threads->sync_loc->mutex;
+	SR_Hub_Thread->psync_loc->pblock	= &SR_Threads->sync_loc->block;
+	SR_Hub_Thread->psync_loc->pcondvar	= &SR_Threads->sync_loc->condvar;
+	SR_Hub_Thread->psync_loc->plast		= &SR_Threads->sync_loc->last;
 
 	while ( (pth_err = pthread_create(&SR_Hub_Thread->data_thread[0], NULL, &SR_hub,  SR_Hub_Thread)) != 0 && errno == EAGAIN);
 	if(pth_err != 0)
