@@ -118,7 +118,7 @@ typedef struct SR_thread_args{
 
 typedef struct SR_thread_str{
 //  	pthread_barrier_t 	barr;  								/* barrier */
-	pthread_mutex_t   	lock;									/* mutex */
+	pthread_mutex_t   	lock;								/* mutex */
 	pthread_cond_t    	dcond;								/* condition variable */	
 	sem_t 		  	sem, sem_g;							/* semaphore */
 	lmchar_t 		*buffer;			/* buffer where the exchange data will be written and read from */

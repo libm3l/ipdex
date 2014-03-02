@@ -114,16 +114,16 @@ int main(int argc, char *argv[])
 
 	for(i=0; i<nmax; i++){
 
- 		if(i%10000 == 0)printf("\n\n--------------------------------    i = %ld\n\n", i);
+ 		printf("\n\n--------------------------------    i = %ld\n\n", i);
 		
 		RecNode = client_receiver(sockfd, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
 		
-// 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
-// 			Error("CatData");
+ 		if(m3l_Cat(RecNode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
+ 			Error("CatData");
 		
 		if(m3l_Umount(&RecNode) != 1)
 			Perror("m3l_Umount");
-				
+		TmpNode->data.i[0] = i;		
 		client_sender(Gnode, sockfd, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
 
 

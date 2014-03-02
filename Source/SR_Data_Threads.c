@@ -245,18 +245,12 @@ void *SR_Data_Threads(void *arg)
 /*
  * keep socket alive forever
  */
-
-// printf(" SRDATAFUB: here  on sync\n");
-
 			if(SR_mode == 'R'){
 /*
  * R(eceivers)
  */
 				while(1){
-// printf(" SRDATAFUB: R_In while\n");
-
 					if(R_KAN(c, sockfd, 5) != 1) return NULL;
-// printf(" SRDATAFUB: R_after while\n");
 				}
 
 // 				return NULL;
@@ -266,9 +260,7 @@ void *SR_Data_Threads(void *arg)
  * S(ender)
  */
 				while(1){
-// printf(" SRDATAFUB: S_In while\n");
 					if( S_KAN(c, sockfd, 5) != 1) return NULL;
-// printf(" SRDATAFUB: S_after while\n");
 				}
 
 // 				return NULL;
