@@ -100,8 +100,13 @@ lmsize_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
  * malloc data Data_Thread->data_threads, will be used to share data between threads
  * the data is then freed in Data_Thread.c function
  */
-	if( (Data_Thread->data_threads = (pthread_t *)malloc(sizeof(pthread_t) * Data_Thread->n_data_threads)) == NULL)
-		Perror("Data_Thread: Data_Thread->data_threads malloc");	
+	if(Data_Thread->data_threads == NULL){
+		if( (Data_Thread->data_threads = (pthread_t *)malloc(sizeof(pthread_t) * Data_Thread->n_data_threads)) == NULL)
+		Perror("Data_Thread: Data_Thread->data_threads malloc");
+	}
+	else{
+		Error("Data_Thread: Data_Thread->data_threads already malloced");
+	}
 // 	if( (Data_Thread->data_threads_availth_counter = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
 // 		Perror("Data_Thread: Data_Thread->data_threads_availth_counter");
 // 	if( (Data_Thread->data_threads_remainth_counter = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)

@@ -31,6 +31,8 @@ data_thread_str_t *Allocate_Data_Thread_DataSet(void){
 /*	if( (Data_Thread->data_threads = (pthread_t *)malloc(sizeof(pthread_t) * Data_Thread->n_data_threads)) == NULL)
 *		Perror("Data_Thread: Data_Thread->data_threads malloc");
 */	
+	Data_Thread->data_threads = NULL;
+	
 	if( (Data_Thread->data_threads_availth_counter = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
 		Perror("Data_Thread: Data_Thread->data_threads_availth_counter");
 	if( (Data_Thread->data_threads_remainth_counter = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
@@ -62,11 +64,10 @@ data_thread_str_t *Allocate_Data_Thread_DataSet(void){
  * during the run, the *Data_Thread->sync->nsync should not be never reset
  * *Data_Thread->sync->nthreads will always be set to number of jobs the 
  * syncing points is required to sync
- */	
+ */
 	*Data_Thread->data_threads_availth_counter  = 0;
 	*Data_Thread->data_threads_remainth_counter = 0;
 	*Data_Thread->sync->nsync    = 0;
-// 
 /*
  * Set temporarily the value of the Data_Thread->sync->nthreads to 1. Later it will be set to 
  * o number of data sets + 1 (it. sync all Data_Thread (n_data_threads) + 
