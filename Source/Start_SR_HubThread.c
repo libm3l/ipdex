@@ -77,8 +77,6 @@ SR_hub_thread_str_t *Start_SR_HubThread(SR_thread_str_t *SR_Threads, data_thread
 /*
  * associate values used in SR_Hub_Thread 
  */
-// 	SR_Hub_Thread->pbarr 	= &SR_Threads->barr;		/* wait until all SR_threads reach barrier, then 
-// 								start actual transfer of the data from S to R(s) */
 	SR_Hub_Thread->psem 	= loc_sem;
 	SR_Hub_Thread->psem_g	= &SR_Threads->sem_g;	/* once the data transfer is finished increase 
 							increment of available data_threads */

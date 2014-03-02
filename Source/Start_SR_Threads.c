@@ -99,14 +99,10 @@ SR_thread_str_t *Start_SR_Threads(lmint_t n_threads){
 	if( (SR_Data_Thread->EOFC_END = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
 		Perror("Start_SR_Threads: SR_Data_Thread->EOFC_END malloc");
 /*
- * initialize mutex, barrier and condition variable
+ * initialize mutex and condition variable
  */
 	Pthread_mutex_init(&SR_Data_Thread->lock);
 	Pthread_cond_init(&SR_Data_Thread->dcond);
-/* 
- * initialize barrier, the coutner should be the same as number of R_threads, will be used to sync all R_threads 
- */
-//  	Pthread_barrier_init(&SR_Data_Thread->barr,  n_threads+1);
 	
 	Sem_init(&SR_Data_Thread->sem, 0);
 	Sem_init(&SR_Data_Thread->sem_g, 0); 
@@ -140,7 +136,6 @@ SR_thread_str_t *Start_SR_Threads(lmint_t n_threads){
 		SR_DataArgs->psem 		= &SR_Data_Thread->sem;
 		SR_DataArgs->psem_g 		= &SR_Data_Thread->sem_g;
 		SR_DataArgs->pdcond 		= &SR_Data_Thread->dcond;
-// 		SR_DataArgs->pbarr	 	= &SR_Data_Thread->barr;
 		SR_DataArgs->pSR_mode 		= SR_Data_Thread->SR_mode;
 		SR_DataArgs->psockfd 		= SR_Data_Thread->sockfd;
 		SR_DataArgs->pthr_cntr 		= SR_Data_Thread->thr_cntr;

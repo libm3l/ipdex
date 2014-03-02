@@ -165,7 +165,6 @@ void *SR_hub(void *arg)
  * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
  * synced too
  */
-// 					Pthread_barrier_wait(c->pbarr);
 					pt_sync_mod(c->psync_loc, 0, 1);
 /*
  * once the data transfer is finished wait until all data is tranferred and S and R threads close their socket
@@ -177,14 +176,13 @@ void *SR_hub(void *arg)
 					
 					IT = 2;
 /*
- * wait until all SR_threads reach barrier, then start actual transfer of the data from S to R(s)
+ * wait until all SR_threads reach syn, then start actual transfer of the data from S to R(s)
  */
 /*
  * wait until all SR_threads reach pt_sync, then start actual transfer of the data from S to R(s)
  * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
  * synced too
  */
-// 					Pthread_barrier_wait(c->pbarr);
 					pt_sync_mod(c->psync_loc, 0, 1);
 					while(--IT != 0);
 /*
@@ -200,7 +198,6 @@ void *SR_hub(void *arg)
  * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
  * synced too
  */
-// 						Pthread_barrier_wait(c->pbarr);
 // 						pt_sync_mod(c->psync_loc, 0, 1);
 						Sem_wait(c->psem_g);   
 // 					}while(*c->pEOFC_ENDh == 1);  /* this value is not protected by mtex
@@ -216,7 +213,6 @@ void *SR_hub(void *arg)
  * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
  * synced too
  */
-// 							Pthread_barrier_wait(c->pbarr);
 // 							pt_sync_mod(c->psync_loc, 0, 1);
 							Sem_wait(c->psem_g);  
 						}while(--IT == 0);
@@ -230,15 +226,14 @@ void *SR_hub(void *arg)
 /*
  * connection is kept allive, do while(1) loop
  *
- * wait until all SR_threads reach barrier, then start actual transfer of the data from S to R(s)
- * the barrier_wait is done in SR_Data_Threads
+ * wait until all SR_threads reach sync, then start actual transfer of the data from S to R(s)
+ * the sync is done in SR_Data_Threads
  */
 /*
  * wait until all SR_threads reach pt_sync, then start actual transfer of the data from S to R(s)
  * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
  * synced too
  */
-// 					Pthread_barrier_wait(c->pbarr);
 					pt_sync_mod(c->psync_loc, 0, 1);
 					
 					while(1);

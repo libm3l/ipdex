@@ -83,11 +83,9 @@ void *SR_Data_Threads(void *arg)
 	while(1){
 /*
  * wait until all requests (all Receiver + Sender) for a particular data_set arrived 
- * the last invoking of Pthread_barrier_wait is done in SR_hub.c
+ * the last invoking of pt_sync_mod is done in SR_hub.c
  */
 		*c->pthr_cntr = 0;
-
-// 		Pthread_barrier_wait(c->pbarr);
 /*
  * wait until all SR_threads reach pt_sync, then start actual transfer of the data from S to R(s)
  * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
@@ -156,7 +154,6 @@ void *SR_Data_Threads(void *arg)
  * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
  * synced too
  */
-// 				Pthread_barrier_wait(c->pbarr);
 // 				pt_sync_mod(c->psync_loc, 0, 1);
 				if( S_KAN(c, sockfd, 2) == -1) return NULL;
 			}
@@ -174,7 +171,6 @@ void *SR_Data_Threads(void *arg)
  * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
  * synced too
  */
-// 				Pthread_barrier_wait(c->pbarr);
 // 				pt_sync_mod(c->psync_loc, 0, 1);
 				if( R_KAN(c, sockfd, 2) == -1) return NULL;
 			}
@@ -291,7 +287,6 @@ void *SR_Data_Threads(void *arg)
  * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
  * synced too
  */
-// 					Pthread_barrier_wait(c->pbarr);
 // 					pt_sync_mod(c->psync_loc, 0, 1);
 					if( S_KAN(c, sockfd, 0) == -1) return NULL;
 				}
@@ -311,7 +306,6 @@ void *SR_Data_Threads(void *arg)
  * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
  * synced too
  */
-// 					Pthread_barrier_wait(c->pbarr);
 // 					pt_sync_mod(c->psync_loc, 0, 1);
 					if( R_KAN(c, sockfd, 0) == -1) return NULL;
 				}
