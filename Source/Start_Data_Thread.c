@@ -55,7 +55,7 @@
 #include "Data_Thread.h"
 #include "Server_Functions_Prt.h"
 
-lmint_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
+lmsize_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
 /*
  * function spawns data_threads
  * the number of threads is defined by the number of data sets to be transferred
@@ -67,20 +67,15 @@ lmint_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
  * 
  * the heap memery was allocated in Allocate_Data_Thread_DataSet
  */
-	lmsize_t i;
+	lmsize_t i, retval;
 	lmint_t pth_err;
 	find_t *SFounds;
 	data_thread_args_t *DataArgs;
 	
 	if(Gnode == NULL){
 		Warning("Data_Thread: NULL Gnode");
-		return NULL;
+		return -1;
 	}
-/*
- * malloc the main node
- */
-// 	if( (Data_Thread = (data_thread_str_t *)malloc(sizeof(data_thread_str_t))) == NULL)
-// 		Perror("Data_Thread: Data_Thread malloc");
 /*
  * find how many data sets - defines how many data_threads to spawn
  */
@@ -89,6 +84,7 @@ lmint_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
 	if( (SFounds = m3l_Locate(Gnode, "/Buffer/Channel", "/*/*", (lmchar_t *)NULL)) != NULL){
 		
 		Data_Thread->n_data_threads = m3l_get_Found_number(SFounds);
+		retval = Data_Thread->n_data_threads;
 		
 		if(Data_Thread->n_data_threads == 0){
 			Error("Server: did not find any Data_set");
@@ -104,8 +100,8 @@ lmint_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
  * malloc data Data_Thread->data_threads, will be used to share data between threads
  * the data is then freed in Data_Thread.c function
  */
-// 	if( (Data_Thread->data_threads = (pthread_t *)malloc(sizeof(pthread_t) * Data_Thread->n_data_threads)) == NULL)
-// 		Perror("Data_Thread: Data_Thread->data_threads malloc");	
+	if( (Data_Thread->data_threads = (pthread_t *)malloc(sizeof(pthread_t) * Data_Thread->n_data_threads)) == NULL)
+		Perror("Data_Thread: Data_Thread->data_threads malloc");	
 // 	if( (Data_Thread->data_threads_availth_counter = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
 // 		Perror("Data_Thread: Data_Thread->data_threads_availth_counter");
 // 	if( (Data_Thread->data_threads_remainth_counter = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
@@ -145,12 +141,11 @@ lmint_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
  * set the value of for syncing thread to number of data sets + 1 (it. sync all Data_Thread (n_data_threads) + 
  * 1 for Server_Body
  */
-// 	*Data_Thread->sync->nthreads = Data_Thread->n_data_threads + 1;	
+	*Data_Thread->sync->nthreads = Data_Thread->n_data_threads + 1;	
 /*
  * initialize mutex, barrier and condition variable
  */
 // 	Pthread_mutex_init(&Data_Thread->lock);
-// 	Pthread_barrier_init(&Data_Thread->barr,  Data_Thread->n_data_threads + 1);
 // 	Pthread_cond_init(&Data_Thread->cond);
 // 	Sem_init(&Data_Thread->sem, 0);
 /*
@@ -206,5 +201,5 @@ lmint_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
 	pt_sync(Data_Thread->sync);
 	m3l_DestroyFound(&SFounds);
 	
-	return Data_Thread->n_data_threads;
+	return retval;
 }

@@ -94,7 +94,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 /*
  * allocate Data_Thread used by Data_Thread.c and Start_Data_Thread.c
  */
-	if(  (Data_Threads = Allocate_Data_Thread_DataSet(DataBuffer)) == NULL)
+	if(  (Data_Threads = Allocate_Data_Thread_DataSet()) == NULL)
 		Perror("Server_Body: Allocate_Data_Thread_DataSet error");
 /*
  * spawn all threads
