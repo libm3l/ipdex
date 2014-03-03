@@ -133,7 +133,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * the _wait on this sync is the second_wait call in Data_Thread for each thread and this is the last one
  * makes sure we do not start Data_Thread before some of the data which are needed are filled abd mutex is locked - see 
  * fours lines above
- */	
+ */
 	pt_sync(Data_Threads->sync);
 /*
  * create, bind and listen socket
@@ -143,10 +143,8 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	
 	
 	printf(" Unique ID is %ld\n", Make_ID_Number(sockfd));
-	
-	
-	while(1){
 
+	while(1){
 /*
  * if already in cycle, you need to lock mutex here
  */
@@ -181,8 +179,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * positive match - ie. the thread takes care of this data channel it will save the 
  * value in its own local array (SR_Threads->sockfd[local_cntr]	= *c->psocket in Data_Thread)
  */
-
- 
 // 		inet_ntop(AF_INET, &(cli_addr.sin_addr), str, INET_ADDRSTRLEN);
 //    		printf("	CONNECTION --------------------   : %s:%d\n",str, ntohs(cli_addr.sin_port)); 
 /*
@@ -198,7 +194,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * find Name_of_Channel
  * make sure the ./ path is used instead of /
  * if the RecNode comes from socket it starts with /Header, if it comes from buffer
- * it is a subset
+ * it is a subset. By using ./ the locate will handle both
  */
 		if( (SFounds = m3l_Locate(RecNode, "./Header/Name_of_Channel", "./*/*",  (lmchar_t *)NULL)) != NULL){
 			if( m3l_get_Found_number(SFounds) != 1)
@@ -223,7 +219,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 		if(strncmp(name_of_required_data_set, "_sys_link_", 10) == 0 
 			&& strlen(name_of_required_data_set) == 10){
 			
-			Sys_Comm_Channel(RecNode);
+// 			Sys_Comm_Channel(RecNode);
 			continue;
 		}
 /*

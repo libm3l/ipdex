@@ -46,9 +46,6 @@
  */
 
 
-
-
-
 #include "libm3l.h"
 #include "lsipdx_header.h"
 #include "Allocate_DataBuffer.h"

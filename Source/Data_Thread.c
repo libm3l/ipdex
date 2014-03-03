@@ -212,7 +212,7 @@ void *Data_Threads(void *arg)
 	Sem_init(&loc_sem, 0);
 	
 	SR_Hub_Thread = Start_SR_HubThread(SR_Threads, c, &n_avail_loc_theads, &n_rec_proc, Thread_Status, 
-					   &loc_sem, Thread_S_Status, Thread_R_Status);
+		&loc_sem, Thread_S_Status, Thread_R_Status);
 
 	Pthread_mutex_unlock(c->plock);
 /*

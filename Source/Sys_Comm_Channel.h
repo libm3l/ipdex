@@ -42,6 +42,6 @@
 #ifndef  __SYS_COMM_CHANNEL_H__
 #define  __SYS_COMM_CHANNEL_H__
 
-lmint_t Sys_Comm_Channel(node_t *);
+lmint_t Sys_Comm_Channel(node_t *, data_thread_str_t *);
 
 #endif

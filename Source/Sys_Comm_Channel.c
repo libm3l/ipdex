@@ -47,10 +47,10 @@
 
 
 #include "libm3l.h"
+#include "lsipdx_header.h"
 #include "Sys_Comm_Channel.h"
 
-
-lmint_t Sys_Comm_Channel(node_t *RecNode)
+lmint_t Sys_Comm_Channel(node_t *RecNode, data_thread_str_t *Data_Threads)
 {
 /*
  * function handles communication between client and server via SERVER_SYS_LINK channel.
