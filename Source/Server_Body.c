@@ -134,7 +134,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * makes sure we do not start Data_Thread before some of the data which are needed are filled abd mutex is locked - see 
  * fours lines above
  */
-	pt_sync(Data_Threads->sync);
+// 	pt_sync(Data_Threads->sync);
 /*
  * create, bind and listen socket
  */

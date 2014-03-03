@@ -203,7 +203,7 @@ lmsize_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
  * wait on this sync until all threads are created - the syncs are waited on in Data_Threads and this is the last one
  * makes sure we leave the function after all threads are created
  */
-	pt_sync(Data_Thread->sync);
+// 	pt_sync(Data_Thread->sync);
 	m3l_DestroyFound(&SFounds);
 	
 	return retval;
