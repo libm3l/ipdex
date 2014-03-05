@@ -79,8 +79,6 @@ lmsize_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
 /*
  * find how many data sets - defines how many data_threads to spawn
  */
-
-// 	if( (SFounds = m3l_Locate(Gnode, "/COMM_DEF/Channels/Channel", "/*/*/*", (lmchar_t *)NULL)) != NULL){
 	if( (SFounds = m3l_Locate(Gnode, "/Buffer/Channel", "/*/*", (lmchar_t *)NULL)) != NULL){
 		
 		Data_Thread->n_data_threads = m3l_get_Found_number(SFounds);
@@ -97,16 +95,31 @@ lmsize_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
 		exit(0);
 	}
 /* 
- * malloc data Data_Thread->data_threads, will be used to share data between threads
+ * malloc data Data_Thread->Data_Str, will be used to store data specific to each Data_Thread (ie. PID, name of channel etc.)
  * the data is then freed in Data_Thread.c function
  */
-	if(Data_Thread->data_threads == NULL){
-		if( (Data_Thread->data_threads = (pthread_t *)malloc(sizeof(pthread_t) * Data_Thread->n_data_threads)) == NULL)
-		Perror("Data_Thread: Data_Thread->data_threads malloc");
+
+	if(Data_Thread->Data_Str == NULL){
+		if( (Data_Thread->Data_Str = (data_thread_int_str_t **)malloc(sizeof(data_thread_int_str_t *) * Data_Thread->n_data_threads)) == NULL)
+		Perror("Data_Thread: Data_Thread->Data_Str malloc");
 	}
 	else{
-		Error("Data_Thread: Data_Thread->data_threads already malloced");
+		Error("Data_Thread: Data_Thread->Data_Str already malloced");
 	}
+
+	for(i=0; i < Data_Thread->n_data_threads; i++){
+		
+		if( (Data_Thread->Data_Str[i] = (data_thread_int_str_t *)malloc(sizeof(data_thread_int_str_t))) == NULL)
+			Perror("Data_Thread: Data_Thread->Data_Str[] malloc");
+		
+		if( (Data_Thread->Data_Str[i]->data_threadPID = (pthread_t *)malloc(sizeof(pthread_t))) == NULL)
+			Perror("Data_Thread: Data_Thread->Data_Str->data_threads malloc");
+		
+		if( (Data_Thread->Data_Str[i]->name_of_channel = (lmchar_t *)malloc(MAX_NAME_LENGTH* sizeof(lmchar_t))) == NULL)
+			Perror("Data_Thread: Data_Thread->Data_Str->name_of_channel malloc");
+
+	}
+	
 // 	if( (Data_Thread->data_threads_availth_counter = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
 // 		Perror("Data_Thread: Data_Thread->data_threads_availth_counter");
 // 	if( (Data_Thread->data_threads_remainth_counter = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
@@ -192,18 +205,13 @@ lmsize_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
 //             Perror("pthread_create()");
 //         }
 
-		while ( ( pth_err = pthread_create(&Data_Thread->data_threads[i], NULL, &Data_Threads,  DataArgs)) != 0 && errno == EAGAIN);
+		while ( ( pth_err = pthread_create(Data_Thread->Data_Str[i]->data_threadPID, NULL, &Data_Threads,  DataArgs)) != 0 && errno == EAGAIN);
 		if(pth_err != 0)
 			Perror("pthread_create()");
 /*
  * create a node
  */
 	}
-/*
- * wait on this sync until all threads are created - the syncs are waited on in Data_Threads and this is the last one
- * makes sure we leave the function after all threads are created
- */
-// 	pt_sync(Data_Thread->sync);
 	m3l_DestroyFound(&SFounds);
 	
 	return retval;

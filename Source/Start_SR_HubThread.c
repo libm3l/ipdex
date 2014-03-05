@@ -77,13 +77,13 @@ SR_hub_thread_str_t *Start_SR_HubThread(SR_thread_str_t *SR_Threads, data_thread
 /*
  * associate values used in SR_Hub_Thread 
  */
-	SR_Hub_Thread->psem 	= loc_sem;
-	SR_Hub_Thread->psem_g	= &SR_Threads->sem_g;	/* once the data transfer is finished increase 
+	SR_Hub_Thread->psem 		= loc_sem;
+	SR_Hub_Thread->psem_g		= &SR_Threads->sem_g;	/* once the data transfer is finished increase 
 							increment of available data_threads */
-	SR_Hub_Thread->plock	= c->plock;
-	SR_Hub_Thread->pcond	= c->pcond;
-	SR_Hub_Thread->pcounter	= c->pcounter;
-	SR_Hub_Thread->pn_avail_loc_theads= n_avail_loc_theads;
+	SR_Hub_Thread->plock		= c->plock;
+	SR_Hub_Thread->pcond		= c->pcond;
+	SR_Hub_Thread->pcounter		= c->pcounter;
+	SR_Hub_Thread->pn_avail_loc_theads = n_avail_loc_theads;
 	SR_Hub_Thread->pn_rec_proc	= n_rec_proc;
 	SR_Hub_Thread->pThread_Status 	= Thread_Status;
 	SR_Hub_Thread->pThread_S_Status	= Thread_S_Status;

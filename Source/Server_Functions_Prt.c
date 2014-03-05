@@ -447,7 +447,11 @@ void pt_sync_mod(pt_sync_t *sync, lmsize_t addjob, lmsize_t incrm)
 /*
  * last process
  */	else 
-  	{	
+  	{
+/*
+ * modify number of jobs which are synced
+ */
+		if(  (*sync->pnthreads = *sync->pnthreads + addjob) < 0) *sync->pnthreads = 0;
 /*
  * wake up all waiting processes
  */
@@ -456,10 +460,82 @@ void pt_sync_mod(pt_sync_t *sync, lmsize_t addjob, lmsize_t incrm)
  * got to sleep till they are all awake, then release block
  */
 		Pthread_cond_wait(sync->plast,sync->pmutex);
+	
+		Pthread_mutex_unlock(sync->pblock);
+	}
+/*
+ * if next to last one out, wake up the last one
+ */
+	if (--(*sync->pnsync) == 1){
+// 		Pthread_cond_broadcast(sync->plast);
+ 		Pthread_cond_signal(sync->plast);
+	}
+/*
+ * release mutex
+ */
+	Pthread_mutex_unlock(sync->pmutex);
+}
+
+
+void pt_sync_mod_signal(pt_sync_t *sync, lmsize_t addjob, lmsize_t incrm, sem_t *sem)
+{
+/*   
+ *	*sync->pnthreads contains the values of number of threads which will be synchronized
+ *	this value must be specified before this function is invoked
+ * 
+ * 	in addition to pt_sync() this function enables 
+ * 	modification of *sync->pnthreads by incrm which is done when
+ * 	the last therad leavs the synchronizer
+ */
+	lmsize_t n_actual_sync_jobs;
+/*
+ * if number of synced jobs is larger then pnthreads by incrm add it
+ */
+	n_actual_sync_jobs = *sync->pnthreads + incrm;
+	
+	if (n_actual_sync_jobs<2) {
+		return;};           /* trivial case            */
+/*
+ * lock the block and mutex
+ */
+	Pthread_mutex_lock(sync->pblock);
+
+	Pthread_mutex_lock(sync->pmutex);
+/*
+ * find if the job is last or not  NOTE: *sync->pnsync has to be intialized to 0 before 
+ * syncing starts
+ */
+	if (++(*sync->pnsync) < n_actual_sync_jobs) {
+/*
+ * no, check if last but one, if yes, signal condition
+ */
+		if ((*sync->pnsync) = n_actual_sync_jobs-1) Sem_post(sem);
+/*
+ * no, unlock block and 
+ */
+		Pthread_mutex_unlock(sync->pblock);
+/*
+ * wait for condvar
+ */
+		Pthread_cond_wait(sync->pcondvar, sync->pmutex);
+
+	} 
+/*
+ * last process
+ */	else 
+  	{	
 /*
  * modify number of jobs which are synced
  */
 		if(  (*sync->pnthreads = *sync->pnthreads + addjob) < 0) *sync->pnthreads = 0;
+/*
+ * wake up all waiting processes
+ */
+		Pthread_cond_broadcast(sync->pcondvar);
+/* 
+ * got to sleep till they are all awake, then release block
+ */
+		Pthread_cond_wait(sync->plast,sync->pmutex);
 	
 		Pthread_mutex_unlock(sync->pblock);
 	}

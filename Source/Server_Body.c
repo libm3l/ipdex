@@ -129,13 +129,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  */
 	*Data_Threads->retval = 0;
 /*
- * wait for sync, indicating all threads in Data_Thread were created
- * the _wait on this sync is the second_wait call in Data_Thread for each thread and this is the last one
- * makes sure we do not start Data_Thread before some of the data which are needed are filled abd mutex is locked - see 
- * fours lines above
- */
-// 	pt_sync(Data_Threads->sync);
-/*
  * create, bind and listen socket
  */
 	if ( (sockfd = m3l_server_openbindlistensocket(portno, (char *)NULL) ) < 0 )
@@ -394,15 +387,19 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 /*
  * join threads and release memmory
  */
-	for(i=0; i< Data_Threads->n_data_threads; i++)
-		if( pthread_join(Data_Threads->data_threads[i], NULL) != 0)
+	for(i=0; i< Data_Threads->n_data_threads; i++){
+		if( pthread_join(*Data_Threads->Data_Str[i]->data_threadPID, NULL) != 0)
 			Error(" Joining thread failed");
+	
+		free(Data_Threads->Data_Str[i]->data_threadPID);
+		free(Data_Threads->Data_Str[i]->name_of_channel);
+	}
 				
 	Pthread_mutex_destroy(&Data_Threads->lock);
 	Pthread_cond_destroy(&Data_Threads->cond);
 	Sem_destroy(&Data_Threads->sem);
 	
-	free(Data_Threads->data_threads);
+// 	free(Data_Threads->data_threads);
 	free(Data_Threads->name_of_data_set);
 	free(Data_Threads->SR_mode);
 	free(Data_Threads->data_threads_availth_counter);

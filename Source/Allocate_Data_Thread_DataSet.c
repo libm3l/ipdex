@@ -75,7 +75,7 @@ data_thread_str_t *Allocate_Data_Thread_DataSet(void){
 /*	if( (Data_Thread->data_threads = (pthread_t *)malloc(sizeof(pthread_t) * Data_Thread->n_data_threads)) == NULL)
 *		Perror("Data_Thread: Data_Thread->data_threads malloc");
 */	
-	Data_Thread->data_threads = NULL;
+	Data_Thread->Data_Str = NULL;
 	
 	if( (Data_Thread->data_threads_availth_counter = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
 		Perror("Data_Thread: Data_Thread->data_threads_availth_counter");
