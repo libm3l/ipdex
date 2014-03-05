@@ -241,10 +241,10 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 /*
  * save socket number in /Header structure
  */
-		dim[0] = 1;
-		if(  (TmpNode = m3l_Mklist("socket_nr", "I", 1, dim, &RecNode, "/Header", "./", (char *)NULL)) == 0)
-			Error("m3l_Mklist");
-		TmpNode->data.i[0] = newsockfd;
+// 		dim[0] = 1;
+// 		if(  (TmpNode = m3l_Mklist("socket_nr", "I", 1, dim, &RecNode, "/Header", "./", (char *)NULL)) == 0)
+// 			Error("m3l_Mklist");
+// 		TmpNode->data.i[0] = newsockfd;
 /*
  * loop over - identify thread correspoding to required data thread.
  * this thread spanws n SR threads (1 Sending thread and n-1 Reading threads) which take care of data transfer,
@@ -376,11 +376,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * needed for propper locking of mutex
  */
 		cycle = 1;
-/*
- * if the loop is done for the first time after receiving request from socket
- * the RecNode (received data set request) was checked. 
- * Loop over the buffer and check sets which are temporarily stored there
- */
+		
 	}      /* end of while(1) */
 	
 	if(Tqst_SFounds != NULL) m3l_DestroyFound(&Tqst_SFounds);
@@ -388,8 +384,10 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * join threads and release memmory
  */
 	for(i=0; i< Data_Threads->n_data_threads; i++){
-		if( pthread_join(*Data_Threads->Data_Str[i]->data_threadPID, NULL) != 0)
-			Error(" Joining thread failed");
+		if( Data_Threads->Data_Str[i]->data_threadPID != NULL){
+			if( pthread_join(*Data_Threads->Data_Str[i]->data_threadPID, NULL) != 0)
+				Error(" Joining thread failed");
+		}
 	
 		free(Data_Threads->Data_Str[i]->data_threadPID);
 		free(Data_Threads->Data_Str[i]->name_of_channel);
@@ -400,7 +398,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	Pthread_cond_destroy(&Data_Threads->cond);
 	Sem_destroy(&Data_Threads->sem);
 	
-// 	free(Data_Threads->data_threads);
 	free(Data_Threads->name_of_data_set);
 	free(Data_Threads->SR_mode);
 	free(Data_Threads->data_threads_availth_counter);
