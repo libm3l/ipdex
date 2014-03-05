@@ -393,6 +393,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	
 		free(Data_Threads->Data_Str[i]->data_threadPID);
 		free(Data_Threads->Data_Str[i]->name_of_channel);
+		free(Data_Threads->Data_Str[i]->status_run);
 	}
 				
 	Pthread_mutex_destroy(&Data_Threads->lock);

@@ -106,18 +106,31 @@ lmsize_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
 	else{
 		Error("Data_Thread: Data_Thread->Data_Str already malloced");
 	}
-
+/*
+ * allocate Data_Str
+ */
 	for(i=0; i < Data_Thread->n_data_threads; i++){
 		
 		if( (Data_Thread->Data_Str[i] = (data_thread_int_str_t *)malloc(sizeof(data_thread_int_str_t))) == NULL)
 			Perror("Data_Thread: Data_Thread->Data_Str[] malloc");
-		
+/*
+ * malloc for PID of the thread
+ */
 		if( (Data_Thread->Data_Str[i]->data_threadPID = (pthread_t *)malloc(sizeof(pthread_t))) == NULL)
 			Perror("Data_Thread: Data_Thread->Data_Str->data_threads malloc");
-		
+/*
+ * malloc variable for its name (connection.channel name). This variable
+ * will be then defined in Start_Data_Thread where each individual thread 
+ * gets its own connection
+ */
 		if( (Data_Thread->Data_Str[i]->name_of_channel = (lmchar_t *)malloc(MAX_NAME_LENGTH* sizeof(lmchar_t))) == NULL)
 			Perror("Data_Thread: Data_Thread->Data_Str->name_of_channel malloc");
-
+/*
+ * malloc status_run variable and set it to 1; if 0 thread will be terminated
+ */
+		if( (Data_Thread->Data_Str[i]->status_run = (lmint_t *)malloc(MAX_NAME_LENGTH* sizeof(lmint_t))) == NULL)
+			Perror("Data_Thread: Data_Thread->Data_Str->lmint_t malloc");
+		*Data_Thread->Data_Str[i]->status_run = 1;
 	}
 	
 // 	if( (Data_Thread->data_threads_availth_counter = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
@@ -171,7 +184,7 @@ lmsize_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
  */	
 	for(i=0; i < Data_Thread->n_data_threads; i++){
 		if( (DataArgs = (data_thread_args_t *)malloc(sizeof(data_thread_args_t))) == NULL)
-			Perror("Data_Thread: DataArgs malloc");	
+			Perror("Data_Thread: DataArgs malloc");
 /*
  * set Node pointer to i-th data set in /Buffer/Channel
  * this determines that i-th thread will take care of channel with 
@@ -195,6 +208,13 @@ lmsize_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
 		DataArgs->psync->pblock		= &Data_Thread->sync->block;
 		DataArgs->psync->pcondvar	= &Data_Thread->sync->condvar;
 		DataArgs->psync->plast		= &Data_Thread->sync->last;
+/*
+ * malloc pData_Str and associate with Data_Str
+ */
+		if( (DataArgs->pData_Str = (data_thread_int_str_t *)malloc(sizeof(data_thread_int_str_t))) == NULL)
+			Perror("Data_Thread: DataArgs->pData_Str malloc");	
+		DataArgs->pData_Str->name_of_channel = Data_Thread->Data_Str[i]->name_of_channel;
+		DataArgs->pData_Str->status_run      = Data_Thread->Data_Str[i]->status_run;
 /*
  * create thread
  */

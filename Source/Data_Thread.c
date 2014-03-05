@@ -109,13 +109,21 @@ void *Data_Threads(void *arg)
  */
 				if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
 					Error("Data_Thread: NULL Name_of_Channel");
-			
+/*
+ * get the name of channel (connection) this thread will take care of
+ * save the name in local variable and data_thread_args_t->data_thread_int_str_t->name_of_channel
+ * variable. It is used to identify which thread should be later terminated if
+ * user requires closing specific name connection
+ */
 				data_set_name = m3l_get_data_pointer(List);
 				if( (len = m3l_get_List_totdim(List)-1) < 1)
 					Error("Data_Thread: too short name of data set");
 				if( snprintf(local_set_name, MAX_NAME_LENGTH,"%s",data_set_name) < 0)
 					Perror("snprintf");
 				local_set_name[len] ='\0';
+				if( snprintf(c->pData_Str->name_of_channel, MAX_NAME_LENGTH,"%s",data_set_name) < 0)
+					Perror("snprintf");
+				c->pData_Str->name_of_channel[len] ='\0';
 /* 
  * free memory allocated in m3l_Locate
  */
