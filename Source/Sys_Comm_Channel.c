@@ -49,9 +49,55 @@
 #include "libm3l.h"
 #include "lsipdx_header.h"
 #include "Sys_Comm_Channel.h"
+#include "Server_Functions_Prt.h"
 
-lmint_t Sys_Comm_Channel(node_t *RecNode, data_thread_str_t *Data_Threads)
-{
+void *Sys_Comm_Channel(void *arg){
+	
+/*	
+	pt_sync()
+	
+	
+	if( sys_req ){
+
+		define if increment or decrement
+		
+		if(decrement){
+			identify which PID
+			remove data set from buffer
+			set status_run = 0
+			
+			for(i=0; i< Data_Threads->n_data_threads; i++){
+		if( *Data_Threads->Data_Str[i]->data_threadPID != NULL){
+			if( pthread_join(*Data_Threads->Data_Str[i]->data_threadPID, NULL) != 0)
+				Error(" Joining thread failed");
+		}
+		pthread_join(*Data_Threads->Data_Str[i]->data_threadPID = NULL;
+		free(Data_Threads->Data_Str[i]->data_threadPID);
+		free(Data_Threads->Data_Str[i]->name_of_channel);
+		free(Data_Threads->Data_Str[i]->status_run);
+	}
+		}
+/*
+ * make sure you enter the sync as the last one
+ * next to last is posting semaphore from pt_sync_mod_semaphore()
+ */
+// 		Sem_wait();
+// 		pt_sync_mod_semaphore();
+// 
+// 		if(increment){
+// 			start new thread
+// 			realloc Data_Str
+// 			increment Data_Threads->n_data_threads
+// 		}
+// }
+// 	else
+// 		pt_sync();
+	
+}
+
+
+// lmint_t Identify_Sys_Comm_Channel(node_t *RecNode, data_thread_str_t *Data_Threads)
+// {
 /*
  * function handles communication between client and server via SERVER_SYS_LINK channel.
  * This channel is used to process requests sent by clients to the server.
@@ -107,4 +153,4 @@ lmint_t Sys_Comm_Channel(node_t *RecNode, data_thread_str_t *Data_Threads)
 // 			Error("Data_Thread: Name_of_Channel not found\n");
 // 		}
 
-}
+// }
