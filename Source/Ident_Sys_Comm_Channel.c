@@ -17,11 +17,11 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
  * 	-	increase/decrease number of S_R threads for a particular Data_Thread
  * 	-	change KA and/or ATDRT mode
  */
-	lmint_t retval, *reqtype;
+	lmint_t retval, *reqtype, *tmpint;
 	find_t *SFounds;
-	node_t *List;
+	node_t *List, *TmpNode1;
  	lmchar_t *tmpchar;
-	lmsize_t len, i;
+	lmsize_t len, i, dim[1];
 	
 	retval = 0;
 /*
@@ -115,39 +115,52 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 		
 		switch(*reqtype){
 
-		case 1:
+			case 1:
 /*
- * open new connection
+ * open new connection - find its specification under "/_comm_link_/Channel
  */
-			
-		break;
-		
-		case 2:
+				if( (SFounds = m3l_Locate(RecNode, "/_comm_link_/Channel", "./*/*",  (lmchar_t *)NULL)) != NULL){
+					if( m3l_get_Found_number(SFounds) != 1)
+						Error("Server_Body: Only one /_comm_link_/Channel allowed");
+					if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
+						Error("Server_Body: NULL /_comm_link_/Channel");
+					m3l_DestroyFound(&SFounds);
+				}
+				else
+				{
+					Error("Server_Body: /_comm_link_/Channel not found\n");
+				}
+/*
+ * add it to the buffer and add to it other data set
+ * similarly to Allocate_DataBuffer.c
+ */
+				m3l_Mv(&List,  "./Channel", "./*", DataBuffer, "/Buffer", "/*", (lmchar_t *)NULL);
+				
+				dim[0] = 1;
+				if(  (TmpNode1 = m3l_Mklist("Thread_Status", "I", 1, dim, &List, "./Channel", "./", (char *)NULL)) == 0)
+					Error("m3l_Mklist");
+				tmpint = (lmint_t *)m3l_get_data_pointer(TmpNode1);
+				tmpint[0] = 0;
+				if(  (TmpNode1 = m3l_Mklist("S_Status", "I", 1, dim, &List, "./Channel", "./", (char *)NULL)) == 0)
+					Error("m3l_Mklist");
+				tmpint = (lmint_t *)m3l_get_data_pointer(TmpNode1);
+				tmpint[0] = 0;
+				if(  (TmpNode1 = m3l_Mklist("R_Status", "ST", 1, dim, &List, "./Channel", "./", (char *)NULL)) == 0)
+					Error("m3l_Mklist");
+				tmpint = (lmint_t *)m3l_get_data_pointer(TmpNode1);
+				tmpint[0] = 0;
+				
+			break;
+
+			case 2:
 /*
  * close connection
  */
 			
-		break;
-		
+			break;
 		}
 
 
-// 	TmpNode = m3l_get_Found_node(SFounds, i);
-// 		m3l_Mv(&TmpNode,  "./Channel", "./*", &BuffNode, "/Buffer", "/*", (lmchar_t *)NULL);
-// 		
-// 		dim[0] = 1;
-// 		if(  (TmpNode1 = m3l_Mklist("Thread_Status", "I", 1, dim, &TmpNode, "./Channel", "./", (char *)NULL)) == 0)
-// 			Error("m3l_Mklist");
-// 		tmpint = (lmint_t *)m3l_get_data_pointer(TmpNode1);
-// 		tmpint[0] = 0;
-// 		if(  (TmpNode1 = m3l_Mklist("S_Status", "I", 1, dim, &TmpNode, "./Channel", "./", (char *)NULL)) == 0)
-// 			Error("m3l_Mklist");
-// 		tmpint = (lmint_t *)m3l_get_data_pointer(TmpNode1);
-// 		tmpint[0] = 0;
-// 		if(  (TmpNode1 = m3l_Mklist("R_Status", "ST", 1, dim, &TmpNode, "./Channel", "./", (char *)NULL)) == 0)
-// 			Error("m3l_Mklist");
-// 		tmpint = (lmint_t *)m3l_get_data_pointer(TmpNode1);
-// 		tmpint[0] = 0;
 
 
 // 	

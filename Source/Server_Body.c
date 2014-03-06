@@ -213,14 +213,14 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  */
 					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
 					if( m3l_send_to_tcpipsocket(RR_POS, (const char *)NULL, newsockfd, Popts) < 1)
-						Error("Error during sending data from socket");
+						Error("Error during sending data to socket");
 				}
 				else if(SR_mode == 'R'){
 
 					opts.opt_REOBseq = 'G'; // send EOFbuff sequence only
 					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only	
 					if( m3l_send_receive_tcpipsocket(RR_POS, (const lmchar_t *)NULL, newsockfd, Popts) < 0){
-						Error(" PROBLEM HERE \n");
+						Error(" Error during receving data from socket \n");
 						return -1;
 					}
 				}
@@ -238,7 +238,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * - set the return value to 0, once the thread is identified, the value is set to 1
  */
 				*Data_Threads->data_threads_remainth_counter 	= *Data_Threads->data_threads_availth_counter;	
-// 				*Data_Threads->sync->nthreads			= *Data_Threads->data_threads_availth_counter + 1;
 				*Data_Threads->retval = 0;
 				
 				if( snprintf(Data_Threads->name_of_data_set, MAX_NAME_LENGTH,"%s",name_of_required_data_set) < 0)
