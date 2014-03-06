@@ -64,7 +64,8 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	lmint_t sockfd, newsockfd, cycle;
 	struct sockaddr_in cli_addr;
 	data_thread_str_t *Data_Threads;
-	lmchar_t *name_of_required_data_set, *SR_mode;
+// 	lmchar_t *name_of_required_data_set, *SR_mode;
+	lmchar_t name_of_required_data_set[MAX_NAME_LENGTH], SR_mode;
 	
 	socklen_t clilen;
 	find_t *SFounds, *Tqst_SFounds;
@@ -183,68 +184,13 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 		opts.opt_REOBseq = '\0'; // send EOFbuff sequence only
 		if( (RecNode = m3l_receive_tcpipsocket((const char *)NULL, newsockfd, Popts)) == NULL)
 			Error("Error during reading data from socket");
-/* 
- * find Name_of_Channel
- * make sure the ./ path is used instead of /
- * if the RecNode comes from socket it starts with /Header, if it comes from buffer
- * it is a subset. By using ./ the locate will handle both
- */
-		if( (SFounds = m3l_Locate(RecNode, "./Header/Name_of_Channel", "./*/*",  (lmchar_t *)NULL)) != NULL){
-			if( m3l_get_Found_number(SFounds) != 1)
-				Error("Server_Body: Only one Name_of_Channel per Channel allowed");
-			if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
-				Error("Server_Body: NULL Name_of_Channel");
-			name_of_required_data_set = m3l_get_data_pointer(List);
-/* 
- * free memory allocated in m3l_Locate
- */
-			m3l_DestroyFound(&SFounds);
-		}
-		else
-		{
-			Error("Server_Body: Name_of_Channel not found\n");
-		}
+
+// 		if(m3l_Cat(RecNode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
+// 			Error("ERRRRR");
 /*
- * if name_of_required_data_set == _sys_link_
- * call subroutine and then skip the rest. 
- * This happens if the client want to talk to server only
+ * identify type of request and get back with name of required connection and SR_mode
  */
-		if(strncmp(name_of_required_data_set, "_sys_link_", 10) == 0 
-			&& strlen(name_of_required_data_set) == 10){
-			
-// 			Sys_Comm_Channel(RecNode);
-			continue;
-		}
-/*
- * find type of process SR_Mode  S-sender, R-receiver
- */
-		if( (SFounds = m3l_Locate(RecNode, "./Header/SR_mode", "./*/*",  (lmchar_t *)NULL)) != NULL){
-			
-			if( m3l_get_Found_number(SFounds) != 1)
-				Error("Server_Body: Only one SR_mode per Channel allowed");
-/* 
- * pointer to list of found nodes
- */
-				if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
-					Error("NULData_Thread: Missing S_mode");
-			
-				SR_mode = (lmchar_t *)m3l_get_data_pointer(List);
-/* 
- * free memory allocated in m3l_Locate
- */
-			m3l_DestroyFound(&SFounds);
-		}
-		else
-		{
-			printf("Server_Body: Receiving_Processes not found\n");
-		}
-/*
- * save socket number in /Header structure
- */
-// 		dim[0] = 1;
-// 		if(  (TmpNode = m3l_Mklist("socket_nr", "I", 1, dim, &RecNode, "/Header", "./", (char *)NULL)) == 0)
-// 			Error("m3l_Mklist");
-// 		TmpNode->data.i[0] = newsockfd;
+		Ident_Sys_Comm_Channel(RecNode, &DataBuffer, Data_Threads, name_of_required_data_set, &SR_mode);
 /*
  * loop over - identify thread correspoding to required data thread.
  * this thread spanws n SR threads (1 Sending thread and n-1 Reading threads) which take care of data transfer,
@@ -260,7 +206,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 /* 
  * Legal request, not in buffer, data_thread available 
  */			
-				if(*SR_mode == 'S'){
+				if(SR_mode == 'S'){
 /*
  * if process is sender, indicate Sender that header was received before receiving payload
  * if process is Receiver send acknowledgment and get back REOB
@@ -269,7 +215,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 					if( m3l_send_to_tcpipsocket(RR_POS, (const char *)NULL, newsockfd, Popts) < 1)
 						Error("Error during sending data from socket");
 				}
-				else if(*SR_mode == 'R'){
+				else if(SR_mode == 'R'){
 
 					opts.opt_REOBseq = 'G'; // send EOFbuff sequence only
 					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only	
@@ -297,7 +243,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 				
 				if( snprintf(Data_Threads->name_of_data_set, MAX_NAME_LENGTH,"%s",name_of_required_data_set) < 0)
 					Perror("snprintf");
-				*Data_Threads->SR_mode = *SR_mode;
+				*Data_Threads->SR_mode = SR_mode;
 				*Data_Threads->socket  = newsockfd;
 
 				Pthread_mutex_unlock(&Data_Threads->lock);
@@ -324,7 +270,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 						Perror("m3l_Umount");
 				}
 				else{
-					printf(" Case 0 retval (%d)  --- %s   %c\n", *Data_Threads->retval, name_of_required_data_set, *SR_mode);
+					printf(" Case 0 retval (%d)  --- %s   %c\n", *Data_Threads->retval, name_of_required_data_set, SR_mode);
 					Warning("Server_Body: Not valid data set");
 					if( m3l_Umount(&RecNode) != 1)
 						Perror("m3l_Umount");
@@ -335,7 +281,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			
 			case 1:
 			
-				if(*SR_mode == 'S'){
+				if(SR_mode == 'S'){
 /*
  * if process is sender, indicate Sender that header was received before receiving payload
  * if process is Receiver send acknowledgment and get back REOB
@@ -347,7 +293,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 						Error("Error during sending data from socket");
 					
 				}
-				else if(*SR_mode == 'R'){
+				else if(SR_mode == 'R'){
 // 					m3l_Send_to_tcpipsocket(RR_NEG, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754", (char *)NULL);
 					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
 					if( m3l_send_to_tcpipsocket(RR_NEG, (const char *)NULL, newsockfd, Popts) < 1)

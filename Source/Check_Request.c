@@ -52,7 +52,7 @@
 #include "lsipdx_header.h"
 #include "Check_Request.h"
 
-lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, lmchar_t *SR_mode, lmchar_t *Name_Of_SRProc){
+lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, lmchar_t SR_mode, lmchar_t *Name_Of_SRProc){
 /*
  * function compares data in RecNode to what is in DataBuffer
  * looking specifically on name_of_required_data_set and SR_mode
@@ -150,7 +150,7 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
  * if S == 1 Sender already arrived
  * if R == Receiving_Processes all receivers already arrived
  * 
- */			else if( *SR_mode == 'S'){
+ */			else if( SR_mode == 'S'){
 				if( (THRStat_SFounds = m3l_Locate(m3l_get_Found_node(DATA_SFounds, i), "./Channel/S_Status", "/*/*", (lmchar_t *)NULL)) != NULL){
 
 					if(n_data_threads == 0){
@@ -170,7 +170,7 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
 					status = 1;}
 
 			}
-			else if( *SR_mode == 'R'){
+			else if( SR_mode == 'R'){
 /*
  * find actual number of Receiving processes
  */
