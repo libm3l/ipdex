@@ -91,9 +91,9 @@ node_t *Allocate_DataBuffer(node_t *Gnode){
 	dim = (size_t *) malloc( 1* sizeof(lmsize_t));
 	dim[0] = 1;
 
-	if(  (TmpNode = m3l_Mklist("N_data_sets", "ST", 1, dim, &BuffNode, "/Buffer", "./", (char *)NULL)) == 0)
-		Error("m3l_Mklist");
-	TmpNode->data.st[0] = n_data_threads;
+// 	if(  (TmpNode = m3l_Mklist("N_data_sets", "ST", 1, dim, &BuffNode, "/Buffer", "./", (char *)NULL)) == 0)
+// 		Error("m3l_Mklist");
+// 	TmpNode->data.st[0] = n_data_threads;
 /*
  * move Channel lists to buffer 
  * and add Thread_Status integer
@@ -118,6 +118,7 @@ node_t *Allocate_DataBuffer(node_t *Gnode){
 	
 // 	if(m3l_Cat(BuffNode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
 // 		Error("CatData");
+// exit;
 
 
 	free(dim);
