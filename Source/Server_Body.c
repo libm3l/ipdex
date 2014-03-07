@@ -187,10 +187,20 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 
 // 		if(m3l_Cat(RecNode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
 // 			Error("ERRRRR");
+// 		exit;
 /*
  * identify type of request and get back with name of required connection and SR_mode
  */
-		Ident_Sys_Comm_Channel(RecNode, &DataBuffer, Data_Threads, name_of_required_data_set, &SR_mode);
+		if( Ident_Sys_Comm_Channel(RecNode, &DataBuffer, Data_Threads, &Data_Threads->lock, name_of_required_data_set, &SR_mode) == -1){
+/*
+ * illegal request, send back notification and close socket
+ */
+					if( m3l_Umount(&RecNode) != 1)
+						Perror("m3l_Umount");
+					if( close(newsockfd) == -1)
+						Perror("close");
+					continue;
+		}
 /*
  * loop over - identify thread correspoding to required data thread.
  * this thread spanws n SR threads (1 Sending thread and n-1 Reading threads) which take care of data transfer,
@@ -205,7 +215,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			case 0:
 /* 
  * Legal request, not in buffer, data_thread available 
- */			
+ */
 				if(SR_mode == 'S'){
 /*
  * if process is sender, indicate Sender that header was received before receiving payload
@@ -269,10 +279,15 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 						Perror("m3l_Umount");
 				}
 				else{
+/*
+ * none of the data set was able to identify request, issue warnign and close socket
+ */
 					printf(" Case 0 retval (%d)  --- %s   %c\n", *Data_Threads->retval, name_of_required_data_set, SR_mode);
 					Warning("Server_Body: Not valid data set");
 					if( m3l_Umount(&RecNode) != 1)
 						Perror("m3l_Umount");
+					if( close(newsockfd) == -1)
+						Perror("close");
 					continue;
 				}
 			
@@ -303,17 +318,28 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 				}
 				
 				
-					if( close(newsockfd) == -1)
-						Perror("close");
-				
+				if( close(newsockfd) == -1)
+					Perror("close");
 				if( m3l_Umount(&RecNode) != 1)
-						Perror("m3l_Umount");
+					Perror("m3l_Umount");
 /*
  * data_thread is occupied let the process know it and close socket
  * process will attempt to establish connection later
  */
 				Pthread_mutex_unlock(&Data_Threads->lock);
 			
+			break;
+			
+			case -1:
+/*
+ * wrong data set, possibly the name of connection does not exist
+ */
+				Warning("Server_Body: wrong connection request");
+				if( close(newsockfd) == -1)
+					Perror("close");
+				
+				if( m3l_Umount(&RecNode) != 1)
+					Perror("m3l_Umount");
 			break;
 		}
 /*

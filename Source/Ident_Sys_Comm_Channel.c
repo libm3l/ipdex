@@ -6,16 +6,23 @@
 // #include "Server_Functions_Prt.h"
 
 
-lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread_str_t *Data_Threads, lmchar_t *name_of_required_data_set, lmchar_t *SR_mode)
+lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread_str_t *Data_Threads, 
+			       pthread_mutex_t *lock, lmchar_t *name_of_required_data_set, lmchar_t *SR_mode)
 {
 /*
- * function handles communication between client and server via SERVER_SYS_LINK channel.
+ * function handles communication between client and server via _sys_comm_ request.
  * This channel is used to process requests sent by clients to the server.
  * Some of the stask managen through this channel are
  * 	-	add/remove data channel
  * 	-	leave Data_Thread (SR_Hub) for KA = Y
  * 	-	increase/decrease number of S_R threads for a particular Data_Thread
  * 	-	change KA and/or ATDRT mode
+ * 
+ *	return value
+ * 		-1	Error
+ * 		 0	Usual request for connection between clients
+ * 		 100	Add new connection (channel)
+ * 		 101	Delete existing connection
  */
 	lmint_t retval, *reqtype, *tmpint;
 	find_t *SFounds;
@@ -30,35 +37,34 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
  */
 	if( (SFounds = m3l_Locate(RecNode, "/Header/Name_of_Channel", "./*/*",  (lmchar_t *)NULL)) != NULL){
 		if( m3l_get_Found_number(SFounds) != 1)
-			Error("Server_Body: Only one Name_of_Channel per Channel allowed");
+			Error("Ident_Sys_Comm_Channel: Only one Name_of_Channel per Channel allowed");
 		if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
-			Error("Server_Body: NULL Name_of_Channel");
+			Error("Ident_Sys_Comm_Channel: NULL Name_of_Channel");
 		tmpchar = m3l_get_data_pointer(List);
 		
 		if( (len = m3l_get_List_totdim(List)-1) < 1)
-			Error("Data_Thread: too short name of data set");
+			Error("Ident_Sys_Comm_Channel: too short name of data set");
 		
 		for(i=0; i<len; i++)
 			*name_of_required_data_set++ = *tmpchar++;
 			       
-		*name_of_required_data_set='\0';		
+		*name_of_required_data_set='\0';
 /* 
  * free memory allocated in m3l_Locate
  */
 		m3l_DestroyFound(&SFounds);
-		
 /*
  * find type of process SR_Mode  S-sender, R-receiver
  */
 		if( (SFounds = m3l_Locate(RecNode, "/Header/SR_mode", "./*/*",  (lmchar_t *)NULL)) != NULL){
 			
 			if( m3l_get_Found_number(SFounds) != 1)
-				Error("Server_Body: Only one SR_mode per Channel allowed");
+				Error("Ident_Sys_Comm_Channel: Only one SR_mode per Channel allowed");
 /* 
  * pointer to list of found nodes
  */
 				if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
-					Error("NULData_Thread: Missing S_mode");
+					Error("Ident_Sys_Comm_Channel: Missing S_mode");
 			
 				*SR_mode = *(lmchar_t *)m3l_get_data_pointer(List);
 /* 
@@ -68,12 +74,10 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 		}
 		else
 		{
-			printf("Server_Body: Receiving_Processes not found\n");
+			printf("Ident_Sys_Comm_Channel: Receiving_Processes not found\n");
+			m3l_DestroyFound(&SFounds);
 		}
-		
-		
-		
-		
+
 		return 0;
 	}
 	else
@@ -99,9 +103,9 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
  */
 		if( (SFounds = m3l_Locate(RecNode, "/_comm_link_/request_type", "./*/*",  (lmchar_t *)NULL)) != NULL){
 			if( m3l_get_Found_number(SFounds) != 1)
-				Error("Server_Body: Only one /_comm_link_/request_type allowed");
+				Error("Ident_Sys_Comm_Channel: Only one /_comm_link_/request_type allowed");
 			if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
-				Error("Server_Body: NULL /_comm_link_/request_type");
+				Error("Ident_Sys_Comm_Channel: NULL /_comm_link_/request_type");
 			reqtype = (lmint_t *)m3l_get_data_pointer(List);
 /* 
  * free memory allocated in m3l_Locate
@@ -110,91 +114,82 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 		}
 		else
 		{
-			Error("Server_Body: /_comm_link_/request_type not found\n");
+			Error("Ident_Sys_Comm_Channel: /_comm_link_/request_type not found\n");
 		}
 		
 		switch(*reqtype){
 
-			case 1:
+			case 100:
 /*
  * open new connection - find its specification under "/_comm_link_/Channel
  */
 				if( (SFounds = m3l_Locate(RecNode, "/_comm_link_/Channel", "./*/*",  (lmchar_t *)NULL)) != NULL){
 					if( m3l_get_Found_number(SFounds) != 1)
-						Error("Server_Body: Only one /_comm_link_/Channel allowed");
+						Error("Ident_Sys_Comm_Channel: Only one /_comm_link_/Channel allowed");
 					if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
-						Error("Server_Body: NULL /_comm_link_/Channel");
+						Error("Ident_Sys_Comm_Channel: NULL /_comm_link_/Channel");
 					m3l_DestroyFound(&SFounds);
 				}
 				else
 				{
-					Error("Server_Body: /_comm_link_/Channel not found\n");
+					Error("Ident_Sys_Comm_Channel: /_comm_link_/Channel not found\n");
 				}
 /*
  * add it to the buffer and add to it other data set
  * similarly to Allocate_DataBuffer.c
  */
-				m3l_Mv(&List,  "./Channel", "./*", DataBuffer, "/Buffer", "/*", (lmchar_t *)NULL);
+				Pthread_mutex_lock(lock);
 				
-				dim[0] = 1;
-				if(  (TmpNode1 = m3l_Mklist("Thread_Status", "I", 1, dim, &List, "./Channel", "./", (char *)NULL)) == 0)
-					Error("m3l_Mklist");
-				tmpint = (lmint_t *)m3l_get_data_pointer(TmpNode1);
-				tmpint[0] = 0;
-				if(  (TmpNode1 = m3l_Mklist("S_Status", "I", 1, dim, &List, "./Channel", "./", (char *)NULL)) == 0)
-					Error("m3l_Mklist");
-				tmpint = (lmint_t *)m3l_get_data_pointer(TmpNode1);
-				tmpint[0] = 0;
-				if(  (TmpNode1 = m3l_Mklist("R_Status", "ST", 1, dim, &List, "./Channel", "./", (char *)NULL)) == 0)
-					Error("m3l_Mklist");
-				tmpint = (lmint_t *)m3l_get_data_pointer(TmpNode1);
-				tmpint[0] = 0;
+					if( m3l_Mv(&List,  "./Channel", "./*", DataBuffer, "/Buffer", "/*", (lmchar_t *)NULL) == -1)
+						Error("Ident_Sys_Comm_Channel: Mv ");
+					
+					dim[0] = 1;
+					if(  (TmpNode1 = m3l_Mklist("Thread_Status", "I", 1, dim, &List, "./Channel", "./", (char *)NULL)) == 0)
+						Error("Ident_Sys_Comm_Channel: m3l_Mklist");
+					tmpint = (lmint_t *)m3l_get_data_pointer(TmpNode1);
+					tmpint[0] = 0;
+					if(  (TmpNode1 = m3l_Mklist("S_Status", "I", 1, dim, &List, "./Channel", "./", (char *)NULL)) == 0)
+						Error("Ident_Sys_Comm_Channel: m3l_Mklist");
+					tmpint = (lmint_t *)m3l_get_data_pointer(TmpNode1);
+					tmpint[0] = 0;
+					if(  (TmpNode1 = m3l_Mklist("R_Status", "ST", 1, dim, &List, "./Channel", "./", (char *)NULL)) == 0)
+						Error("Ident_Sys_Comm_Channel: m3l_Mklist");
+					tmpint = (lmint_t *)m3l_get_data_pointer(TmpNode1);
+					tmpint[0] = 0;
 				
+				Pthread_mutex_unlock(lock);
+				
+				retval = 100;
 			break;
 
-			case 2:
+			case 101:
 /*
- * close connection
+ * close connection, find the name of closed connection
  */
-			
+				if( (SFounds = m3l_Locate(RecNode, "/_comm_link_/Name_of_Channel", "./*/*",  (lmchar_t *)NULL)) != NULL){
+					if( m3l_get_Found_number(SFounds) != 1)
+						Error("Ident_Sys_Comm_Channel: Only one Name_of_Channel per Channel allowed");
+					if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
+						Error("Ident_Sys_Comm_Channel: NULL Name_of_Channel");
+					tmpchar = m3l_get_data_pointer(List);
+					
+					if( (len = m3l_get_List_totdim(List)-1) < 1)
+						Error("Ident_Sys_Comm_Channel: too short name of data set");
+					
+					for(i=0; i<len; i++)
+						*name_of_required_data_set++ = *tmpchar++;
+				
+					*name_of_required_data_set='\0';
+					
+					m3l_DestroyFound(&SFounds);
+
+					retval = 101;
+				}
+				else
+					m3l_DestroyFound(&SFounds);
+					retval -1;
 			break;
 		}
-
-
-
-
-// 	
-// 	
-// 	
-// 	
-// 	
-// 			if( (SFounds = m3l_Locate(c->Node, "/Buffer/Channel/Name_of_Channel", "./*/*",  (lmchar_t *)NULL)) != NULL){
-// 			
-// 			if( m3l_get_Found_number(SFounds) != 1)
-// 				Error("Data_Thread: Only one Name_of_Channel per Channel allowed");
-// /* 
-//  * pointer to list of found nodes
-//  */
-// 				if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
-// 					Error("Data_Thread: NULL Name_of_Channel");
-// 			
-// 				data_set_name = m3l_get_data_pointer(List);
-// 				if( (len = m3l_get_List_totdim(List)-1) < 1)
-// 					Error("Data_Thread: too short name of data set");
-// 				if( snprintf(local_set_name, MAX_NAME_LENGTH,"%s",data_set_name) < 0)
-// 					Perror("snprintf");
-// 				local_set_name[len] ='\0';
-// /* 
-//  * free memory allocated in m3l_Locate
-//  */
-// 			m3l_DestroyFound(&SFounds);
-// 		}
-// 		else
-// 		{
-// 			Error("Data_Thread: Name_of_Channel not found\n");
-// 		}
-	
 	}
-
 	return retval;
 }

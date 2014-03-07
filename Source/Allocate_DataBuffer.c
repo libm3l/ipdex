@@ -62,7 +62,7 @@ node_t *Allocate_DataBuffer(node_t *Gnode){
 	lmint_t *tmpint;
 	
 	if(Gnode == NULL){
-		Warning("Data_Thread: NULL Gnode");
+		Warning("Allocate_DataBuffer: NULL Gnode");
 		return NULL;
 	}
 /*
@@ -73,20 +73,20 @@ node_t *Allocate_DataBuffer(node_t *Gnode){
 		n_data_threads = m3l_get_Found_number(SFounds);
 		
 		if(n_data_threads == 0){
-			Error("Server: did not find any Data_set");
+			Error("Allocate_DataBuffer: did not find any Data_set");
 			m3l_DestroyFound(&SFounds);
 		}
 	}
 	else
 	{
-		printf("Server: did not find any Data_set\n");
+		printf("Allocate_DataBuffer: did not find any Data_set\n");
 		exit(0);
 	}
 /*
  * make buffer structure
  */
 	if(  (BuffNode = m3l_Mklist("Buffer", "DIR", 0, 0, (node_t **)NULL, (const char *)NULL, (const char *)NULL, (char *)NULL)) == 0)
-		Perror("m3l_Mklist");
+		Perror("Allocate_DataBuffer: Mklist");
 
 	dim = (size_t *) malloc( 1* sizeof(lmsize_t));
 	dim[0] = 1;
@@ -100,19 +100,21 @@ node_t *Allocate_DataBuffer(node_t *Gnode){
  */
 	for(i=0; i < n_data_threads; i++){
 		TmpNode = m3l_get_Found_node(SFounds, i);
-		m3l_Mv(&TmpNode,  "./Channel", "./*", &BuffNode, "/Buffer", "/*", (lmchar_t *)NULL);
+		
+		if( m3l_Mv(&TmpNode,  "./Channel", "./*", &BuffNode, "/Buffer", "/*", (lmchar_t *)NULL) == -1)
+			Error("Allocate_DataBuffer: Mv");
 		
 		dim[0] = 1;
 		if(  (TmpNode1 = m3l_Mklist("Thread_Status", "I", 1, dim, &TmpNode, "./Channel", "./", (char *)NULL)) == 0)
-			Error("m3l_Mklist");
+			Error("Allocate_DataBuffer:m3l_Mklist");
 		tmpint = (lmint_t *)m3l_get_data_pointer(TmpNode1);
 		tmpint[0] = 0;
 		if(  (TmpNode1 = m3l_Mklist("S_Status", "I", 1, dim, &TmpNode, "./Channel", "./", (char *)NULL)) == 0)
-			Error("m3l_Mklist");
+			Error("Allocate_DataBuffer:m3l_Mklist");
 		tmpint = (lmint_t *)m3l_get_data_pointer(TmpNode1);
 		tmpint[0] = 0;
 		if(  (TmpNode1 = m3l_Mklist("R_Status", "ST", 1, dim, &TmpNode, "./Channel", "./", (char *)NULL)) == 0)
-			Error("m3l_Mklist");
+			Error("Allocate_DataBuffer:m3l_Mklist");
 		tmpint = (lmint_t *)m3l_get_data_pointer(TmpNode1);
 		tmpint[0] = 0;}
 	
