@@ -335,9 +335,9 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * wrong data set, possibly the name of connection does not exist
  */
 				Warning("Server_Body: wrong connection request");
+				
 				if( close(newsockfd) == -1)
 					Perror("close");
-				
 				if( m3l_Umount(&RecNode) != 1)
 					Perror("m3l_Umount");
 			break;
@@ -375,6 +375,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	free(Data_Threads->data_threads_remainth_counter);
 	free(Data_Threads->socket);
 	free(Data_Threads->retval);
+	free(Data_Threads->checkdata);
 	
 	free(Data_Threads->sync->nsync);
 	free(Data_Threads->sync->nthreads);

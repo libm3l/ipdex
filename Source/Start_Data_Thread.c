@@ -54,6 +54,7 @@
 #include "Start_Data_Thread.h"
 #include "Data_Thread.h"
 #include "Server_Functions_Prt.h"
+#include "Associate_Data_Thread.h"
 
 lmsize_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
 /*
@@ -71,6 +72,7 @@ lmsize_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
 	lmint_t pth_err;
 	find_t *SFounds;
 	data_thread_args_t *DataArgs;
+	node_t *List;
 	
 	if(Gnode == NULL){
 		Warning("Data_Thread: NULL Gnode");
@@ -183,31 +185,36 @@ lmsize_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
  * spawn threads
  */	
 	for(i=0; i < Data_Thread->n_data_threads; i++){
-		if( (DataArgs = (data_thread_args_t *)malloc(sizeof(data_thread_args_t))) == NULL)
-			Perror("Data_Thread: DataArgs malloc");
+// 		if( (DataArgs = (data_thread_args_t *)malloc(sizeof(data_thread_args_t))) == NULL)
+// 			Perror("Data_Thread: DataArgs malloc");
 /*
  * set Node pointer to i-th data set in /Buffer/Channel
  * this determines that i-th thread will take care of channel with 
  * name specified in /Buffer/Channel/Name_of_Channel
  */
-		DataArgs->Node  		= m3l_get_Found_node(SFounds, i);
-		DataArgs->plock 		= &Data_Thread->lock;	
-		DataArgs->psem 			= &Data_Thread->sem;	
-		DataArgs->pcond 		= &Data_Thread->cond;	
-		DataArgs->psocket    		=  Data_Thread->socket;	
-		DataArgs->pretval    		=  Data_Thread->retval;	
-		DataArgs->pcounter    		=  Data_Thread->data_threads_availth_counter;
-		DataArgs->prcounter    		=  Data_Thread->data_threads_remainth_counter;
-		DataArgs->pname_of_data_set   	=  Data_Thread->name_of_data_set;
-		DataArgs->pSR_mode	    	=  Data_Thread->SR_mode;
 
-		DataArgs->psync 		= Data_Thread->sync;
-		DataArgs->psync->pnsync 	= Data_Thread->sync->nsync;
-		DataArgs->psync->pnthreads 	= Data_Thread->sync->nthreads;
-		DataArgs->psync->pmutex 	= &Data_Thread->sync->mutex;
-		DataArgs->psync->pblock		= &Data_Thread->sync->block;
-		DataArgs->psync->pcondvar	= &Data_Thread->sync->condvar;
-		DataArgs->psync->plast		= &Data_Thread->sync->last;
+		List = m3l_get_Found_node(SFounds, i);
+		if(  (DataArgs = Associate_Data_Thread(List, Data_Thread)) == NULL)
+			Error("Start_Data_Thread: DataArgs NULL pointer");
+// 		DataArgs->Node  		= m3l_get_Found_node(SFounds, i);
+// 		DataArgs->plock 		= &Data_Thread->lock;	
+// 		DataArgs->psem 			= &Data_Thread->sem;	
+// 		DataArgs->pcond 		= &Data_Thread->cond;	
+// 		DataArgs->psocket    		=  Data_Thread->socket;	
+// 		DataArgs->pretval    		=  Data_Thread->retval;	
+// 		DataArgs->pcounter    		=  Data_Thread->data_threads_availth_counter;
+// 		DataArgs->prcounter    		=  Data_Thread->data_threads_remainth_counter;
+// 		DataArgs->pname_of_data_set   	=  Data_Thread->name_of_data_set;
+// 		DataArgs->pSR_mode	    	=  Data_Thread->SR_mode;
+// 		DataArgs->pcheckdata 		=  Data_Thread->checkdata;
+// 
+// 		DataArgs->psync 		= Data_Thread->sync;
+// 		DataArgs->psync->pnsync 	= Data_Thread->sync->nsync;
+// 		DataArgs->psync->pnthreads 	= Data_Thread->sync->nthreads;
+// 		DataArgs->psync->pmutex 	= &Data_Thread->sync->mutex;
+// 		DataArgs->psync->pblock		= &Data_Thread->sync->block;
+// 		DataArgs->psync->pcondvar	= &Data_Thread->sync->condvar;
+// 		DataArgs->psync->plast		= &Data_Thread->sync->last;
 /*
  * malloc pData_Str and associate with Data_Str
  */

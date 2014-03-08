@@ -22,9 +22,9 @@
 
 
 /*
- *     Header file Ident_Sys_Comm_Channel.h
+ *     Header file Start_SysComm_Thread.h
  *
- *     Date: 2014-03-07
+ *     Date: 2014-03-08
  * 
  *
  *     Modifications:
@@ -40,9 +40,11 @@
 
 
 
-#ifndef  __IDENT_SYS_COMM_CHANNEL_H__
-#define  __IDENT_SYS_COMM_CHANNEL_H__
 
-lmint_t Ident_Sys_Comm_Channel(node_t *, node_t **, data_thread_str_t *, pthread_mutex_t *, lmchar_t *, lmchar_t *);
+
+#ifndef  __START_SYS_COMM_CHANNEL_H__
+#define  __START_SYS_COMM_CHANNEL_H__
+
+lmsize_t Start_SysComm_Thread(data_thread_str_t *);
 
 #endif

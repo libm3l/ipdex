@@ -83,7 +83,7 @@ typedef struct data_thread_args{
 	pthread_cond_t    	*pcond;   	/* condition variable */
 	sem_t 		  	*psem;		/* semaphore */
 	node_t 			*Node;		/* libm3l node_t structure pointer specifying name and other data for Data_Thread*/
-	lmint_t  		*psocket,  *pretval;	/* socket ID passed to data_Thread, message upon receiving it, return value */
+	lmint_t  		*psocket,  *pretval, *pcheckdata;	/* socket ID passed to data_Thread, message upon receiving it, return value */
 	lmsize_t		*pcounter, *prcounter;  /* number of available threads, sync variable, number of 
 							remaining threads = *pcounter - taken threads */
 	lmchar_t 		*pname_of_data_set, *pSR_mode;	/* stores data_set name which is then compared in data_thread and SM_mode */
@@ -102,7 +102,7 @@ typedef struct data_thread_str{
 	lmsize_t 		n_data_threads;  /* number of thread in group data_threads */
 	lmsize_t 		*data_threads_availth_counter, *data_threads_remainth_counter; 	/* number of available and free threads  */
 	lmchar_t 		*name_of_data_set, *SR_mode;	/* stores data_set name which is then compared in data_thread  and SR_moode*/
-	lmint_t  		*socket,  *retval;		/* socket ID passed to data_Thread, message upon receiving it */
+	lmint_t  		*socket,  *retval, *checkdata;		/* socket ID passed to data_Thread, message upon receiving it, yes or not to check data*/
 	pt_sync_t		*sync;
 	data_thread_int_str_t	**Data_Str;	/* Data_Thread specific data PID, name_of_channel etc. */
 }data_thread_str_t;
@@ -125,7 +125,7 @@ typedef struct SR_thread_args{
 	lmchar_t		*pATDT_mode, *pKA_mode;      			
 	lmint_t 		*pSRt_mode, *pEOFC_ENDt;	/* SR mode, Return value from SR_Data_Threads */
 	lmsize_t  		*pthr_cntr;    			/* thread counter */
-	lmsize_t 		*pcounter, *prcounter, *pngotten;  /* number of available R_threads, number of remaining 
+	lmsize_t 		*pcounter, *prcounter, *pngotten;    /* number of available R_threads, number of remaining 
 									threads = *pcounter - taken threads 
 									length of buffer from TCP/IP */
 	pt_sync_t		*psync_loc;
@@ -179,9 +179,9 @@ typedef struct SR_hub_thread_str{
  * - need to have access to Data_Thread and SR_Data_Thread
  */
 typedef struct Server_Comm_DataStr{
-	pthread_t 		*data_threads;			/* thread ID of all threads in group data_threads */
+// 	pthread_t 		*data_threads;			/* thread ID of all threads in group data_threads */
 	data_thread_args_t *Data_Thread_Pointer;
-	SR_thread_str_t *SR_Data_Thread_Pointer;
+// 	SR_thread_str_t *SR_Data_Thread_Pointer;
 }Server_Comm_DataStr_t;
 
 /*

@@ -83,6 +83,8 @@ data_thread_str_t *Allocate_Data_Thread_DataSet(void){
 		Perror("Data_Thread: Data_Thread->data_threads_remainth_counter");
 	if( (Data_Thread->socket = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
 		Perror("Data_Thread: Data_Thread->socket");
+	if( (Data_Thread->checkdata = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
+		Perror("Data_Thread: Data_Thread->checkdata");	
 	if( (Data_Thread->retval = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
 		Perror("Data_Thread: Data_Thread->retval");
 	if ( (Data_Thread->name_of_data_set  = (lmchar_t *)malloc(MAX_NAME_LENGTH* sizeof(lmchar_t))) == NULL)
@@ -126,6 +128,11 @@ data_thread_str_t *Allocate_Data_Thread_DataSet(void){
 	Pthread_mutex_init(&Data_Thread->lock);
 	Pthread_cond_init(&Data_Thread->cond);
 	Sem_init(&Data_Thread->sem, 0);
-
+/*
+ * this parameter says if the Data_Thread identifies data or no
+ * if client ask for connection to another client (usual mode) checkdata == 0
+ * if client sends _comm_link_ request (ie. open/close new connection etc.) checkdata == 1
+ */
+	Data_Thread->checkdata = 0;
 	return Data_Thread;
 }

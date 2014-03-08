@@ -239,73 +239,79 @@ void *Data_Threads(void *arg)
  * 1 for Server_Body (one synchronization point is in Server_Body
  */
 			pt_sync(c->psync);
+/*
+ * if arriving request was not sys_link_ type of request
+ * check which connection arrived
+ */
+			if(c->pcheckdata == 0){
 
-			Pthread_mutex_lock(c->plock);
+				Pthread_mutex_lock(c->plock);
 /*
  * if pretval == 0 and Thread_Status == 0 (thread available for pooling)
  */
 
-			if(*Thread_Status == 0 && *c->pretval == 0){
+				if(*Thread_Status == 0 && *c->pretval == 0){
 /* 
  * if the data thread was not identified yet
  */
-				len1 = strlen(c->pname_of_data_set);
-				if(len1 == len && strncmp(c->pname_of_data_set,local_set_name, len) == 0){
+					len1 = strlen(c->pname_of_data_set);
+					if(len1 == len && strncmp(c->pname_of_data_set,local_set_name, len) == 0){
 /*
  * save socket number and mode of the jobe (S, R), increase increment and set return value to 1
  */				
-					SR_Threads->sockfd[local_cntr]	= *c->psocket;
-					SR_Threads->SR_mode[local_cntr] = *c->pSR_mode;
-					local_cntr++;
-					*c->pretval = 1;
+						SR_Threads->sockfd[local_cntr]	= *c->psocket;
+						SR_Threads->SR_mode[local_cntr] = *c->pSR_mode;
+						local_cntr++;
+						*c->pretval = 1;
 /*
  * if thread status is S, set Thread_S_Status = 1 to block any other arriving S thread from 
  * being considered until the tranfer is finished (Check_Request.c and SR_Hub.c)
  */
-					if( *c->pSR_mode == 'S'){
-						*Thread_S_Status = 1;
-					}
+						if( *c->pSR_mode == 'S'){
+							*Thread_S_Status = 1;
+						}
 /*
  * if thread status is R, increment Thread_R_Status. Once the counter reaches value of requested
  * R_Thread any other arriving R_thread will be blocked until the tranfer is finished (Check_Request.c and SR_Hub.c)
  */
-					else if(*c->pSR_mode == 'R'){
-						(*Thread_R_Status)++;
-// 						printf(" Increasing number of connections %ld \n", *Thread_R_Status);
-					}
-					else
-						Error("Data_Thread: Wrong SR_mode");
+						else if(*c->pSR_mode == 'R'){
+							(*Thread_R_Status)++;
+	// 						printf(" Increasing number of connections %ld \n", *Thread_R_Status);
+						}
+						else
+							Error("Data_Thread: Wrong SR_mode");
 /* 
  * when the thread is positively identified, decrement counter of available thread for next round of identification, 
  * once n_avail_loc_theads == 0 all SR threads arrived, leave do - while loop and decrement (*c->pcounter)--
  * ie. next arriving threads will not use this thread because it is alrady used
  */
-					n_avail_loc_theads--;
+						n_avail_loc_theads--;
 /*
  * if number of available SR threads is 0, ie. all S and R requests for particular data set arrived
  * decrement number of available data sets
  */
-					if(n_avail_loc_theads == 0){
+						if(n_avail_loc_theads == 0){
 /*
  * set number of available processes for SR_Thread to  n_rec_proc+1 = number of Receivers + Sender
  */
-						*SR_Threads->R_availth_counter = n_rec_proc+1;
+							*SR_Threads->R_availth_counter = n_rec_proc+1;
 /*
  * set Thread_Status to 1
  */
-						*Thread_Status = 1;
+							*Thread_Status = 1;
  /* 
   * decrement counter of thread  which will check condition, used for syncing all threads before 
   * going back to caller function
   */
-						(*c->prcounter)--;
+							(*c->prcounter)--;
+						}
 					}
 				}
-			}
 /*
  * synchronized all threads at the end, the last thread will broadcast
  */	
-			Pthread_mutex_unlock(c->plock);	
+				Pthread_mutex_unlock(c->plock);
+			}
 
 			pt_sync(c->psync);
 

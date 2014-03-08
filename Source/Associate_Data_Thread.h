@@ -22,9 +22,9 @@
 
 
 /*
- *     Header file Ident_Sys_Comm_Channel.h
+ *     Header file Associate_Data_Thread.h
  *
- *     Date: 2014-03-07
+ *     Date: 2014-03-08
  * 
  *
  *     Modifications:
@@ -40,9 +40,9 @@
 
 
 
-#ifndef  __IDENT_SYS_COMM_CHANNEL_H__
-#define  __IDENT_SYS_COMM_CHANNEL_H__
+#ifndef  __ASSOCIATE_DATA_THREAD__
+#define  __ASSOCIATE_DATA_THREAD__
 
-lmint_t Ident_Sys_Comm_Channel(node_t *, node_t **, data_thread_str_t *, pthread_mutex_t *, lmchar_t *, lmchar_t *);
+extern data_thread_args_t *Associate_Data_Thread(node_t *, data_thread_str_t *);
 
 #endif
