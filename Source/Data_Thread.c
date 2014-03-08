@@ -385,6 +385,7 @@ void *Data_Threads(void *arg)
 /*
  * release borrowed memory, malloced before starting thread in Data_Thread()
  */
+	free(c->pData_Str);
 	free(c);
 
 	return NULL;

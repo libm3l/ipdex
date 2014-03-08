@@ -43,6 +43,6 @@
 #ifndef  __ASSOCIATE_DATA_THREAD__
 #define  __ASSOCIATE_DATA_THREAD__
 
-extern data_thread_args_t *Associate_Data_Thread(node_t *, data_thread_str_t *);
+extern data_thread_args_t *Associate_Data_Thread(node_t *, data_thread_str_t *, lmsize_t);
 
 #endif

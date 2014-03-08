@@ -52,8 +52,6 @@
 #include "libm3l.h"
 #include "lsipdx_header.h"
 #include "Ident_Sys_Comm_Channel.h"
-// #include "Server_Functions_Prt.h"
-
 
 lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread_str_t *Data_Threads, 
 			       pthread_mutex_t *lock, lmchar_t *name_of_required_data_set, lmchar_t *SR_mode)

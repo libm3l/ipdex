@@ -58,6 +58,7 @@
 #include "Start_SysComm_Thread.h"
 #include "Sys_Comm_Channel.h"
 #include "Server_Functions_Prt.h"
+#include "Associate_Data_Thread.h"
 
 lmsize_t Start_SysComm_Thread(data_thread_str_t *Data_Thread){
 /*
