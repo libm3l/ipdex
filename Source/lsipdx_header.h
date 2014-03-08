@@ -179,7 +179,7 @@ typedef struct SR_hub_thread_str{
  * - need to have access to Data_Thread and SR_Data_Thread
  */
 typedef struct Server_Comm_DataStr{
-// 	pthread_t 		*data_threads;			/* thread ID of all threads in group data_threads */
+	pthread_t 		*data_threadsPID;			/* thread ID of all threads in group data_threads */
 	data_thread_args_t *Data_Thread_Pointer;
 // 	SR_thread_str_t *SR_Data_Thread_Pointer;
 }Server_Comm_DataStr_t;

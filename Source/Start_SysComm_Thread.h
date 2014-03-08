@@ -45,6 +45,6 @@
 #ifndef  __START_SYS_COMM_CHANNEL_H__
 #define  __START_SYS_COMM_CHANNEL_H__
 
-lmsize_t Start_SysComm_Thread(data_thread_str_t *);
+Server_Comm_DataStr_t *Start_SysComm_Thread(data_thread_str_t *);
 
 #endif

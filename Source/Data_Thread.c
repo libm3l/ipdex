@@ -229,7 +229,7 @@ void *Data_Threads(void *arg)
  * this means a client requested closing this connection
  */	
 // 	while(1){
-	while(c->pData_Str->status_run){
+	while(*c->pData_Str->status_run==1){
 		
 		local_cntr = 0;
 /*
@@ -350,8 +350,8 @@ void *Data_Threads(void *arg)
 				
 	Pthread_mutex_destroy(&SR_Threads->lock);
 	Pthread_cond_destroy(&SR_Threads->dcond);
- 	Sem_destroy(&SR_Threads->sem);
-		
+	Sem_destroy(&SR_Threads->sem);
+
 	free(SR_Threads->data_threads);
 	free(SR_Threads->SR_mode);
 	free(SR_Threads->ATDT_mode);
@@ -366,7 +366,7 @@ void *Data_Threads(void *arg)
 	free(SR_Threads->ngotten);
 	free(SR_Threads->EofBuff);
 	free(SR_Threads->sync);
-		
+
 	free(SR_Threads->sync_loc->nsync);
 	free(SR_Threads->sync_loc->nthreads);
 	Pthread_mutex_destroy(&SR_Threads->sync_loc->mutex);
@@ -374,7 +374,7 @@ void *Data_Threads(void *arg)
 	Pthread_cond_destroy(&SR_Threads->sync_loc->condvar);
 	Pthread_cond_destroy(&SR_Threads->sync_loc->last);
 	free(SR_Threads->sync_loc);
-		
+
 	free(SR_Threads);
 /*
  * free local semaphore

@@ -57,6 +57,8 @@
 #include "ACK.h"
 #include "Sys_Comm_Channel.h"
 #include "Allocate_Data_Thread_DataSet.h"
+#include "Start_SysComm_Thread.h"
+
 
 lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	
@@ -70,7 +72,8 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	socklen_t clilen;
 	find_t *SFounds, *Tqst_SFounds;
 	node_t *RecNode, *List, *DataBuffer, *TmpNode, *RR_POS, *RR_NEG;
-	lmsize_t dim[1];	
+	lmsize_t dim[1];
+	Server_Comm_DataStr_t *SysCommDatSet=NULL;
 
 	opts_t *Popts, opts;
 	Popts = &opts;
@@ -97,6 +100,11 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  */
 	if(  (Data_Threads = Allocate_Data_Thread_DataSet()) == NULL)
 		Perror("Server_Body: Allocate_Data_Thread_DataSet error");
+/*
+ * start sys com thread
+ */
+	if( (SysCommDatSet = Start_SysComm_Thread(Data_Threads)) == NULL)
+		Perror("Server_Body: Start_SysComm_Thread error");
 /*
  * spawn all threads
  */
