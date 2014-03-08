@@ -383,7 +383,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	Pthread_mutex_destroy(&Data_Threads->sync->block);
 	Pthread_cond_destroy(&Data_Threads->sync->condvar);
 	Pthread_cond_destroy(&Data_Threads->sync->last);
-	
+
 	free(Data_Threads->sync);
 
 	free(Data_Threads);

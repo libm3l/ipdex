@@ -53,13 +53,14 @@
 #include "Associate_Data_Thread.h"
 
 
-data_thread_args_t *Associate_Data_Thread(node_t *List, data_thread_str_t *Data_Thread, lmsize_t i){
+data_thread_args_t *Associate_Data_Thread(node_t *List, data_thread_str_t *Data_Thread, lmsize_t i, lmint_t yes){
 /*
  * function allocate DataArgs and associate it with 
  * Data_Thread data set
  * invoked from Start_Data_Thread and Stat_SysCom_Thread
- */
-	
+ * 
+ * if yes larger then 0 malloc additional array DataArgs->pData_Str which stores name of channel and status_run
+ */	
 		data_thread_args_t *DataArgs;
 		
 		if( (DataArgs = (data_thread_args_t *)malloc(sizeof(data_thread_args_t))) == NULL)
@@ -86,11 +87,17 @@ data_thread_args_t *Associate_Data_Thread(node_t *List, data_thread_str_t *Data_
 		DataArgs->psync->plast		= &Data_Thread->sync->last;
 /*
  * malloc pData_Str and associate with Data_Str
+ * only if specified
  */
-		if( (DataArgs->pData_Str = (data_thread_int_str_t *)malloc(sizeof(data_thread_int_str_t))) == NULL)
-			Perror("Associate_Data_Thread: DataArgs->pData_Str malloc");	
-		DataArgs->pData_Str->name_of_channel = Data_Thread->Data_Str[i]->name_of_channel;
-		DataArgs->pData_Str->status_run      = Data_Thread->Data_Str[i]->status_run;
+		if(yes > 0){
+			if( (DataArgs->pData_Str = (data_thread_int_str_t *)malloc(sizeof(data_thread_int_str_t))) == NULL)
+				Perror("Associate_Data_Thread: DataArgs->pData_Str malloc");	
+			DataArgs->pData_Str->name_of_channel = Data_Thread->Data_Str[i]->name_of_channel;
+			DataArgs->pData_Str->status_run      = Data_Thread->Data_Str[i]->status_run;
+		}
+		else
+			DataArgs->pData_Str = NULL;
+		
 
 		return DataArgs;
 }

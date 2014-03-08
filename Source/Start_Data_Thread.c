@@ -191,7 +191,7 @@ lmsize_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
  * name specified in /Buffer/Channel/Name_of_Channel
  */
 		List = m3l_get_Found_node(SFounds, i);
-		if(  (DataArgs = Associate_Data_Thread(List, Data_Thread, i)) == NULL)
+		if(  (DataArgs = Associate_Data_Thread(List, Data_Thread, i, 1)) == NULL)
 			Error("Start_Data_Thread: DataArgs NULL pointer");
 /*
  * create thread

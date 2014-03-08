@@ -224,9 +224,12 @@ void *Data_Threads(void *arg)
 
 	Pthread_mutex_unlock(c->plock);
 /*
- * initialization phase is over
+ * initialization phase is over, at initialization the value of c->pData_Str->status_run == 1 
+ * as soon as c->pData_Str->status_run  is set to 0, terminate the thread
+ * this means a client requested closing this connection
  */	
-	while(1){
+// 	while(1){
+	while(c->pData_Str->status_run){
 		
 		local_cntr = 0;
 /*
