@@ -62,8 +62,20 @@ void *Sys_Comm_Channel(void *arg){
  * of the arriving requests identification
  */
 		pt_sync(c->Data_Thread_Pointer->psync);
-		pt_sync(c->Data_Thread_Pointer->psync);
-	
+		
+		if(*c->Data_Thread_Pointer->pcheckdata == 0){
+/*
+ * request was a usual request
+ */
+			pt_sync(c->Data_Thread_Pointer->psync);
+		}
+		else{
+/*
+ * request was a sys_link request
+ */
+			Sem_post(c->Data_Thread_Pointer->psem);
+			pt_sync_mod_sem(c->Data_Thread_Pointer->psync, 0,0,c->Data_Thread_Pointer->psem);
+		}
 	}
 	
 }
