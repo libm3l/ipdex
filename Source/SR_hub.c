@@ -74,6 +74,11 @@ void *SR_hub(void *arg)
 	node_t *List;
 	find_t *SFounds;
 	lmchar_t *ATDTMode, *KeepAlive_Mode;
+	
+	opts_t *Popts, opts;
+	opts.opt_i = '\0'; opts.opt_d = '\0'; opts.opt_f = '\0'; opts.opt_r = 'r'; opts.opt_I = '\0'; opts.opt_L = '\0'; opts.opt_l = '\0';
+
+	Popts = &opts;
 /*
  * NOTE in previuous version, this function was run after the while(n_avail_loc_theads != 0);  // all connecting thread arrivied, ie. one Sender and n_rec_proc Receivers 
  * in Data_Thread ended. It did not work when more then one data set arrived and pt_sync in Data_Thread in do loop was not behaving properly
@@ -92,8 +97,9 @@ void *SR_hub(void *arg)
  */
 	Pthread_mutex_lock(c->plock);
 
-		if( (SFounds = m3l_Locate(c->pList, "./Channel/CONNECTION/ATDT_Mode", "./*/*/*",  (lmchar_t *)NULL)) != NULL){
-			
+// 		if( (SFounds = m3l_Locate(c->pList, "./Channel/CONNECTION/ATDT_Mode", "./*/*/*",  (lmchar_t *)NULL)) != NULL){
+		if( (SFounds = m3l_locator_caller(c->pList, "./Channel/CONNECTION/ATDT_Mode", "./*/*/*",  Popts)) != NULL){
+
 			if( m3l_get_Found_number(SFounds) != 1)
 				Error("SR_hub: Only one CONNECTION/ATDT_Mode per Channel allowed");
 /* 
@@ -114,8 +120,9 @@ void *SR_hub(void *arg)
 			Error("SR_hub: CONNECTION/ATDT_Mode not found\n");
 		}
 
-		if( (SFounds = m3l_Locate(c->pList, "./Channel/CONNECTION/KEEP_CONN_ALIVE_Mode", "./*/*/*",  (lmchar_t *)NULL)) != NULL){
-			
+// 		if( (SFounds = m3l_Locate(c->pList, "./Channel/CONNECTION/KEEP_CONN_ALIVE_Mode", "./*/*/*",  (lmchar_t *)NULL)) != NULL){
+		if( (SFounds = m3l_locator_caller(c->pList, "./Channel/CONNECTION/KEEP_CONN_ALIVE_Mode", "./*/*/*",  Popts)) != NULL){
+
 			if( m3l_get_Found_number(SFounds) != 1)
 				Error("SR_hub: Only one CONNECTION/KEEP_CONN_ALIVE_Mode per Channel allowed");
 /* 

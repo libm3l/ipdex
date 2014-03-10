@@ -70,6 +70,11 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
 	status = 0;
 	ident = 0;
 	
+	opts_t *Popts, opts;
+	opts.opt_i = '\0'; opts.opt_d = '\0'; opts.opt_f = '\0'; opts.opt_r = 'r'; opts.opt_I = '\0'; opts.opt_L = '\0'; opts.opt_l = '\0';
+
+	Popts = &opts;
+	
 // 	  if(m3l_Cat(DataBuffer, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
 // 		Error("CatData");
 
@@ -77,7 +82,8 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
 /*
  * find if the data set thread is available
  */
-	if( (DATA_SFounds = m3l_Locate(DataBuffer, "/Buffer/Channel", "/*/*", (lmchar_t *)NULL)) != NULL){
+// 	if( (DATA_SFounds = m3l_Locate(DataBuffer, "/Buffer/Channel", "/*/*", (lmchar_t *)NULL)) != NULL){
+	if( (DATA_SFounds = m3l_locator_caller(DataBuffer,  "/Buffer/Channel", "/*/*", Popts)) != NULL){
 
 		n_data_threads = m3l_get_Found_number(DATA_SFounds);
 		
@@ -98,7 +104,8 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
 /*
  * find name of data thread and compare it to tested data thread name
  */
-		if( (THRName_SFounds = m3l_Locate(m3l_get_Found_node(DATA_SFounds, i), "./Channel/Name_of_Channel", "/*/*", (lmchar_t *)NULL)) != NULL){
+// 		if( (THRName_SFounds = m3l_Locate(m3l_get_Found_node(DATA_SFounds, i), "./Channel/Name_of_Channel", "/*/*", (lmchar_t *)NULL)) != NULL){
+		if( (THRName_SFounds = m3l_locator_caller(m3l_get_Found_node(DATA_SFounds, i), "./Channel/Name_of_Channel", "/*/*",  Popts)) != NULL){
 
 			if(n_data_threads == 0){
 				Error("Check_Request: did not find any Name_of_Channel");
@@ -127,7 +134,8 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
 /*
  * check status of the thread
  */
-			if( (THRStat_SFounds = m3l_Locate(m3l_get_Found_node(DATA_SFounds, i), "./Channel/Thread_Status", "/*/*", (lmchar_t *)NULL)) != NULL){
+// 			if( (THRStat_SFounds = m3l_Locate(m3l_get_Found_node(DATA_SFounds, i), "./Channel/Thread_Status", "/*/*", (lmchar_t *)NULL)) != NULL){
+			if( (THRStat_SFounds = m3l_locator_caller(m3l_get_Found_node(DATA_SFounds, i), "./Channel/Thread_Status", "/*/*",  Popts)) != NULL){
 
 				if(n_data_threads == 0){
 					Error("Check_Request: did not find any Thread_Status");
@@ -158,7 +166,8 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
  * if R == Receiving_Processes all receivers already arrived
  * 
  */			else if( SR_mode == 'S'){
-				if( (THRStat_SFounds = m3l_Locate(m3l_get_Found_node(DATA_SFounds, i), "./Channel/S_Status", "/*/*", (lmchar_t *)NULL)) != NULL){
+// 				if( (THRStat_SFounds = m3l_Locate(m3l_get_Found_node(DATA_SFounds, i), "./Channel/S_Status", "/*/*", (lmchar_t *)NULL)) != NULL){
+				if( (THRStat_SFounds = m3l_locator_caller(m3l_get_Found_node(DATA_SFounds, i), "./Channel/S_Status", "/*/*", Popts)) != NULL){
 
 					if(n_data_threads == 0){
 						Error("Check_Request: did not find any S_Status");
@@ -181,7 +190,8 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
 /*
  * find actual number of Receiving processes
  */
-				if( (THRStat_SFounds = m3l_Locate(m3l_get_Found_node(DATA_SFounds, i), "./Channel/R_Status", "/*/*", (lmchar_t *)NULL)) != NULL){
+// 				if( (THRStat_SFounds = m3l_Locate(m3l_get_Found_node(DATA_SFounds, i), "./Channel/R_Status", "/*/*", (lmchar_t *)NULL)) != NULL){
+				if( (THRStat_SFounds = m3l_locator_caller(m3l_get_Found_node(DATA_SFounds, i), "./Channel/R_Status", "/*/*", Popts)) != NULL){
 
 					if(n_data_threads == 0){
 						Error("Check_Request: did not find any S_Status");
@@ -203,7 +213,8 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
 /*
  * find required number of Receiving_Processes
  */
-				if( (THRStat_SFounds = m3l_Locate(m3l_get_Found_node(DATA_SFounds, i), "./Channel/Receiving_Processes", "/*/*", (lmchar_t *)NULL)) != NULL){
+// 				if( (THRStat_SFounds = m3l_Locate(m3l_get_Found_node(DATA_SFounds, i), "./Channel/Receiving_Processes", "/*/*", (lmchar_t *)NULL)) != NULL){
+				if( (THRStat_SFounds = m3l_locator_caller(m3l_get_Found_node(DATA_SFounds, i), "./Channel/Receiving_Processes", "/*/*", Popts)) != NULL){
 
 					if(n_data_threads == 0){
 						Error("Check_Request: did not find any S_Status");
@@ -242,15 +253,3 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
 	else
 		return -1;  
 }
-
-
-// find_t *find_Queued_Reqst(node_t *DataBuffer){
-// 	find_t *Tqst_SFounds;
-// /*
-//  * find Queued_Reqst 
-//  */
-// 	if( (Tqst_SFounds = m3l_Locate(DataBuffer, "/Buffer/Queued_Reqst/Header", "/*/*/*", (lmchar_t *)NULL)) == NULL)
-// 		return (find_t *)NULL;
-// 
-// 	return Tqst_SFounds;
-// }
