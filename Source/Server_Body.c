@@ -108,9 +108,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 /*
  * spawn all threads
  */
-// 	if(  (Data_Threads = Start_Data_Thread(DataBuffer)) == NULL)
-// 		Perror("Server_Body: Data_Threads error");
-	
 	if(  Start_Data_Thread(DataBuffer, Data_Threads) == -1)
 		Perror("Server_Body: Data_Threads error");
 /*
@@ -128,11 +125,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * it is reset every iterational step
  */
 	*Data_Threads->data_threads_remainth_counter  = *Data_Threads->data_threads_availth_counter;
-/*
- * this counter is used in gate syncing data threads and server_body 
- * at the beginning it should be set to number of threads + 1 (n_threads + 1 Server_Body)
- */
-	*Data_Threads->sync->nthreads  		      = *Data_Threads->data_threads_availth_counter + 1;
 /*
  * set return value to 0
  */

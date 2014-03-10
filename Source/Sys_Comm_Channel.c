@@ -53,8 +53,17 @@ void *Sys_Comm_Channel(void *arg){
 
 	Server_Comm_DataStr_t *c = (Server_Comm_DataStr_t *)arg;
 /*
- * sync the first 
-// 	/*pt_sync(c->plock)
-// 	pt_sync(c->plock)*/
+ * sync the first
+ */ 
+
+	while(1){
+/*
+ * initial pt_sync syncing this thread with Server_Body and Data_Thread at the beginning
+ * of the arriving requests identification
+ */
+		pt_sync(c->Data_Thread_Pointer->psync);
+		pt_sync(c->Data_Thread_Pointer->psync);
+	
+	}
 	
 }

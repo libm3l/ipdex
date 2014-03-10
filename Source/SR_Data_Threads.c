@@ -84,6 +84,12 @@ void *SR_Data_Threads(void *arg)
 /*
  * wait until all requests (all Receiver + Sender) for a particular data_set arrived 
  * the last invoking of pt_sync_mod is done in SR_hub.c
+ * 
+ * 
+//  *  *c->pthr_cntr local counter uniques for all SR_Data_Threads for one SR_Hub, upon start, all
+ * SR_Data_Thread will set it to 0 and then wait on pt_sync until all requests arrive.
+ * One they arrive, SR_Data_Threads will grab them one by one, getting socket number and SR_mode from an array which is filled in
+ * Data_Thread (SR_Threads->sockfd) 
  */
 		*c->pthr_cntr = 0;
 /*
@@ -160,7 +166,7 @@ void *SR_Data_Threads(void *arg)
 			else if(SR_mode == 'S'){
 /*
  * S(ender), after finishing sending, receive the data
- * after that signal SR_hhub that SR operation is finished and it can do 
+ * after that signal SR_hub that SR operation is finished and it can do 
  * another loop
  */
 				if( S_KAN(c, sockfd, 0) == -1) return NULL;

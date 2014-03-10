@@ -78,7 +78,7 @@ Server_Comm_DataStr_t *Start_SysComm_Thread(data_thread_str_t *Data_Thread){
 	
 	if(  (SysCommDatSet->Data_Thread_Pointer = Associate_Data_Thread((node_t *)NULL, Data_Thread, 0, 0)) == NULL)
 		Error("Start_Data_Thread: DataArgs NULL pointer");
-
+	
 	while ( ( pth_err = pthread_create(SysCommDatSet->data_threadsPID, NULL, &Sys_Comm_Channel,  SysCommDatSet)) != 0 && errno == EAGAIN);
 		if(pth_err != 0)
 			Perror("pthread_create()");

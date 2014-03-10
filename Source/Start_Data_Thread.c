@@ -171,10 +171,10 @@ lmsize_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
 // 	*Data_Thread->data_threads_remainth_counter = 0;
 // 	*Data_Thread->sync->nsync    = 0;
 /*
- * set the value of for syncing thread to number of data sets + 1 (it. sync all Data_Thread (n_data_threads) + 
- * 1 for Server_Body
+ * set the value of for syncing thread to number of data sets + 2 (it. sync all Data_Thread (n_data_threads) + 
+ * 1 for Server_Body + 1 for Sys_Comm_Channel.c 
  */
-	*Data_Thread->sync->nthreads = Data_Thread->n_data_threads + 1;	
+	*Data_Thread->sync->nthreads = Data_Thread->n_data_threads + 2;
 /*
  * initialize mutex and condition variable
  */

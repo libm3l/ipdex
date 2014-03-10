@@ -86,7 +86,7 @@ void *Data_Threads(void *arg)
 	SR_thread_str_t *SR_Threads;
 	SR_hub_thread_str_t  *SR_Hub_Thread;
 
-	sem_t	loc_sem;
+	sem_t loc_sem;
 	lmint_t pth_err;
 	
 	opts_t *Popts, opts;
