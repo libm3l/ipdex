@@ -109,8 +109,6 @@ typedef struct data_thread_str{
 
 
 
-
-
 /*
  * structure with pointers on SR_thread_str_t, each SR_Data_Thread has one
  */

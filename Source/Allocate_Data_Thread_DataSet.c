@@ -133,6 +133,7 @@ data_thread_str_t *Allocate_Data_Thread_DataSet(void){
  * if client ask for connection to another client (usual mode) checkdata == 0
  * if client sends _comm_link_ request (ie. open/close new connection etc.) checkdata == 1
  */
-	Data_Thread->checkdata = 0;
+	*Data_Thread->checkdata = 0;
+	
 	return Data_Thread;
 }

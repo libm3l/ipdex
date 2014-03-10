@@ -256,7 +256,7 @@ void *Data_Threads(void *arg)
  * if arriving request was not sys_link_ type of request
  * check which connection arrived
  */
-			if(c->pcheckdata == 0){
+			if(*c->pcheckdata == 0){
 
 				Pthread_mutex_lock(c->plock);
 /*
