@@ -477,7 +477,7 @@ void pt_sync_mod(pt_sync_t *sync, lmsize_t addjob, lmsize_t incrm)
 }
 
 
-void pt_sync_mod_signal(pt_sync_t *sync, lmsize_t addjob, lmsize_t incrm, sem_t *sem)
+void pt_sync_mod_sem(pt_sync_t *sync, lmsize_t addjob, lmsize_t incrm, sem_t *sem)
 {
 /*   
  *	*sync->pnthreads contains the values of number of threads which will be synchronized

@@ -190,7 +190,10 @@ lmsize_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
  * this determines that i-th thread will take care of channel with 
  * name specified in /Buffer/Channel/Name_of_Channel
  */
+		Pthread_mutex_lock(&Data_Thread->lock);
 		List = m3l_get_Found_node(SFounds, i);
+		Pthread_mutex_unlock(&Data_Thread->lock);
+		
 		if(  (DataArgs = Associate_Data_Thread(List, Data_Thread, i, 1)) == NULL)
 			Error("Start_Data_Thread: DataArgs NULL pointer");
 /*

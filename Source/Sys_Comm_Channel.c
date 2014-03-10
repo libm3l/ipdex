@@ -48,14 +48,13 @@
 
 #include "libm3l.h"
 #include "lsipdx_header.h"
-#include "Sys_Comm_Channel.h"
-// #include "Server_Functions_Prt.h"
 
 void *Sys_Comm_Channel(void *arg){
 
 	Server_Comm_DataStr_t *c = (Server_Comm_DataStr_t *)arg;
-	
-// 	/*pt_sync()
-// 	pt_sync()*/
+/*
+ * sync the first 
+// 	/*pt_sync(c->plock)
+// 	pt_sync(c->plock)*/
 	
 }
