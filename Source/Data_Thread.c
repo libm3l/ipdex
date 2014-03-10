@@ -324,9 +324,15 @@ void *Data_Threads(void *arg)
  * synchronized all threads at the end, the last thread will broadcast
  */	
 				Pthread_mutex_unlock(c->plock);
-			}
 
-			pt_sync(c->psync);
+				pt_sync(c->psync);
+			}
+			else{
+/*
+ * request was _sys_link_ request
+ */
+				pt_sync_mod_sem(c->psync,0,0,c->psem);
+			}
 
 		}while(n_avail_loc_theads != 0);  /* all connecting thread arrivied, ie. one Sender and n_rec_proc Receivers */
 		

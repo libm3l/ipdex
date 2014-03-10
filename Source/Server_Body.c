@@ -265,7 +265,18 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * when all Data_Thread are finished, - the identification part, the threads are waiting on each other. 
  * the last thread unlock the semaphore so that the next loop can start
  */		
-				pt_sync(Data_Threads->sync);
+				if(*Data_Threads->checkdata == 0){
+/*
+ * if request was a usual request
+ */
+					pt_sync(Data_Threads->sync);
+				}
+				else{
+/*
+ * request was _sys_link_ request
+ */
+					pt_sync_mod_sem(Data_Threads->sync,0,0,&Data_Threads->sem);
+				}
 /*
  * when data set is identified in Data_Thread the retval is set to 1
  * If all threads went attempted to evaluate the incoming request and 

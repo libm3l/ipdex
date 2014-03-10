@@ -130,7 +130,7 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 			printf("Ident_Sys_Comm_Channel: Receiving_Processes not found\n");
 			m3l_DestroyFound(&SFounds);
 		}
-
+		*Data_Threads->checkdata = 0;
 		return 0;
 	}
 	else
@@ -140,6 +140,8 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
  * with server, this request start with _comm_link_ check that it 
  * is really so by looking at name of head node which is _comm_link_
  */
+		*Data_Threads->checkdata = 1;
+
 		name_of_required_data_set=m3l_get_List_name(RecNode);
 		if(strncmp(name_of_required_data_set, "_sys_comm_", 10) != 0
 			&& strlen(name_of_required_data_set) == 10){
