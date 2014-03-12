@@ -55,6 +55,9 @@ void *Sys_Comm_Channel(void *arg){
 /*
  * sync the first
  */ 
+	lmsize_t incrm;
+	
+	incrm = 0;
 
 	while(1){
 /*
@@ -72,10 +75,19 @@ void *Sys_Comm_Channel(void *arg){
 		else{
 /*
  * request was a sys_link request
+ * add or delete data set
  */
 			Sem_post(c->Data_Thread_Pointer->psem);
-			pt_sync_mod_sem(c->Data_Thread_Pointer->psync, 0,0,c->Data_Thread_Pointer->psem);
+			pt_sync_mod_sem(c->Data_Thread_Pointer->psync, 0,incrm,c->Data_Thread_Pointer->psem);
 		}
 	}
-	
+/*
+ * free borrowed memory
+ */
+	free(c->Data_Thread_Pointer->pData_Str);
+	free(c->Data_Thread_Pointer);
+	free(c->data_threadsPID);
+	free(c);
+
+	return;
 }
