@@ -60,9 +60,9 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
  * or 0 ie. Sender or at least one Receiver is available
  */
 	find_t *DATA_SFounds,*THRStat_SFounds, *THRName_SFounds;
-	size_t n_data_threads, i, n_queue_reqst, len1, len2;
-	node_t *TmpNode, *Queued_Reqst;
-	lmint_t Thread_Status, ThrStat, status;
+	size_t n_data_threads, i,  len1, len2;
+	node_t *TmpNode;
+	lmint_t Thread_Status, status;
 	lmchar_t *name, S_Status;
 	lmsize_t R_Status, Receiving_Processes;
 	lmint_t ident;
@@ -178,7 +178,7 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
 				else
 				{
 					printf("Check_Request: did not find any S_Status\n");
-					status -1;
+					status = -1;
 				}
 
 				TmpNode = m3l_get_Found_node(THRStat_SFounds, 0);

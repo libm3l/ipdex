@@ -42,8 +42,8 @@ prog: $(OBJS)
 -include $(OBJS:.o=.d)
 
 %.o: %.c
-	gcc -c -g -fPIC $*.c -o $*.o
-	gcc -MM -g -fPIC $*.c > $*.d
+	gcc -c -g -Wall -fPIC $*.c -o $*.o
+	gcc -MM -g -Wall -fPIC $*.c > $*.d
 	@mv -f $*.d $*.d.tmp
 	@sed -e 's|.*:|$*.o:|' < $*.d.tmp > $*.d
 	@sed -e 's/.*://' -e 's/\\$$//' < $*.d.tmp | fmt -1 | \

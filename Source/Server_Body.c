@@ -58,11 +58,12 @@
 #include "Sys_Comm_Channel.h"
 #include "Allocate_Data_Thread_DataSet.h"
 #include "Start_SysComm_Thread.h"
+#include "Ident_Sys_Comm_Channel.h"
 
 
 lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	
-	lmsize_t i, len;
+	lmsize_t i;
 	lmint_t sockfd, newsockfd, cycle;
 	struct sockaddr_in cli_addr;
 	data_thread_str_t *Data_Threads;
@@ -70,9 +71,8 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	lmchar_t name_of_required_data_set[MAX_NAME_LENGTH], SR_mode;
 	
 	socklen_t clilen;
-	find_t *SFounds, *Tqst_SFounds;
-	node_t *RecNode, *List, *DataBuffer, *TmpNode, *RR_POS, *RR_NEG;
-	lmsize_t dim[1];
+	find_t *Tqst_SFounds;
+	node_t *RecNode, *DataBuffer, *RR_POS, *RR_NEG;
 	Server_Comm_DataStr_t *SysCommDatSet=NULL;
 
 	opts_t *Popts, opts;

@@ -509,7 +509,7 @@ void pt_sync_mod_sem(pt_sync_t *sync, lmsize_t addjob, lmsize_t incrm, sem_t *se
 /*
  * no, check if last but one, if yes, signal condition
  */
-		if ((*sync->pnsync) = n_actual_sync_jobs-1) Sem_post(sem);
+		if (  (*sync->pnsync) == n_actual_sync_jobs-1 ) Sem_post(sem);
 /*
  * no, unlock block and 
  */

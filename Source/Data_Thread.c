@@ -77,17 +77,14 @@ void *Data_Threads(void *arg)
 	
 	lmchar_t *data_set_name, local_set_name[MAX_NAME_LENGTH];
 	find_t *SFounds, *THRStat_SFounds;
-	
-	pthread_t  MyThreadID;
-	
-	lmint_t ii, *Thread_Status, *Thread_S_Status;
+
+	lmint_t  *Thread_Status, *Thread_S_Status;
 	lmsize_t *Thread_R_Status;
 	
 	SR_thread_str_t *SR_Threads;
 	SR_hub_thread_str_t  *SR_Hub_Thread;
 
 	sem_t loc_sem;
-	lmint_t pth_err;
 	
 	opts_t *Popts, opts;
 	opts.opt_i = '\0'; opts.opt_d = '\0'; opts.opt_f = '\0'; opts.opt_r = 'r'; opts.opt_I = '\0'; opts.opt_L = '\0'; opts.opt_l = '\0';
@@ -97,7 +94,7 @@ void *Data_Threads(void *arg)
 /*
  * get my thread ID
  */
-	MyThreadID = pthread_self();
+// 	MyThreadID = pthread_self();
 	
 	Pthread_mutex_lock(c->plock);
 // 		if(m3l_Cat(c->Node, "--all", "-L", "-P", "*",   (lmchar_t *)NULL) != 0)

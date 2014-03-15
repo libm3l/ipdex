@@ -58,9 +58,6 @@
 //      mode 6: ATDTMode == 'A' && KeepAlive_Mode == 'Y'  /* Alternate transfer, do not close socket*/
 
 lmint_t client_sender(void *data, lmint_t sockfd, client_fce_struct_t *ClientInPar, opts_t *Popts, opts_t *Popst_lm3l){
-
-	node_t *Gnode, *TmpNode;
-	lmint_t retval;
 	
 	opts_t *Popts_1, opts;
 
@@ -157,8 +154,7 @@ lmint_t client_sender(void *data, lmint_t sockfd, client_fce_struct_t *ClientInP
 
 node_t *client_receiver(lmint_t sockfd, client_fce_struct_t *ClientInPar, opts_t *Popts, opts_t *Popst_lm3l){
 
-	node_t *Gnode, *TmpNode;
-	lmint_t retval;
+	node_t *Gnode;
 	
 	opts_t *Popts_1, opts;
 	

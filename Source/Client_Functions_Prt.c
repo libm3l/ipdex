@@ -62,7 +62,6 @@ lmint_t Client_Sender(void *data, const lmchar_t *hostname, lmint_t portnumber, 
 	va_list args;
 	lmint_t option_index;
 	node_t *List;
-	lmchar_t *c_data;
 	
 	List = (node_t *)data;
 	

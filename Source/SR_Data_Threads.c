@@ -437,7 +437,7 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
  * set number of remaining threads equal to number of reading threads (only if reading will be repeated, otherwise keep it 0)
  * indicate this is the last thread
  */
-			*c->psync == 1;
+			*c->psync = 1;
 			Pthread_cond_broadcast(c->pdcond);
 /*
  * clean buffer

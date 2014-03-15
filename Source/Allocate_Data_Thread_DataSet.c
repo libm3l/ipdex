@@ -55,7 +55,6 @@ data_thread_str_t *Allocate_Data_Thread_DataSet(void){
 /*
  * function allocated data_thread_str_t *Data_Thread which is used by data_Thread
  */
-	lmsize_t i;
 	data_thread_str_t *Data_Thread;
 	
 	Data_Thread = NULL;

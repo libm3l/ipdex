@@ -69,7 +69,6 @@ void *SR_hub(void *arg)
  * function signals SR_Threads that all requests (one Sender and n_rec_proc Receivers) arrived and 
  * that it can start data transfer
  */
-	lmsize_t i;
 	lmint_t IT;
 	node_t *List;
 	find_t *SFounds;
@@ -292,7 +291,6 @@ void *SR_hub(void *arg)
 
 lmint_t valueOfSharedVariable(SR_hub_thread_str_t *c)
 {
-	lmint_t status;
 	lmint_t result;
 
 	Pthread_mutex_lock(c->plock);

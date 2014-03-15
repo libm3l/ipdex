@@ -96,7 +96,6 @@ node_t *ret_receipt(lmint_t val)
 node_t *client_name(char *name)
 {
 	node_t *Gnode, *TmpNode;
-	char *answer="ACKN";
 	size_t *dim;
 	
 	if(  (Gnode = m3l_Mklist("Client_Data", "DIR", 0, 0, (node_t **)NULL, (const char *)NULL, (const char *)NULL, (char *)NULL)) == 0)

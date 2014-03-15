@@ -62,7 +62,6 @@
 Server_Comm_DataStr_t *Start_SysComm_Thread(data_thread_str_t *Data_Thread){
 /*
  */
-	lmsize_t i, retval;
 	lmint_t pth_err;
 	Server_Comm_DataStr_t *SysCommDatSet;
 /*
