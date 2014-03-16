@@ -105,7 +105,7 @@ void *SR_hub(void *arg)
  * pointer to list of found nodes
  */
 				if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
-					Error("Data_Thread: NULL ATDT_Mode");
+					Error("SR_hub: NULL ATDT_Mode");
 			
 				ATDTMode = (lmchar_t *)m3l_get_data_pointer(List);
 				*c->pATDT_mode = *ATDTMode;
@@ -265,9 +265,9 @@ void *SR_hub(void *arg)
 /*
  * release thread, ie. set Thread_Status = 0, S_Status and R_Status
  */
-			*c->pThread_Status   = 0;
-			*c->pThread_S_Status = 0;
-			*c->pThread_R_Status = 0;
+			*c->pThread_Status   = 0;	/* thread can be used again */
+			*c->pThread_S_Status = 0;	/* number of connected S processes is 0 */
+			*c->pThread_R_Status = 0;	/* number of connected R processes is 0 */
 /*
  * if all threads were occupied, ie *Data_Threads->data_threads_availth_counter == *c->pcounter == 0
  * the server is waiting for signal before the continuing with data process identification. 

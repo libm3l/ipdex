@@ -45,4 +45,7 @@ extern node_t *client_name(lmchar_t *);
 extern node_t *Header(lmchar_t *, lmchar_t);
 extern node_t *ret_receipt(lmint_t);
 
+extern lsipdx_answer_t *MakePredefinedAnswers();
+extern void DestroyPredefinedAnswers(lsipdx_answer_t **);
+
 #endif

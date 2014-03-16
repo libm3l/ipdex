@@ -50,7 +50,12 @@
 
 #define EOFClen 1+EOBlen
 
-
+/*
+ * predefined answers
+ */
+typedef struct lsipdx_answer{
+	node_t *RR_POS, *RR_NEG, *RR_WRREQ, *RR_WRCONREQ;
+}lsipdx_answer_t;
 
 /*
  * structure for synchronizing routine pt_sync()

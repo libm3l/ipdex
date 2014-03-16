@@ -72,24 +72,27 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	
 	socklen_t clilen;
 	find_t *Tqst_SFounds;
-	node_t *RecNode, *DataBuffer, *RR_POS, *RR_NEG;
+	node_t *RecNode, *DataBuffer;
 	Server_Comm_DataStr_t *SysCommDatSet=NULL;
+	lsipdx_answer_t *Answers;
 
 	opts_t *Popts, opts;
 	Popts = &opts;
  
-	opts.opt_linkscleanemptlinks = '\0';  // clean empty links
-	opts.opt_nomalloc = '\0'; // if 'm', do not malloc (used in Mklist --no_malloc
-	opts.opt_linkscleanemptrefs = '\0'; // clean empty link references
-	opts.opt_tcpencoding = 'I'; // serialization and encoding when sending over TCP/IP
-	opts.opt_MEMCP = 'M';  // type of buffering
+// 	opts.opt_linkscleanemptlinks = '\0';  // clean empty links
+// 	opts.opt_nomalloc = '\0'; // if 'm', do not malloc (used in Mklist --no_malloc
+// 	opts.opt_linkscleanemptrefs = '\0'; // clean empty link references
+// 	opts.opt_tcpencoding = 'I'; // serialization and encoding when sending over TCP/IP
+// 	opts.opt_MEMCP = 'M';  // type of buffering
+	
+	m3l_set_Send_receive_tcpipsocket(&Popts);
 	
 	cycle=0;
 /*
- * create positive and negative return receipt
+ * create standard answers and queue
  */
-	RR_POS = ret_receipt(1);
-	RR_NEG = ret_receipt(0);
+	if (  (Answers = MakePredefinedAnswers()) == NULL)
+		Error("Server_Body: error while makeing answers");
 /*
  * create buffer structure for buffering recevied data requests if needed
  */
@@ -191,7 +194,8 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 /*
  * identify type of request and get back with name of required connection and SR_mode
  */
-		if( Ident_Sys_Comm_Channel(RecNode, &DataBuffer, Data_Threads, &Data_Threads->lock, name_of_required_data_set, &SR_mode) == -1){
+		if( Ident_Sys_Comm_Channel(RecNode, &DataBuffer, Data_Threads, &Data_Threads->lock, name_of_required_data_set, &SR_mode, Answers,
+			newsockfd) == -1){
 /*
  * illegal request, send back notification and close socket
  */
@@ -222,14 +226,14 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * if process is Receiver send acknowledgment and get back REOB
  */
 					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
-					if( m3l_send_to_tcpipsocket(RR_POS, (const char *)NULL, newsockfd, Popts) < 1)
+					if( m3l_send_to_tcpipsocket(Answers->RR_POS, (const char *)NULL, newsockfd, Popts) < 1)
 						Error("Error during sending data to socket");
 				}
 				else if(SR_mode == 'R'){
 
 					opts.opt_REOBseq = 'G'; // send EOFbuff sequence only
 					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only	
-					if( m3l_send_receive_tcpipsocket(RR_POS, (const lmchar_t *)NULL, newsockfd, Popts) < 0){
+					if( m3l_send_receive_tcpipsocket(Answers->RR_POS, (const lmchar_t *)NULL, newsockfd, Popts) < 0){
 						Error(" Error during receving data from socket \n");
 						return -1;
 					}
@@ -314,14 +318,14 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 // 				if( m3l_Send_to_tcpipsocket(RR_NEG, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754",  (char *)NULL) < 1)
 // 					Error("Error during sending data from socket");
 					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
-					if( m3l_send_to_tcpipsocket(RR_NEG, (const char *)NULL, newsockfd, Popts) < 1)
+					if( m3l_send_to_tcpipsocket(Answers->RR_NEG, (const char *)NULL, newsockfd, Popts) < 1)
 						Error("Error during sending data from socket");
 					
 				}
 				else if(SR_mode == 'R'){
 // 					m3l_Send_to_tcpipsocket(RR_NEG, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754", (char *)NULL);
 					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
-					if( m3l_send_to_tcpipsocket(RR_NEG, (const char *)NULL, newsockfd, Popts) < 1)
+					if( m3l_send_to_tcpipsocket(Answers->RR_NEG, (const char *)NULL, newsockfd, Popts) < 1)
 						Error("Error during sending data from socket");
 				}
 				else{
@@ -402,10 +406,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	if(m3l_Umount(&DataBuffer) != 1)
 		Perror("m3l_Umount DataBuffer");
 
-	if(m3l_Umount(&RR_NEG) != 1)
-		Perror("m3l_Umount RR_NEG");
+	DestroyPredefinedAnswers(&Answers);
 	
-	if(m3l_Umount(&RR_POS) != 1)
-		Perror("m3l_Umount RR_POS");	
 	return 1;
 }

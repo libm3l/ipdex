@@ -48,6 +48,7 @@
 
 
 #include "libm3l.h"
+#include "lsipdx_header.h"
 #include "ACK.h"
 
 
@@ -139,4 +140,39 @@ node_t *Header(lmchar_t *name, lmchar_t RWmode){
 	free(dim);
 	
 	return Gnode;
+}
+
+
+lsipdx_answer_t *MakePredefinedAnswers(){
+/*
+ * functions creates predefined answers
+ */
+	lsipdx_answer_t *Answers;
+	
+	if(  (Answers = (lsipdx_answer_t *)malloc(sizeof(lsipdx_answer_t))) == NULL)
+		Error("Server_Body: error while malloced Answers");
+	
+	Answers->RR_POS = ret_receipt(1);
+	Answers->RR_NEG = ret_receipt(0);
+	Answers->RR_WRREQ = ret_receipt(-1);
+	Answers->RR_WRCONREQ = ret_receipt(2);
+	
+	return Answers;
+}
+
+void DestroyPredefinedAnswers(lsipdx_answer_t **Answers){
+/*
+ * free memory in predefined answers
+ */
+	if(m3l_Umount(&(*Answers)->RR_NEG) != 1)
+		Perror("m3l_Umount RR_NEG");
+	if(m3l_Umount(&(*Answers)->RR_POS) != 1)
+		Perror("m3l_Umount RR_POS");	
+	if(m3l_Umount(&(*Answers)->RR_WRREQ) != 1)
+		Perror("m3l_Umount RR_WRREQ");
+	if(m3l_Umount(&(*Answers)->RR_WRCONREQ) != 1)
+		Perror("m3l_Umount RR_WRREQ");
+
+	free(*Answers);
+	*Answers = NULL;
 }

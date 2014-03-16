@@ -55,7 +55,8 @@
 #include "Server_Functions_Prt.h"
 
 lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread_str_t *Data_Threads, 
-			       pthread_mutex_t *lock, lmchar_t *name_of_required_data_set, lmchar_t *SR_mode)
+			       pthread_mutex_t *lock, lmchar_t *name_of_required_data_set, lmchar_t *SR_mode, lsipdx_answer_t *Answers,
+			       lmint_t sockfd)
 {
 /*
  * function handles communication between client and server via _sys_comm_ request.
@@ -70,50 +71,59 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
  * 		-1	Error
  * 		 0	Usual request for connection between clients
  * 		 100	Add new connection (channel)
- * 		 101	Delete existing connection
+ * 		 200	Delete existing connection
  */
-	lmint_t retval, *reqtype, *tmpint;
+	lmint_t retval, *reqtype;
 	find_t *SFounds;
-	node_t *List, *TmpNode1;
-	lmchar_t *tmpchar;
-	lmsize_t len, i, dim[1];
-	opts_t *Popts, opts;
-
-	opts.opt_i = '\0'; opts.opt_d = '\0'; opts.opt_f = '\0'; opts.opt_r = 'r'; opts.opt_I = '\0'; opts.opt_L = '\0'; opts.opt_l = '\0';
+	node_t *List;
+	lmchar_t *tmpchar, *req_name, *ATDT_Mode, *KA_mode;
+	lmsize_t len, i, nRcli;
+	opts_t *Popts, opts, *Popts_tcp, opts_tcp;
 
 	Popts = &opts;	
+	m3l_set_Find(&Popts);
+	
+	Popts_tcp = &opts_tcp;	
+	m3l_set_Send_receive_tcpipsocket(&Popts_tcp);
+
 	retval = 0;
 /*
  * find /Header/Name_of_Channel in RecNode
  * if found, the request is normal.
  */
-// 	if( (SFounds = m3l_Locate(RecNode, "/Header/Name_of_Channel", "./*/*",  (lmchar_t *)NULL)) != NULL){
-	if( (SFounds = m3l_locator_caller(RecNode, "/Header/Name_of_Channel", "./*/*",  Popts)) != NULL){
-		if( m3l_get_Found_number(SFounds) != 1)
-			Error("Ident_Sys_Comm_Channel: Only one Name_of_Channel per Channel allowed");
-		if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
-			Error("Ident_Sys_Comm_Channel: NULL Name_of_Channel");
-		tmpchar = m3l_get_data_pointer(List);
-		
-		if( (len = m3l_get_List_totdim(List)-1) < 1)
-			Error("Ident_Sys_Comm_Channel: too short name of data set");
-		
-		for(i=0; i<len; i++)
-			*name_of_required_data_set++ = *tmpchar++;
-			       
-		*name_of_required_data_set='\0';
+	req_name = m3l_get_List_name(RecNode);
+	if( (len = strlen(req_name)) < 1)
+		Error("Ident_Sys_Comm_Channel: too short name of data set");
+	
+	if( len == 6 && strncmp(req_name, "Header", 6) == 0){
+/*
+ * usual data request
+ */
+		if( (SFounds = m3l_locator_caller(RecNode, "/Header/Name_of_Channel", "./*/*",  Popts)) != NULL){
+			if( m3l_get_Found_number(SFounds) != 1)
+				Error("Ident_Sys_Comm_Channel: Only one Name_of_Channel per Channel allowed");
+			if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
+				Error("Ident_Sys_Comm_Channel: NULL Name_of_Channel");
+			tmpchar = m3l_get_data_pointer(List);
+			
+			if( (len = m3l_get_List_totdim(List)-1) < 1)
+				Error("Ident_Sys_Comm_Channel: too short name of data set");
+			
+			for(i=0; i<len; i++)
+				*name_of_required_data_set++ = *tmpchar++;
+				
+			*name_of_required_data_set='\0';
 /* 
  * free memory allocated in m3l_Locate
  */
-		m3l_DestroyFound(&SFounds);
+			m3l_DestroyFound(&SFounds);
 /*
  * find type of process SR_Mode  S-sender, R-receiver
  */
-// 		if( (SFounds = m3l_Locate(RecNode, "/Header/SR_mode", "./*/*",  (lmchar_t *)NULL)) != NULL){
-		if( (SFounds = m3l_locator_caller(RecNode, "/Header/SR_mode", "./*/*",  Popts)) != NULL){
-			
-			if( m3l_get_Found_number(SFounds) != 1)
-				Error("Ident_Sys_Comm_Channel: Only one SR_mode per Channel allowed");
+			if( (SFounds = m3l_locator_caller(RecNode, "/Header/SR_mode", "./*/*",  Popts)) != NULL){
+				
+				if( m3l_get_Found_number(SFounds) != 1)
+					Error("Ident_Sys_Comm_Channel: Only one SR_mode per Channel allowed");
 /* 
  * pointer to list of found nodes
  */
@@ -124,18 +134,25 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 /* 
  * free memory allocated in m3l_Locate
  */
+				m3l_DestroyFound(&SFounds);
+			}
+			else
+			{
+				printf("Ident_Sys_Comm_Channel: Receiving_Processes not found\n");
+				m3l_DestroyFound(&SFounds);
+			}
+			*Data_Threads->checkdata = 0;
+			return 0;
+		}
+		else{
+/*
+ * 	did not find /Header/Name_of_Channel
+ */
+			printf("Ident_Sys_Comm_Channel: /Header/Name_of_Channel not found\n");
 			m3l_DestroyFound(&SFounds);
 		}
-		else
-		{
-			printf("Ident_Sys_Comm_Channel: Receiving_Processes not found\n");
-			m3l_DestroyFound(&SFounds);
-		}
-		*Data_Threads->checkdata = 0;
-		return 0;
 	}
-	else
-	{
+	else{
 /*
  * did not find the node, the channel is a request of a client to communicate 
  * with server, this request start with _comm_link_ check that it 
@@ -144,8 +161,7 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 		*Data_Threads->checkdata = 1;
 
 		name_of_required_data_set=m3l_get_List_name(RecNode);
-		if(strncmp(name_of_required_data_set, "_sys_comm_", 10) != 0
-			&& strlen(name_of_required_data_set) == 10){
+		if(strncmp(name_of_required_data_set, "_sys_comm_", 10) != 0 ||  strlen(name_of_required_data_set) == 10){
 /*
  * illegal request, set return value -1 and return
  */
@@ -178,49 +194,137 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 
 			case 100:
 /*
- * open new connection - find its specification under "/_comm_link_/Channel
+ * find /_sys_link_/Name_of_Channel in RecNode
  */
-// 				if( (SFounds = m3l_Locate(RecNode, "/_comm_link_/Channel", "./*/*",  (lmchar_t *)NULL)) != NULL){
-				if( (SFounds = m3l_locator_caller(RecNode, "/_comm_link_/Channel", "./*/*",  Popts)) != NULL){
+				if( (SFounds = m3l_locator_caller(RecNode, "/_sys_link_/Name_of_Channel", "./*/*",  Popts)) != NULL){
 					if( m3l_get_Found_number(SFounds) != 1)
-						Error("Ident_Sys_Comm_Channel: Only one /_comm_link_/Channel allowed");
+						Error("Ident_Sys_Comm_Channel: Only one Name_of_Channel per Channel allowed");
 					if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
-						Error("Ident_Sys_Comm_Channel: NULL /_comm_link_/Channel");
+						Error("Ident_Sys_Comm_Channel: NULL Name_of_Channel");
+					name_of_required_data_set = m3l_get_data_pointer(List);
+					
+					if( (len = m3l_get_List_totdim(List)-1) < 1)
+						Error("Ident_Sys_Comm_Channel: too short name of data set");
+/* 
+ * free memory allocated in m3l_Locate
+ */
+					m3l_DestroyFound(&SFounds);
+				}
+/*
+ * check if connection is already available
+ */
+// 				for(i=0, i< Queue->n_conn; i++){
+// 					len1 = strlen(Queue->name_of_connection);
+// 					if( len == len1 && strncmp(Queue->name_of_connection, name_of_required_data_set,len) == 0){
+// /*
+//  * connection alraedy exists, send WRCONREQ
+//  */
+// 						opts_tcp.opt_EOBseq = '\0'; // send EOFbuff sequence only
+// 						if( m3l_send_to_tcpipsocket(Answers->RR_WRREQ, (const char *)NULL, sockfd, Popts_Send) < 1)
+// 							Error("Ident_Sys_Comm_Channel: Error during sending RR_WRCONREQ to sockfd");
+// 						return -1;
+// 					}
+// 				}
+/*
+ * find SR mode, KA_mode, Receiving clients number
+ */
+				if( (SFounds = m3l_locator_caller(RecNode, "/_sys_link_/CONNECTION/ATDT_Mode", "./*/*/*",  Popts)) != NULL){
+
+					if( m3l_get_Found_number(SFounds) != 1)
+						Error("Ident_Sys_Comm_Channel: Only one CONNECTION/ATDT_Mode per Channel allowed");
+/* 
+ * pointer to list of found nodes
+ */
+						if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
+							Error("Ident_Sys_Comm_Channel: NULL ATDT_Mode");
+					
+						ATDT_Mode = (lmchar_t *)m3l_get_data_pointer(List);
+/* 
+ * free memory allocated in m3l_Locate
+		*/
 					m3l_DestroyFound(&SFounds);
 				}
 				else
 				{
-					Error("Ident_Sys_Comm_Channel: /_comm_link_/Channel not found\n");
+					Error("SR_hub: CONNECTION/ATDT_Mode not found\n");
 				}
-/*
- * add it to the buffer and add to it other data set
- * similarly to Allocate_DataBuffer.c
+
+				if( (SFounds = m3l_locator_caller(RecNode, "/_sys_link_/CONNECTION/KEEP_CONN_ALIVE_Mode", "./*/*/*",  Popts)) != NULL){
+
+					if( m3l_get_Found_number(SFounds) != 1){
+						Warning("Ident_Sys_Comm_Channel: Only one CONNECTION/KEEP_CONN_ALIVE_Mode per Channel allowed");
+						opts_tcp.opt_EOBseq = '\0'; // send EOFbuff sequence only
+						if( m3l_send_to_tcpipsocket(Answers->RR_POS, (const char *)NULL, sockfd, Popts_tcp) < 1)
+							Error("Error during sending data to sockfd");
+						if( close(sockfd) == -1)
+							Perror("close");
+						m3l_DestroyFound(&SFounds);
+					}
+/* 
+ * pointer to list of found nodes
  */
-				Pthread_mutex_lock(lock);
-				
-					if( m3l_Mv(&List,  "./Channel", "./*", DataBuffer, "/Buffer", "/*", (lmchar_t *)NULL) == -1)
-						Error("Ident_Sys_Comm_Channel: Mv ");
+					if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
+						Error("Ident_Sys_Comm_Channel: NULL KEEP_CONN_ALIVE_Mode");
 					
-					dim[0] = 1;
-					if(  (TmpNode1 = m3l_Mklist("Thread_Status", "I", 1, dim, &List, "./Channel", "./", (char *)NULL)) == 0)
-						Error("Ident_Sys_Comm_Channel: m3l_Mklist");
-					tmpint = (lmint_t *)m3l_get_data_pointer(TmpNode1);
-					tmpint[0] = 0;
-					if(  (TmpNode1 = m3l_Mklist("S_Status", "I", 1, dim, &List, "./Channel", "./", (char *)NULL)) == 0)
-						Error("Ident_Sys_Comm_Channel: m3l_Mklist");
-					tmpint = (lmint_t *)m3l_get_data_pointer(TmpNode1);
-					tmpint[0] = 0;
-					if(  (TmpNode1 = m3l_Mklist("R_Status", "ST", 1, dim, &List, "./Channel", "./", (char *)NULL)) == 0)
-						Error("Ident_Sys_Comm_Channel: m3l_Mklist");
-					tmpint = (lmint_t *)m3l_get_data_pointer(TmpNode1);
-					tmpint[0] = 0;
+					KA_mode = (lmchar_t *)m3l_get_data_pointer(List);
+/* 
+ * free memory allocated in m3l_Locate
+ */
+					m3l_DestroyFound(&SFounds);
+				}
+				else
+				{
+					Warning("Ident_Sys_Comm_Channel: CONNECTION/KEEP_CONN_ALIVE_Mode not found\n");
+					opts_tcp.opt_EOBseq = '\0'; // send EOFbuff sequence only
+					if( m3l_send_to_tcpipsocket(Answers->RR_POS, (const char *)NULL, sockfd, Popts_tcp) < 1)
+						Error("Error during sending data to sockfd");
+					if( close(sockfd) == -1)
+						Perror("close");
+					m3l_DestroyFound(&SFounds);
+				}
+
+
+				if( (SFounds = m3l_locator_caller(RecNode, "/_sys_link_/Receiving_Processes", "./*/*",  Popts)) != NULL){
+
+					if( m3l_get_Found_number(SFounds) != 1){
+						Warning("Ident_Sys_Comm_Channel: Only one Receiving_Processes per Channel allowed");
+						opts_tcp.opt_EOBseq = '\0'; // send EOFbuff sequence only
+						if( m3l_send_to_tcpipsocket(Answers->RR_POS, (const char *)NULL, sockfd, Popts_tcp) < 1)
+							Error("Error during sending data to sockfd");
+						if( close(sockfd) == -1)
+							Perror("close");
+						m3l_DestroyFound(&SFounds);
+					}
+/* 
+ * pointer to list of found nodes
+ */
+						if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
+							Error("Ident_Sys_Comm_Channel: NULL Receiving_Processes");
+					
+						nRcli = (lmsize_t *)m3l_get_data_pointer(List);
+/* 
+ * free memory allocated in m3l_Locate
+ */
+					m3l_DestroyFound(&SFounds);
+				}
+				else
+				{
+					Warning("Ident_Sys_Comm_Channel: Receiving_Processes not found\n");
+					opts_tcp.opt_EOBseq = '\0'; // send EOFbuff sequence only
+					if( m3l_send_to_tcpipsocket(Answers->RR_POS, (const char *)NULL, sockfd, Popts_tcp) < 1)
+						Error("Error during sending data to sockfd");
+					if( close(sockfd) == -1)
+						Perror("close");
+					m3l_DestroyFound(&SFounds);
+					return -1;
+				}
 				
-				Pthread_mutex_unlock(lock);
-				
+// 		!!!!!		NOTE: Start SR_hub and SR_Data_Threads   !!!!!!
+					
 				retval = 100;
 			break;
 
-			case 101:
+			case 200:
 /*
  * close connection, find the name of closed connection
  */
