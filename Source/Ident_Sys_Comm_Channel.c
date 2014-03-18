@@ -53,6 +53,7 @@
 #include "lsipdx_header.h"
 #include "Ident_Sys_Comm_Channel.h"
 #include "Server_Functions_Prt.h"
+#include "Check_Request.h"
 
 lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread_str_t *Data_Threads, 
 			       pthread_mutex_t *lock, lmchar_t *name_of_required_data_set, lmchar_t *SR_mode, lsipdx_answer_t *Answers,
@@ -76,7 +77,7 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 	lmint_t retval, *reqtype;
 	find_t *SFounds;
 	node_t *List;
-	lmchar_t *tmpchar, *req_name, *ATDT_Mode, *KA_mode;
+	lmchar_t *tmpchar, *req_name, *ATDT_Mode, *KA_mode, *tmpname, *tmpSRmode;
 	lmsize_t len, i, nRcli;
 	opts_t *Popts, opts, *Popts_tcp, opts_tcp;
 
@@ -87,6 +88,9 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 	m3l_set_Send_receive_tcpipsocket(&Popts_tcp);
 
 	retval = 0;
+	
+	tmpname = name_of_required_data_set;
+	tmpSRmode = SR_mode;
 /*
  * find /Header/Name_of_Channel in RecNode
  * if found, the request is normal.
@@ -110,9 +114,9 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 				Error("Ident_Sys_Comm_Channel: too short name of data set");
 			
 			for(i=0; i<len; i++)
-				*name_of_required_data_set++ = *tmpchar++;
+				*tmpname++ = *tmpchar++;
 				
-			*name_of_required_data_set='\0';
+			*tmpname='\0';
 /* 
  * free memory allocated in m3l_Locate
  */
@@ -141,8 +145,13 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 				printf("Ident_Sys_Comm_Channel: Receiving_Processes not found\n");
 				m3l_DestroyFound(&SFounds);
 			}
+			
+			retval = 0;
+// 			
+			retval = Check_Request( (*DataBuffer), name_of_required_data_set, *SR_mode);
+// 			printf(" RETVAL is %d \n", retval);
 			*Data_Threads->checkdata = 0;
-			return 0;
+			return retval;
 		}
 		else{
 /*
@@ -161,12 +170,15 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 		*Data_Threads->checkdata = 1;
 
 		name_of_required_data_set=m3l_get_List_name(RecNode);
-		if(strncmp(name_of_required_data_set, "_sys_comm_", 10) != 0 ||  strlen(name_of_required_data_set) == 10){
+		if(strncmp(name_of_required_data_set, "_sys_comm_", 10) != 0 ||  strlen(name_of_required_data_set) != 10){
+			opts_tcp.opt_EOBseq = '\0'; // send EOFbuff sequence only
+			if( m3l_send_to_tcpipsocket(Answers->RR_WRREQ, (const char *)NULL, sockfd, Popts_tcp) < 1)
+				Error("Ident_Sys_Comm_Channel: Error during sending RR_WRCONREQ to sockfd");
 /*
  * illegal request, set return value -1 and return
  */
 			return -1;
-		}	
+		}
 /*
  * find /_sys_comm/request_type
  * this is an integer and specify what kind of request is it 
@@ -301,7 +313,7 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 						if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
 							Error("Ident_Sys_Comm_Channel: NULL Receiving_Processes");
 					
-						nRcli = (lmsize_t *)m3l_get_data_pointer(List);
+						nRcli = *(lmsize_t *)m3l_get_data_pointer(List);
 /* 
  * free memory allocated in m3l_Locate
  */

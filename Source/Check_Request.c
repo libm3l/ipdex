@@ -52,7 +52,7 @@
 #include "lsipdx_header.h"
 #include "Check_Request.h"
 
-lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, lmchar_t SR_mode, lmchar_t *Name_Of_SRProc){
+lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, lmchar_t SR_mode){
 /*
  * function compares data in RecNode to what is in DataBuffer
  * looking specifically on name_of_required_data_set and SR_mode
@@ -77,7 +77,7 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
 	
 // 	  if(m3l_Cat(DataBuffer, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
 // 		Error("CatData");
-
+	  
 	len1 = strlen(name_of_required_data_set);
 /*
  * find if the data set thread is available

@@ -53,7 +53,7 @@
 #include "Server_Functions_Prt.h"
 #include "Server_Body.h"
 #include "Allocate_DataBuffer.h"
-#include "Check_Request.h"
+// #include "Check_Request.h"
 #include "ACK.h"
 #include "Sys_Comm_Channel.h"
 #include "Allocate_Data_Thread_DataSet.h"
@@ -194,17 +194,19 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 /*
  * identify type of request and get back with name of required connection and SR_mode
  */
-		if( Ident_Sys_Comm_Channel(RecNode, &DataBuffer, Data_Threads, &Data_Threads->lock, name_of_required_data_set, &SR_mode, Answers,
-			newsockfd) == -1){
-/*
- * illegal request, send back notification and close socket
- */
-					if( m3l_Umount(&RecNode) != 1)
-						Perror("m3l_Umount");
-					if( close(newsockfd) == -1)
-						Perror("close");
-					continue;
-		}
+ 		Pthread_mutex_lock(&Data_Threads->lock);
+
+// 		if( Ident_Sys_Comm_Channel(RecNode, &DataBuffer, Data_Threads, &Data_Threads->lock, name_of_required_data_set, &SR_mode, Answers,
+// 			newsockfd) == -1){
+// /*
+//  * illegal request, send back notification and close socket
+//  */
+// 					if( m3l_Umount(&RecNode) != 1)
+// 						Perror("m3l_Umount");
+// 					if( close(newsockfd) == -1)
+// 						Perror("close");
+// 					continue;
+// 		}
 /*
  * loop over - identify thread correspoding to required data thread.
  * this thread spanws n SR threads (1 Sending thread and n-1 Reading threads) which take care of data transfer,
@@ -213,9 +215,9 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * Once the data transfer is finished, add the data thread to the pool of available data threads
  * (ie. increment  (*Data_Threads->data_threads_availth_counter)++)
  */
- 		Pthread_mutex_lock(&Data_Threads->lock);
-
-		switch ( Check_Request(DataBuffer, name_of_required_data_set, SR_mode, name_of_required_data_set)) {
+// 		switch ( Check_Request(DataBuffer, name_of_required_data_set, SR_mode)) { 
+		switch( Ident_Sys_Comm_Channel(RecNode, &DataBuffer, Data_Threads, &Data_Threads->lock, 
+				name_of_required_data_set, &SR_mode, Answers,newsockfd)){
 			case 0:
 /* 
  * Legal request, not in buffer, data_thread available 
@@ -309,6 +311,9 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			break;
 			
 			case 1:
+/*
+ * conenction is already occupied, all requests already arrived
+ */
 			
 				if(SR_mode == 'S'){
 /*
