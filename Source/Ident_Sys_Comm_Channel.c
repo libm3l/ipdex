@@ -90,7 +90,7 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 	retval = 0;
 	
 	tmpname = name_of_required_data_set;
-	tmpSRmode = SR_mode;
+// 	tmpSRmode = SR_mode;
 /*
  * find /Header/Name_of_Channel in RecNode
  * if found, the request is normal.
@@ -115,7 +115,6 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 			
 			for(i=0; i<len; i++)
 				*tmpname++ = *tmpchar++;
-				
 			*tmpname='\0';
 /* 
  * free memory allocated in m3l_Locate
