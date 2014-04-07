@@ -43,6 +43,5 @@
 #define  __SYS_COMM_CHANNEL_H__
 
 void * Sys_Comm_Channel(void *);
-// lmint_t Identify_Sys_Comm_Channel(node_t *, data_thread_str_t *);
 
 #endif

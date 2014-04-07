@@ -53,7 +53,6 @@
 #include "Server_Functions_Prt.h"
 #include "Server_Body.h"
 #include "Allocate_DataBuffer.h"
-// #include "Check_Request.h"
 #include "ACK.h"
 #include "Sys_Comm_Channel.h"
 #include "Allocate_Data_Thread_DataSet.h"
@@ -67,7 +66,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	lmint_t sockfd, newsockfd, cycle;
 	struct sockaddr_in cli_addr;
 	data_thread_str_t *Data_Threads;
-// 	lmchar_t *name_of_required_data_set, *SR_mode;
 	lmchar_t name_of_required_data_set[MAX_NAME_LENGTH], SR_mode;
 	
 	socklen_t clilen;
@@ -78,12 +76,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 
 	opts_t *Popts, opts;
 	Popts = &opts;
- 
-// 	opts.opt_linkscleanemptlinks = '\0';  // clean empty links
-// 	opts.opt_nomalloc = '\0'; // if 'm', do not malloc (used in Mklist --no_malloc
-// 	opts.opt_linkscleanemptrefs = '\0'; // clean empty link references
-// 	opts.opt_tcpencoding = 'I'; // serialization and encoding when sending over TCP/IP
-// 	opts.opt_MEMCP = 'M';  // type of buffering
 	
 	m3l_set_Send_receive_tcpipsocket(&Popts);
 	
@@ -187,36 +179,25 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 		opts.opt_REOBseq = '\0'; // send EOFbuff sequence only
 		if( (RecNode = m3l_receive_tcpipsocket((const char *)NULL, newsockfd, Popts)) == NULL)
 			Error("Error during reading data from socket");
-
-// 		if(m3l_Cat(RecNode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
-// 			Error("ERRRRR");
-// 		exit;
 /*
  * identify type of request and get back with name of required connection and SR_mode
  */
  		Pthread_mutex_lock(&Data_Threads->lock);
-
-// 		if( Ident_Sys_Comm_Channel(RecNode, &DataBuffer, Data_Threads, &Data_Threads->lock, name_of_required_data_set, &SR_mode, Answers,
-// 			newsockfd) == -1){
-// /*
-//  * illegal request, send back notification and close socket
-//  */
-// 					if( m3l_Umount(&RecNode) != 1)
-// 						Perror("m3l_Umount");
-// 					if( close(newsockfd) == -1)
-// 						Perror("close");
-// 					continue;
-// 		}
 /*
  * loop over - identify thread correspoding to required data thread.
- * this thread spanws n SR threads (1 Sending thread and n-1 Reading threads) which take care of data transfer,
+ * 
+ * the first type of request is system request ie. opening new, closing connection or
+ * or changing ATDT, KA or number of R clients
+ * 
+ * the second is data transfer request for Data_Thread
+ * 
+ * Data_Thread thread spanws n SR threads (1 Sending thread and n-1 Reading threads) which take care of data transfer,
  * so once the data_thread is identified n-times, the thread is taken away from 
  * pool of available data threads (ie. decrement  (*Data_Threads->data_threads_availth_counter)--)
  * Once the data transfer is finished, add the data thread to the pool of available data threads
  * (ie. increment  (*Data_Threads->data_threads_availth_counter)++)
  */
-// 		switch ( Check_Request(DataBuffer, name_of_required_data_set, SR_mode)) { 
-		switch( Ident_Sys_Comm_Channel(RecNode, &DataBuffer, Data_Threads, &Data_Threads->lock, 
+		switch( Ident_Sys_Comm_Channel(RecNode, &DataBuffer, Data_Threads, 
 				name_of_required_data_set, &SR_mode, Answers,newsockfd)){
 			case 0:
 /* 
@@ -307,14 +288,12 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 						Perror("close");
 					continue;
 				}
-			
 			break;
-			
+
 			case 1:
 /*
  * conenction is already occupied, all requests already arrived
  */
-			
 				if(SR_mode == 'S'){
 /*
  * if process is sender, indicate Sender that header was received before receiving payload
@@ -350,6 +329,10 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			
 			break;
 			
+			case 100:
+			
+			break;
+			
 			case -1:
 /*
  * wrong data set, possibly the name of connection does not exist
@@ -367,7 +350,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * needed for propper locking of mutex
  */
 		cycle = 1;
-		
+
 	}      /* end of while(1) */
 	
 	if(Tqst_SFounds != NULL) m3l_DestroyFound(&Tqst_SFounds);

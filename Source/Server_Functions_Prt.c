@@ -257,10 +257,10 @@ void pt_sync(pt_sync_t *sync)
 * 74:   pt_cond_init (   &gate->last, "gate: init last");
 * 75: }
 * 76: 
-* 77: /*************************************************
+* 77: *************************************************
 * 78:  * destroy a gate variable
-* 79:  */
-/* 80: void pt_gate_destroy(pt_gate_t *gate)
+* 79:  *
+* 80: void pt_gate_destroy(pt_gate_t *gate)
 * 81: {
 * 82:   gate->ngate=gate->nthreads=0;
 * 83:   pt_mutex_destroy(  &gate->mutex, "gate: destroy mutex");
@@ -269,37 +269,37 @@ void pt_sync(pt_sync_t *sync)
 * 86:   pt_cond_destroy (   &gate->last, "gate: destroy last");
 * 87: }
 * 88: 
-* 89: /*************************************************
+* 89: *************************************************
 * 90:  * enter the gate
-* 91:  */
-/* 92: void pt_gate_sync(pt_gate_t *gate)
+* 91:  *
+* 92: void pt_gate_sync(pt_gate_t *gate)
 * 93: {
-* 94:   if (gate->nthreads<2) return;           /* trivial case            */
-/* 95:   pt_mutex_lock(&gate->block,             /* lock the block -- new   */
-/* 96:            "gate: lock block");            /*   threads sleep here    */
-/* 97:   pt_mutex_lock(&gate->mutex,             /* lock the mutex          */
-/* 98:            "gate: lock mutex");
-/* 99:   if (++(gate->ngate) < gate->nthreads) { /* are we the last one in? */
-/* 100:     pt_mutex_unlock(&gate->block,         /* no, unlock block and    */
-/* 101:                "gate: unlock block 1");
-/* 102:     pt_cond_wait(&gate->condvar,          /*   go to sleep           */
-/* 103:             &gate->mutex,
-/* 104:             "gate: wait condvar");
-/* 105:   } else {                                /* yes, we're last         */
-/* 106:     pt_cond_broadcast(&gate->condvar,     /* wake everyone up and    */
-/* 107:                  "gate: bcast condvar");
-/* 108:     pt_cond_wait(&gate->last,&gate->mutex,/* go to sleep til they're */
-/* 109:             "gate: wait last");            /* all awake... then       */
-/* 110:     pt_mutex_unlock(&gate->block,         /* release the block       */
-/* 111:                "gate: unlock block 2");
-/* 112:   }
-/* 113:   if (--(gate->ngate)==1) {               /* next to last one out?   */
-/* 114:     pt_cond_broadcast(&gate->last,        /* yes, wake up last one   */
-/* 115:                  "gate: bcast last");
-/* 116:   }
-/* 117:   pt_mutex_unlock(&gate->mutex,           /* release the mutex       */
-/* 118:              "gate: unlock mutex");
-/* 119: }
+* 94:   if (gate->nthreads<2) return;           * trivial case            *
+* 95:   pt_mutex_lock(&gate->block,             * lock the block -- new   *
+* 96:            "gate: lock block");           *   threads sleep here   *
+* 97:   pt_mutex_lock(&gate->mutex,             * lock the mutex          *
+* 98:            "gate: lock mutex");
+* 99:   if (++(gate->ngate) < gate->nthreads) { * are we the last one in? *
+* 100:     pt_mutex_unlock(&gate->block,         * no, unlock block and    *
+* 101:                "gate: unlock block 1");
+* 102:     pt_cond_wait(&gate->condvar,          *   go to sleep           *
+* 103:             &gate->mutex,
+* 104:             "gate: wait condvar");
+* 105:   } else {                                * yes, we're last         *
+* 106:     pt_cond_broadcast(&gate->condvar,     * wake everyone up and    *
+* 107:                  "gate: bcast condvar");
+* 108:     pt_cond_wait(&gate->last,&gate->mutex,  * go to sleep til they're *
+* 109:             "gate: wait last");             * all awake... then       *
+* 110:     pt_mutex_unlock(&gate->block,           * release the block       *
+* 111:                "gate: unlock block 2");
+* 112:   }
+* 113:   if (--(gate->ngate)==1) {               * next to last one out?   *
+* 114:     pt_cond_broadcast(&gate->last,        * yes, wake up last one   *
+* 115:                  "gate: bcast last");
+* 116:   }
+* 117:   pt_mutex_unlock(&gate->mutex,           * release the mutex       *
+* 118:              "gate: unlock mutex");
+* 119: }
 *
 *
 * The gate_init() function simply initializes the members of the gate_t structure. It takes two arguments: a pointer to the gate_t being * * * * initialized and N, the number of threads the gate is supposed to synchronize.
@@ -652,7 +652,7 @@ lmlint_t Make_ID_Number(lmint_t sockfd){
  * write up together first eight bytes of HWaddress + PID number + random number
  * HWaddr written in upper case
  */
-	if (snprintf(macp, 60, "%02X%02X%02X%02X%d%d\0",
+	if (snprintf(macp, 60, "%02X%02X%02X%02X%d%d",
 		(unsigned lmchar_t)interf->ifr_hwaddr.sa_data[0],
 		(unsigned lmchar_t)interf->ifr_hwaddr.sa_data[1],
 		(unsigned lmchar_t)interf->ifr_hwaddr.sa_data[2],

@@ -90,5 +90,5 @@ void *Sys_Comm_Channel(void *arg){
 	free(c->data_threadsPID);
 	free(c);
 
-	return;
+	return NULL;
 }

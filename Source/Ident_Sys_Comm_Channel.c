@@ -56,8 +56,7 @@
 #include "Check_Request.h"
 
 lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread_str_t *Data_Threads, 
-			       pthread_mutex_t *lock, lmchar_t *name_of_required_data_set, lmchar_t *SR_mode, lsipdx_answer_t *Answers,
-			       lmint_t sockfd)
+	     lmchar_t *name_of_required_data_set, lmchar_t *SR_mode, lsipdx_answer_t *Answers, lmint_t sockfd)
 {
 /*
  * function handles communication between client and server via _sys_comm_ request.
@@ -77,7 +76,7 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 	lmint_t retval, *reqtype;
 	find_t *SFounds;
 	node_t *List;
-	lmchar_t *tmpchar, *req_name, *ATDT_Mode, *KA_mode, *tmpname, *tmpSRmode;
+	lmchar_t *tmpchar, *req_name, *ATDT_Mode, *KA_mode, *tmpname;
 	lmsize_t len, i, nRcli;
 	opts_t *Popts, opts, *Popts_tcp, opts_tcp;
 
@@ -90,7 +89,6 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 	retval = 0;
 	
 	tmpname = name_of_required_data_set;
-// 	tmpSRmode = SR_mode;
 /*
  * find /Header/Name_of_Channel in RecNode
  * if found, the request is normal.
@@ -205,6 +203,9 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 
 			case 100:
 /*
+ * add new connection
+ */
+/*
  * find /_sys_link_/Name_of_Channel in RecNode
  */
 				if( (SFounds = m3l_locator_caller(RecNode, "/_sys_link_/Name_of_Channel", "./*/*",  Popts)) != NULL){
@@ -252,7 +253,7 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 						ATDT_Mode = (lmchar_t *)m3l_get_data_pointer(List);
 /* 
  * free memory allocated in m3l_Locate
-		*/
+ */
 					m3l_DestroyFound(&SFounds);
 				}
 				else
