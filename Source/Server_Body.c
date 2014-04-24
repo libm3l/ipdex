@@ -333,6 +333,9 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			
 			break;
 			
+			case 200:
+			
+			break;			
 			case -1:
 /*
  * wrong data set, possibly the name of connection does not exist
