@@ -144,13 +144,9 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 			}
 			
 			retval = 0;
-/*
- * check legality and availability of request
- */			
+// 			
 			retval = Check_Request( (*DataBuffer), name_of_required_data_set, *SR_mode);
-/*
- * indicate request is a DATA type request
- */
+// 			printf(" RETVAL is %d \n", retval);
 			*Data_Threads->checkdata = 0;
 			return retval;
 		}

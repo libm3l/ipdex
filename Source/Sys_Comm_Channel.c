@@ -78,8 +78,8 @@ void *Sys_Comm_Channel(void *arg){
  * request was a sys_link request
  * add or delete data set
  */
-// 			Sem_post(c->Data_Thread_Pointer->psem);
-// 			pt_sync_mod_sem(c->Data_Thread_Pointer->psync, 0,incrm,c->Data_Thread_Pointer->psem);
+			Sem_post(c->Data_Thread_Pointer->psem);
+			pt_sync_mod_sem(c->Data_Thread_Pointer->psync, 0,incrm,c->Data_Thread_Pointer->psem);
 		}
 	}
 /*

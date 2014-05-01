@@ -68,7 +68,7 @@ data_thread_args_t *Associate_Data_Thread(node_t *List, data_thread_str_t *Data_
 	
 		DataArgs->Node  		=  List;
 		DataArgs->plock 		= &Data_Thread->lock;	
-// 		DataArgs->psem 			= &Data_Thread->sem;	
+		DataArgs->psem 			= &Data_Thread->sem;	
 		DataArgs->pcond 		= &Data_Thread->cond;	
 		DataArgs->psocket    		=  Data_Thread->socket;	
 		DataArgs->pretval    		=  Data_Thread->retval;	
@@ -85,7 +85,6 @@ data_thread_args_t *Associate_Data_Thread(node_t *List, data_thread_str_t *Data_
 		DataArgs->psync->pblock		= &Data_Thread->sync->block;
 		DataArgs->psync->pcondvar	= &Data_Thread->sync->condvar;
 		DataArgs->psync->plast		= &Data_Thread->sync->last;
-		DataArgs->psync->pincrm		= &Data_Thread->sync->incrm;
 /*
  * malloc pData_Str and associate with Data_Str
  * only if specified
