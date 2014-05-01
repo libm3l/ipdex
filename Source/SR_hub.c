@@ -242,7 +242,7 @@ void *SR_hub(void *arg)
  */
 					pt_sync_mod(c->psync_loc, 0, 1);
 					
-					while(1);
+// 					while(1);
 /*
  * once the data transfer is finished wait until all data is tranferred and S and R threads close their socket
 */
