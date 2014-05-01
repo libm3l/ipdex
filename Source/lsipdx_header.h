@@ -62,8 +62,9 @@ typedef struct lsipdx_answer{
  */
  typedef struct pt_sync{
 	lmsize_t *nsync, *pnsync; 		/* local counter of threads, used in pt_sync() */
-	lmsize_t *nthreads, *pnthreads;   /* number of threads which will be synchronized, should be specified before syncing */
-	pthread_mutex_t mutex, *pmutex;	 	 /* mutex used by pt_sync() */
+	lmsize_t *nthreads, *pnthreads; 	/* number of threads which will be synchronized, should be specified before syncing */
+	lmsize_t *incrm, *pincrm;		/* increment/decrement number of sync threads */
+	pthread_mutex_t mutex, *pmutex;	 	/* mutex used by pt_sync() */
 	pthread_mutex_t block, *pblock;  	/* mutex used by pt_sync() */
 	pthread_cond_t condvar, *pcondvar;  	/* condition variable used by pt_sync() */
 	pthread_cond_t last, *plast; 		/* condition variable used by pt_sync() */
@@ -86,7 +87,7 @@ typedef struct data_thread_int_str{
 typedef struct data_thread_args{
 	pthread_mutex_t   	*plock;	 	/* mutex */
 	pthread_cond_t    	*pcond;   	/* condition variable */
-	sem_t 		  	*psem;		/* semaphore */
+// 	sem_t 		  	*psem;		/* semaphore */
 	node_t 			*Node;		/* libm3l node_t structure pointer specifying name and other data for Data_Thread*/
 	lmint_t  		*psocket,  *pretval, *pcheckdata;	/* socket ID passed to data_Thread, message upon receiving it, return value */
 	lmsize_t		*pcounter, *prcounter;  /* number of available threads, sync variable, number of 
@@ -102,7 +103,7 @@ typedef struct data_thread_args{
 typedef struct data_thread_str{
 	pthread_mutex_t   	lock;	 	/* mutex */
 	pthread_cond_t    	cond;   	/* condition variable */
-	sem_t 		 	sem;		/* semaphore */
+// 	sem_t 		 	sem;		/* semaphore */
 
 	lmsize_t 		n_data_threads;  /* number of thread in group data_threads */
 	lmsize_t 		*data_threads_availth_counter, *data_threads_remainth_counter; 	/* number of available and free threads  */

@@ -451,7 +451,9 @@ void pt_sync_mod(pt_sync_t *sync, lmsize_t addjob, lmsize_t incrm)
 /*
  * modify number of jobs which are synced
  */
-		if(  (*sync->pnthreads = *sync->pnthreads + addjob) < 0) *sync->pnthreads = 0;
+		if(addjob > 0){
+			if(  (*sync->pnthreads = *sync->pnthreads + *sync->incrm) < 0) *sync->pnthreads = 0;
+		}
 /*
  * wake up all waiting processes
  */

@@ -99,7 +99,9 @@ data_thread_str_t *Allocate_Data_Thread_DataSet(void){
 		Perror("Data_Thread: Data_Thread->sybc->nsync");	
 	if ( (Data_Thread->sync->nthreads  = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
 		Perror("Data_Thread: Data_Thread->sybc->nthreads");
-
+	if ( (Data_Thread->sync->incrm  = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
+		Perror("Data_Thread: Data_Thread->sybc->incrm");
+	
 	Pthread_mutex_init(&Data_Thread->sync->mutex);
 	Pthread_mutex_init(&Data_Thread->sync->block);
 	Pthread_cond_init(&Data_Thread->sync->condvar);
@@ -121,12 +123,13 @@ data_thread_str_t *Allocate_Data_Thread_DataSet(void){
  */
 	Data_Thread->n_data_threads = 0;
 	*Data_Thread->sync->nthreads = Data_Thread->n_data_threads + 2;
+	*Data_Thread->sync->incrm = 0;
 /*
  * initialize mutex, barrier and condition variable
  */
 	Pthread_mutex_init(&Data_Thread->lock);
 	Pthread_cond_init(&Data_Thread->cond);
-	Sem_init(&Data_Thread->sem, 0);
+// 	Sem_init(&Data_Thread->sem, 0);
 /*
  * this parameter says if the Data_Thread identifies data or no
  * if client ask for connection to another client (usual mode) checkdata == 0

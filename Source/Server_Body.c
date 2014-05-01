@@ -262,7 +262,8 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 /*
  * request was _sys_link_ request
  */
-					pt_sync_mod_sem(Data_Threads->sync,0,0,&Data_Threads->sem);
+					pt_sync(Data_Threads->sync);
+// 					pt_sync_mod_sem(Data_Threads->sync,0,0,&Data_Threads->sem);
 				}
 /*
  * when data set is identified in Data_Thread the retval is set to 1
@@ -373,7 +374,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 
 	Pthread_mutex_destroy(&Data_Threads->lock);
 	Pthread_cond_destroy(&Data_Threads->cond);
-	Sem_destroy(&Data_Threads->sem);
+// 	Sem_destroy(&Data_Threads->sem);
 	
 	free(Data_Threads->name_of_data_set);
 	free(Data_Threads->SR_mode);
