@@ -206,7 +206,7 @@ void *SR_hub(void *arg)
  */
 // 						pt_sync_mod(c->psync_loc, 0, 1);
 						Sem_wait(c->psem_g);   
-// 					}while(*c->pEOFC_ENDh == 1);  /* this value is not protected by mtex
+// 					}while(*c->pEOFC_ENDh == 1);  /* this value is not protected by mutex
 // 							at this point should be accessed only by this process */
 					}while(valueOfSharedVariable(c) == 1);
 
