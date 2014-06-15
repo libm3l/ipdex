@@ -87,7 +87,6 @@ typedef struct data_thread_int_str{
 typedef struct data_thread_args{
 	pthread_mutex_t   	*plock;	 	/* mutex */
 	pthread_cond_t    	*pcond;   	/* condition variable */
-// 	sem_t 		  	*psem;		/* semaphore */
 	node_t 			*Node;		/* libm3l node_t structure pointer specifying name and other data for Data_Thread*/
 	lmint_t  		*psocket,  *pretval, *pcheckdata;	/* socket ID passed to data_Thread, message upon receiving it, return value */
 	lmsize_t		*pcounter, *prcounter;  /* number of available threads, sync variable, number of 
@@ -103,7 +102,6 @@ typedef struct data_thread_args{
 typedef struct data_thread_str{
 	pthread_mutex_t   	lock;	 	/* mutex */
 	pthread_cond_t    	cond;   	/* condition variable */
-// 	sem_t 		 	sem;		/* semaphore */
 
 	lmsize_t 		n_data_threads;  /* number of thread in group data_threads */
 	lmsize_t 		*data_threads_availth_counter, *data_threads_remainth_counter; 	/* number of available and free threads  */
@@ -176,17 +174,6 @@ typedef struct SR_hub_thread_str{
 	pt_sync_t		*psync_loc;
 }SR_hub_thread_str_t;
 
-
-
-/*
- * structure for thread communicating with server
- * - need to have access to Data_Thread and SR_Data_Thread
- */
-typedef struct Server_Comm_DataStr{
-	pthread_t 		*data_threadsPID;			/* thread ID of all threads in group data_threads */
-	data_thread_args_t *Data_Thread_Pointer;
-// 	SR_thread_str_t *SR_Data_Thread_Pointer;
-}Server_Comm_DataStr_t;
 
 /*
  * stores data needed to identify modes of connection etc.

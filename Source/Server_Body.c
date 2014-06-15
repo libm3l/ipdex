@@ -54,9 +54,7 @@
 #include "Server_Body.h"
 #include "Allocate_DataBuffer.h"
 #include "ACK.h"
-#include "Sys_Comm_Channel.h"
 #include "Allocate_Data_Thread_DataSet.h"
-#include "Start_SysComm_Thread.h"
 #include "Ident_Sys_Comm_Channel.h"
 
 
@@ -71,7 +69,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	socklen_t clilen;
 	find_t *Tqst_SFounds;
 	node_t *RecNode, *DataBuffer;
-	Server_Comm_DataStr_t *SysCommDatSet=NULL;
 	lsipdx_answer_t *Answers;
 
 	opts_t *Popts, opts;
@@ -98,8 +95,8 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 /*
  * start sys com thread
  */
-	if( (SysCommDatSet = Start_SysComm_Thread(Data_Threads)) == NULL)
-		Perror("Server_Body: Start_SysComm_Thread error");
+// 	if( (SysCommDatSet = Start_SysComm_Thread(Data_Threads)) == NULL)
+// 		Perror("Server_Body: Start_SysComm_Thread error");
 /*
  * spawn all threads
  */
@@ -202,7 +199,9 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			case 0:
 /* 
  * Legal request, not in buffer, data_thread available 
+ * set checkdata to 0 to notify Data_Thread that this is a usual arriving request
  */
+				*Data_Threads->checkdata = 0;
 				if(SR_mode == 'S'){
 /*
  * if process is sender, indicate Sender that header was received before receiving payload
@@ -252,19 +251,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * when all Data_Thread are finished, - the identification part, the threads are waiting on each other. 
  * the last thread unlock the semaphore so that the next loop can start
  */		
-				if(*Data_Threads->checkdata == 0){
-/*
- * if request was a usual request
- */
-					pt_sync(Data_Threads->sync);
-				}
-				else{
-/*
- * request was _sys_link_ request
- */
-					pt_sync(Data_Threads->sync);
-// 					pt_sync_mod_sem(Data_Threads->sync,0,0,&Data_Threads->sem);
-				}
+				pt_sync(Data_Threads->sync);
 /*
  * when data set is identified in Data_Thread the retval is set to 1
  * If all threads went attempted to evaluate the incoming request and 
@@ -331,11 +318,25 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			break;
 			
 			case 100:
+/*
+ * notify Data_Thread that this is a "system" request, ie. 
+ * request which changes status of existing channels or adds a new one
+ */
+				*Data_Threads->checkdata = 1;
+// 				*Data_Threads->incrm = 1;  /* nunber of sync jobs is going to be + 1 */
+// 				*Data_Threads->addj  = 1;  /* nunber of sync jobs is going to be + 1 */
 			
 			break;
 			
 			case 200:
-			
+				*Data_Threads->checkdata = 1;
+// 				*Data_Threads->incrm = -1;  /* nunber of sync jobs is going to be + 1 */
+// 				*Data_Threads->addj  = -1;  /* nunber of sync jobs is going to be + 1 */
+/*
+ * notify Data_Thread that this is a "system" request, ie. 
+ * request which changes status of existing channels or adds a new one
+ */
+				*Data_Threads->checkdata = 1;			
 			break;			
 			case -1:
 /*

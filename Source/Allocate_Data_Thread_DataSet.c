@@ -117,13 +117,13 @@ data_thread_str_t *Allocate_Data_Thread_DataSet(void){
 	*Data_Thread->sync->nsync    = 0;
 /*
  * Set temporarily the value of the Data_Thread->sync->nthreads to 1. Later it will be set to 
- * o number of data sets + 2 (it. sync all Data_Thread (n_data_threads) + 
- * 1 for Server_Body + 1 for Sys_Comm_Channel. This is done in Start_Data_Thread, at the moment we do not know 
- * how many threads will be used so the value will be 2 (one for Server_Body + 1 for Sys_Comm_Channel)
+ * number of data sets + 1 (it. sync all Data_Thread (n_data_threads) + 
+ * 1 for Server_Body . This is done in Start_Data_Thread, at the moment we do not know 
+ * how many threads will be used so the value will be 2 (one for Server_Body)
  */
 	Data_Thread->n_data_threads = 0;
-	*Data_Thread->sync->nthreads = Data_Thread->n_data_threads + 2;
-	*Data_Thread->sync->incrm = 0;
+	*Data_Thread->sync->nthreads = Data_Thread->n_data_threads + 1;
+	*Data_Thread->sync->incrm = 0; /* this is used to if number of syncs threads is different then number defined in n_data_threads */
 /*
  * initialize mutex, barrier and condition variable
  */
