@@ -41,7 +41,7 @@
 #ifndef  __ALLOCATE_DATABUFFER_H__
 #define  __ALLOCATE_DATABUFFER_H__
 
-node_t *Allocate_DataBuffer(node_t *);
-lmint_t Additional_Data2Buffer(node_t **);
+extern node_t *Allocate_DataBuffer(node_t *);
+extern lmint_t Additional_Data2Buffer(node_t **);
 
 #endif

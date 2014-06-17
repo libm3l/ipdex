@@ -118,7 +118,16 @@ node_t *Allocate_DataBuffer(node_t *Gnode){
 
 
 lmint_t Additional_Data2Buffer(node_t **TmpNode){
-	
+/*
+ * add additional data
+ * Thread_Status 0 - thread is free
+ *               1 - thread is occupied
+ * S_Status      0 - S channel is free
+ *               1 - S channel is occupied
+ * R_Status      < number of allocated R_channels
+ *                 channels are free
+ *               == number of allocated R_channels - all R channels are occupied
+ */
 	lmsize_t dim[1];
 	lmint_t *tmpint;
 	lmsize_t *tmpszt;

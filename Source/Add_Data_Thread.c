@@ -55,8 +55,9 @@
 #include "Data_Thread.h"
 #include "Server_Functions_Prt.h"
 #include "Associate_Data_Thread.h"
+#include "Allocate_DataBuffer.h"
 
-lmsize_t Add_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
+lmsize_t Add_Data_Thread(node_t **Gnode, data_thread_str_t *Data_Thread, node_t **Buffer){
 /*
  * function spawns data_threads
  * the number of threads is defined by the number of data sets to be transferred
@@ -75,26 +76,17 @@ lmsize_t Add_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
 	node_t *List;
 	data_thread_int_str_t **Tmp;
 	
-	if(Gnode == NULL){
+	retval = 0;
+	
+	if(*Gnode == NULL){
 		Warning("Add_Data_Thread: NULL Gnode");
 		return -1;
 	}
 /*
  * find how many data sets - defines how many data_threads to spawn
  */
-	if( (SFounds = m3l_Locate(Gnode, "/Buffer/Channel", "/*/*", (lmchar_t *)NULL)) != NULL){
-		
-		Data_Thread->n_data_threads = m3l_get_Found_number(SFounds);
-		retval = Data_Thread->n_data_threads;
-		
-		if(Data_Thread->n_data_threads == 0){
-			Error("Server: did not find any Data_set");
-			m3l_DestroyFound(&SFounds);
-		}
-	}
-	else
-	{
-		printf("Server: did not find any Data_set\n");
+	if( (SFounds = m3l_Locate(*Gnode, "/Channel", "/*/*", (lmchar_t *)NULL)) == NULL){
+		printf("Add_Data_Thread: did not find any Channel data\n");
 		exit(0);
 	}
 /*
@@ -168,8 +160,12 @@ lmsize_t Add_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
 
 	m3l_DestroyFound(&SFounds);
 /*
- * NOTE: add the new list to Buffer
+ * Add the new Channel to Buffer
  */
+ 	if( m3l_Mv(Gnode,  "./Channel", "./*", Buffer, "/Buffer", "/*", (lmchar_t *)NULL) == -1)
+		Error("Allocate_DataBuffer: Mv");
+	
+	Additional_Data2Buffer(Gnode);
 	
 	return retval;
 }

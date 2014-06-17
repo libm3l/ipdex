@@ -67,7 +67,7 @@ node_t *ackn(void)
 	if(  (TmpNode = m3l_Mklist("ANSWER", "C", 1, dim, &Gnode, "/Answer", "./", "--no_malloc", (char *)NULL)) == 0)
 		Error("m3l_Mklist");
 	TmpNode->data.c = answer;
-	
+	TmpNode->data.c[dim[0]] = '\0';
 	free(dim);
 	
  	return Gnode;
@@ -175,4 +175,71 @@ void DestroyPredefinedAnswers(lsipdx_answer_t **Answers){
 
 	free(*Answers);
 	*Answers = NULL;
+}
+
+node_t * ChannelList(lmchar_t *name, lmsize_t Rproc, lmchar_t ATDT_mode, lmchar_t KA_mode){
+/*
+ * function makes a node with details about Channel
+ * example is below
+ *
+ *
+ *  -DIR     Channel                 7
+ *  -C                Name_of_Channel 1 ...
+ *                            Density
+ *  -I                Sending_Process  1 1
+ *                                1 
+ *  -ST               Receiving_Processes  1 1
+ *                                Rproc 
+ *   -DIR             CONNECTION   
+ *   -C                            ATDT_Mode 1  2
+ *                                       ATDT_mode
+ *   -C                            KEEP_CONN_ALIVE_Mode 1  2
+ *                                       KA_mode
+ */                                       
+	node_t *RetNode = NULL, *TmpNode = NULL, *TmpNode1=NULL;
+	lmsize_t dim[1], *tmpsize;
+	lmchar_t *tmpchar;
+	lmint_t *tmpint;
+	
+	if(  (RetNode = m3l_Mklist("Channel", "DIR", 0, 0, (node_t **)NULL, (const char *)NULL, (const char *)NULL, (char *)NULL)) == 0)
+		Perror("ChannelList: Mklist");
+	
+	if( (dim[0] = strlen(name)+1) < 1)
+		Error("ChannelList: wrong name of channel");
+	
+	if(  (TmpNode = m3l_Mklist("Name_of_Channel", "C", 1, dim, &RetNode, "./Channel", "./", (char *)NULL)) == 0)
+		Error("Allocate_DataBuffer: m3l_Mklist");
+	tmpchar = (lmchar_t *)m3l_get_data_pointer(TmpNode);
+	if( snprintf(tmpchar, dim[0],"%s",name) < 0)
+		Perror("snprintf");
+	tmpchar[dim[0]] = '\0';
+	
+	dim[0] = 1;
+	if(  (TmpNode = m3l_Mklist("Sending_Process", "I", 1, dim, &RetNode, "./Channel", "./", (char *)NULL)) == 0)
+		Error("Allocate_DataBuffer: m3l_Mklist");
+	tmpint = (lmint_t *)m3l_get_data_pointer(TmpNode);
+	tmpint[0] = 1;
+
+	if(  (TmpNode = m3l_Mklist("Receiving_Processes", "ST", 1, dim, &RetNode, "./Channel", "./", (char *)NULL)) == 0)
+		Error("Allocate_DataBuffer: m3l_Mklist");
+	tmpsize = (lmsize_t *)m3l_get_data_pointer(TmpNode);
+	tmpsize[0] = Rproc;
+	
+	if(  (TmpNode = m3l_Mklist("CONNECTION", "DIR", 0, 0, &RetNode, "./Channel", "./", (char *)NULL)) == 0)
+		Perror("ChannelList: Mklist");
+	
+	dim[0] = 2;
+	if(  (TmpNode1 = m3l_Mklist("ATDT_Mode", "C", 1, dim, &TmpNode, "./CONNECTION", "./", (char *)NULL)) == 0)
+		Error("m3l_Mklist");
+	TmpNode1->data.c[0] = ATDT_mode;
+	TmpNode1->data.c[1] = '\0';
+
+	if(  (TmpNode1 = m3l_Mklist("KEEP_CONN_ALIVE_Mode", "C", 1, dim, &TmpNode, "./CONNECTION", "./", (char *)NULL)) == 0)
+		Error("m3l_Mklist");
+	TmpNode1->data.c[0] = ATDT_mode;
+	TmpNode1->data.c[1] = '\0';
+
+
+	return RetNode;
+	
 }

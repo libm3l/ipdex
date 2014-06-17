@@ -48,4 +48,6 @@ extern node_t *ret_receipt(lmint_t);
 extern lsipdx_answer_t *MakePredefinedAnswers();
 extern void DestroyPredefinedAnswers(lsipdx_answer_t **);
 
+extern node_t * ChannelList(lmchar_t *, lmsize_t, lmchar_t, lmchar_t);
+
 #endif

@@ -41,6 +41,6 @@
 #ifndef  __ADD_DATA_THREAD_H__
 #define  __ADD_DATA_THREAD_H__
 
-lmsize_t Add_Data_Thread(node_t *, data_thread_str_t *);
+extern lmsize_t Add_Data_Thread(node_t **, data_thread_str_t *, node_t **);
 
 #endif
