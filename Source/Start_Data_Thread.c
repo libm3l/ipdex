@@ -75,7 +75,7 @@ lmsize_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
 	node_t *List;
 	
 	if(Gnode == NULL){
-		Warning("Data_Thread: NULL Gnode");
+		Warning("Start_Data_Thread: NULL Gnode");
 		return -1;
 	}
 /*
@@ -103,10 +103,10 @@ lmsize_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
 
 	if(Data_Thread->Data_Str == NULL){
 		if( (Data_Thread->Data_Str = (data_thread_int_str_t **)malloc(sizeof(data_thread_int_str_t *) * Data_Thread->n_data_threads)) == NULL)
-		Perror("Data_Thread: Data_Thread->Data_Str malloc");
+		Perror("Start_Data_Thread: Data_Thread->Data_Str malloc");
 	}
 	else{
-		Error("Data_Thread: Data_Thread->Data_Str already malloced");
+		Error("Start_Data_Thread: Data_Thread->Data_Str already malloced");
 	}
 /*
  * allocate Data_Str
@@ -114,48 +114,48 @@ lmsize_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
 	for(i=0; i < Data_Thread->n_data_threads; i++){
 		
 		if( (Data_Thread->Data_Str[i] = (data_thread_int_str_t *)malloc(sizeof(data_thread_int_str_t))) == NULL)
-			Perror("Data_Thread: Data_Thread->Data_Str[] malloc");
+			Perror("Start_Data_Thread: Data_Thread->Data_Str[] malloc");
 /*
  * malloc for PID of the thread
  */
 		if( (Data_Thread->Data_Str[i]->data_threadPID = (pthread_t *)malloc(sizeof(pthread_t))) == NULL)
-			Perror("Data_Thread: Data_Thread->Data_Str->data_threads malloc");
+			Perror("Start_Data_Thread: Data_Thread->Data_Str->data_threads malloc");
 /*
  * malloc variable for its name (connection.channel name). This variable
  * will be then defined in Start_Data_Thread where each individual thread 
  * gets its own connection
  */
 		if( (Data_Thread->Data_Str[i]->name_of_channel = (lmchar_t *)malloc(MAX_NAME_LENGTH* sizeof(lmchar_t))) == NULL)
-			Perror("Data_Thread: Data_Thread->Data_Str->name_of_channel malloc");
+			Perror("Start_Data_Thread: Data_Thread->Data_Str->name_of_channel malloc");
 /*
  * malloc status_run variable and set it to 1; if 0 thread will be terminated
  */
 		if( (Data_Thread->Data_Str[i]->status_run = (lmint_t *)malloc(MAX_NAME_LENGTH* sizeof(lmint_t))) == NULL)
-			Perror("Data_Thread: Data_Thread->Data_Str->lmint_t malloc");
+			Perror("Start_Data_Thread: Data_Thread->Data_Str->lmint_t malloc");
 		*Data_Thread->Data_Str[i]->status_run = 1;
 	}
 	
 // 	if( (Data_Thread->data_threads_availth_counter = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
-// 		Perror("Data_Thread: Data_Thread->data_threads_availth_counter");
+// 		Perror("Start_Data_Thread: Data_Thread->data_threads_availth_counter");
 // 	if( (Data_Thread->data_threads_remainth_counter = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
-// 		Perror("Data_Thread: Data_Thread->data_threads_remainth_counter");
+// 		Perror("Start_Data_Thread: Data_Thread->data_threads_remainth_counter");
 // 	if( (Data_Thread->socket = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
-// 		Perror("Data_Thread: Data_Thread->socket");
+// 		Perror("Start_Data_Thread: Data_Thread->socket");
 // 	if( (Data_Thread->retval = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
-// 		Perror("Data_Thread: Data_Thread->retval");
+// 		Perror("Start_Data_Thread: Data_Thread->retval");
 // 	if ( (Data_Thread->name_of_data_set  = (lmchar_t *)malloc(MAX_NAME_LENGTH* sizeof(lmchar_t))) == NULL)
-// 		Perror("Data_Thread: Data_Thread->name_of_data_set");	
+// 		Perror("Start_Data_Thread: Data_Thread->name_of_data_set");	
 // 	if ( (Data_Thread->SR_mode  = (lmchar_t *)malloc(sizeof(lmchar_t))) == NULL)
-// 		Perror("Data_Thread: Data_Thread->SR_mode");
+// 		Perror("Start_Data_Thread: Data_Thread->SR_mode");
 // /*
 //  * initialize sync 
 //  */
 // 	if ( (Data_Thread->sync  = (pt_sync_t *)malloc(sizeof(pt_sync_t))) == NULL)
-// 		Perror("Data_Thread: Data_Thread->sync");
+// 		Perror("Start_Data_Thread: Data_Thread->sync");
 // 	if ( (Data_Thread->sync->nsync  = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
-// 		Perror("Data_Thread: Data_Thread->sybc->nsync");	
+// 		Perror("Start_Data_Thread: Data_Thread->sybc->nsync");	
 // 	if ( (Data_Thread->sync->nthreads  = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
-// 		Perror("Data_Thread: Data_Thread->sybc->nthreads");
+// 		Perror("Start_Data_Thread: Data_Thread->sybc->nthreads");
 // 
 // 	Pthread_mutex_init(&Data_Thread->sync->mutex);
 // 	Pthread_mutex_init(&Data_Thread->sync->block);

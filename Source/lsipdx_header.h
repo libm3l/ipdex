@@ -78,37 +78,37 @@ typedef struct lsipdx_answer{
  */
 
 typedef struct data_thread_int_str{
-	pthread_t 		*data_threadPID;		/* thread ID of all threads in group data_threads */
+	pthread_t 		*data_threadPID;	/* thread ID of all threads in group data_threads */
 	lmchar_t 		*name_of_channel;	/* each spawn thread corresponds to required channel (data link)
 								store the name in this variable */
 	lmint_t			*status_run;		/* if 1, thread is active, if 0, thread should be terminated */
 }data_thread_int_str_t;
 
 typedef struct data_thread_args{
-	pthread_mutex_t   	*plock;	 	/* mutex */
-	pthread_cond_t    	*pcond;   	/* condition variable */
-	node_t 			*Node;		/* libm3l node_t structure pointer specifying name and other data for Data_Thread*/
+	pthread_mutex_t   	*plock;	 		/* mutex */
+	pthread_cond_t    	*pcond;   		/* condition variable */
+	node_t 			*Node;			/* libm3l node_t structure pointer specifying name and other data for Data_Thread*/
 	lmint_t  		*psocket,  *pretval, *pcheckdata;	/* socket ID passed to data_Thread, message upon receiving it, return value */
 	lmsize_t		*pcounter, *prcounter;  /* number of available threads, sync variable, number of 
 							remaining threads = *pcounter - taken threads */
 	lmchar_t 		*pname_of_data_set, *pSR_mode;	/* stores data_set name which is then compared in data_thread and SM_mode */
 	pt_sync_t		*psync;
-	data_thread_int_str_t	*pData_Str;	/* Data_Thread specific data PID, name_of_channel etc. */
+	data_thread_int_str_t	*pData_Str;		/* Data_Thread specific data PID, name_of_channel etc. */
 }data_thread_args_t;
 
 /*
  * heap data for Data_Thread, allcoated in Allocate_Data_Thread_DataSet
  */
 typedef struct data_thread_str{
-	pthread_mutex_t   	lock;	 	/* mutex */
-	pthread_cond_t    	cond;   	/* condition variable */
+	pthread_mutex_t   	lock;	 		/* mutex */
+	pthread_cond_t    	cond;   		/* condition variable */
 
-	lmsize_t 		n_data_threads;  /* number of thread in group data_threads */
+	lmsize_t 		n_data_threads;  	/* number of thread in group data_threads */
 	lmsize_t 		*data_threads_availth_counter, *data_threads_remainth_counter; 	/* number of available and free threads  */
 	lmchar_t 		*name_of_data_set, *SR_mode;	/* stores data_set name which is then compared in data_thread  and SR_moode*/
 	lmint_t  		*socket,  *retval, *checkdata;		/* socket ID passed to data_Thread, message upon receiving it, yes or not to check data*/
 	pt_sync_t		*sync;
-	data_thread_int_str_t	**Data_Str;	/* Data_Thread specific data PID, name_of_channel etc. */
+	data_thread_int_str_t	**Data_Str;		/* Data_Thread specific data PID, name_of_channel etc. */
 }data_thread_str_t;
 
 
@@ -137,15 +137,15 @@ typedef struct SR_thread_args{
  * heap data for SR_Data_Thread, allocated in SR_Data_Thread
  */
 typedef struct SR_thread_str{
-	pthread_mutex_t   	lock;								/* mutex */
-	pthread_cond_t    	dcond;								/* condition variable */	
-	sem_t 		  	sem, sem_g;							/* semaphore */
+	pthread_mutex_t   	lock;				/* mutex */
+	pthread_cond_t    	dcond;				/* condition variable */	
+	sem_t 		  	sem, sem_g;			/* semaphore */
 	lmchar_t 		*buffer;			/* buffer where the exchange data will be written and read from */
 	pthread_t 		*data_threads;			/* thread ID of all threads in group data_threads */
 	lmint_t  		*sockfd, *EofBuff, *sync;	/* socket id, unique to every thread, can be in thread stack , End-ofbuffer signal */
 	lmchar_t 		*SR_mode;			/* threads mode - Sender(S), Receiver(R) */
 	lmchar_t 		*ATDT_mode, *KA_mode;
-	lmsize_t  		*thr_cntr;            					/* thread counter */
+	lmsize_t  		*thr_cntr;            		/* thread counter */
 	lmsize_t 		*R_availth_counter, *R_remainth_counter, *ngotten; 	/* number of available and free threads, length of
 											buffer from TCP/IP   */
 	pt_sync_t		*sync_loc;

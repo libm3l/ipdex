@@ -58,8 +58,7 @@ node_t *Allocate_DataBuffer(node_t *Gnode){
  */
 	lmsize_t i, n_data_threads, *dim;
 	find_t *SFounds=NULL;
-	node_t *BuffNode=NULL, *TmpNode=NULL, *TmpNode1=NULL;
-	lmint_t *tmpint;
+	node_t *BuffNode=NULL, *TmpNode=NULL;
 	
 	if(Gnode == NULL){
 		Warning("Allocate_DataBuffer: NULL Gnode");
@@ -82,18 +81,19 @@ node_t *Allocate_DataBuffer(node_t *Gnode){
 		printf("Allocate_DataBuffer: did not find any Data_set\n");
 		exit(0);
 	}
+	
+	
+	if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
+		Error("CatData");
+	
 /*
  * make buffer structure
  */
 	if(  (BuffNode = m3l_Mklist("Buffer", "DIR", 0, 0, (node_t **)NULL, (const char *)NULL, (const char *)NULL, (char *)NULL)) == 0)
 		Perror("Allocate_DataBuffer: Mklist");
 
-	dim = (size_t *) malloc( 1* sizeof(lmsize_t));
-	dim[0] = 1;
-
-// 	if(  (TmpNode = m3l_Mklist("N_data_sets", "ST", 1, dim, &BuffNode, "/Buffer", "./", (char *)NULL)) == 0)
-// 		Error("m3l_Mklist");
-// 	TmpNode->data.st[0] = n_data_threads;
+	if( (dim = (size_t *) malloc( 1* sizeof(lmsize_t))) == NULL)
+		Error("Allocate_DataBuffer: Malloc error");
 /*
  * move Channel lists to buffer 
  * and add Thread_Status integer
@@ -104,27 +104,39 @@ node_t *Allocate_DataBuffer(node_t *Gnode){
 		if( m3l_Mv(&TmpNode,  "./Channel", "./*", &BuffNode, "/Buffer", "/*", (lmchar_t *)NULL) == -1)
 			Error("Allocate_DataBuffer: Mv");
 		
-		dim[0] = 1;
-		if(  (TmpNode1 = m3l_Mklist("Thread_Status", "I", 1, dim, &TmpNode, "./Channel", "./", (char *)NULL)) == 0)
-			Error("Allocate_DataBuffer:m3l_Mklist");
-		tmpint = (lmint_t *)m3l_get_data_pointer(TmpNode1);
-		tmpint[0] = 0;
-		if(  (TmpNode1 = m3l_Mklist("S_Status", "I", 1, dim, &TmpNode, "./Channel", "./", (char *)NULL)) == 0)
-			Error("Allocate_DataBuffer:m3l_Mklist");
-		tmpint = (lmint_t *)m3l_get_data_pointer(TmpNode1);
-		tmpint[0] = 0;
-		if(  (TmpNode1 = m3l_Mklist("R_Status", "ST", 1, dim, &TmpNode, "./Channel", "./", (char *)NULL)) == 0)
-			Error("Allocate_DataBuffer:m3l_Mklist");
-		tmpint = (lmint_t *)m3l_get_data_pointer(TmpNode1);
-		tmpint[0] = 0;}
+		Additional_Data2Buffer(&TmpNode);
+	}
 	
-// 	if(m3l_Cat(BuffNode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
-// 		Error("CatData");
-// exit;
-
+	if(m3l_Cat(BuffNode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
+		Error("CatData");
 
 	free(dim);
 	
 	m3l_DestroyFound(&SFounds);
 	return BuffNode;
+}
+
+
+lmint_t Additional_Data2Buffer(node_t **TmpNode){
+	
+	lmsize_t dim[1];
+	lmint_t *tmpint;
+	lmsize_t *tmpszt;
+	node_t *TmpNode1;
+	
+	dim[0] = 1;
+	if(  (TmpNode1 = m3l_Mklist("Thread_Status", "I", 1, dim, TmpNode, "./Channel", "./", (char *)NULL)) == 0)
+		Error("Allocate_DataBuffer:m3l_Mklist");
+	tmpint = (lmint_t *)m3l_get_data_pointer(TmpNode1);
+	tmpint[0] = 0;
+	if(  (TmpNode1 = m3l_Mklist("S_Status", "I", 1, dim, TmpNode, "./Channel", "./", (char *)NULL)) == 0)
+		Error("Allocate_DataBuffer:m3l_Mklist");
+	tmpint = (lmint_t *)m3l_get_data_pointer(TmpNode1);
+	tmpint[0] = 0;
+	if(  (TmpNode1 = m3l_Mklist("R_Status", "ST", 1, dim, TmpNode, "./Channel", "./", (char *)NULL)) == 0)
+		Error("Allocate_DataBuffer:m3l_Mklist");
+	tmpszt = (lmsize_t *)m3l_get_data_pointer(TmpNode1);
+	tmpszt[0] = 0;
+		
+	return 1;
 }

@@ -68,7 +68,6 @@ data_thread_args_t *Associate_Data_Thread(node_t *List, data_thread_str_t *Data_
 	
 		DataArgs->Node  		=  List;
 		DataArgs->plock 		= &Data_Thread->lock;	
-// 		DataArgs->psem 			= &Data_Thread->sem;	
 		DataArgs->pcond 		= &Data_Thread->cond;	
 		DataArgs->psocket    		=  Data_Thread->socket;	
 		DataArgs->pretval    		=  Data_Thread->retval;	

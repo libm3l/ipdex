@@ -22,9 +22,9 @@
 
 
 /*
- *     Header file Allocate_DataBuffer.h
+ *     Header file Add_Data_Thread.h
  *
- *     Date: 2013-05-24
+ *     Date: 2013-05-11
  * 
  *
  *     Modifications:
@@ -38,10 +38,9 @@
 
 
 
-#ifndef  __ALLOCATE_DATABUFFER_H__
-#define  __ALLOCATE_DATABUFFER_H__
+#ifndef  __ADD_DATA_THREAD_H__
+#define  __ADD_DATA_THREAD_H__
 
-node_t *Allocate_DataBuffer(node_t *);
-lmint_t Additional_Data2Buffer(node_t **);
+lmsize_t Add_Data_Thread(node_t *, data_thread_str_t *);
 
 #endif
