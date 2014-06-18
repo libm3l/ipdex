@@ -577,7 +577,6 @@ lmint_t get_exchange_channel_mode(lmchar_t ATDTMode, lmchar_t KeepAlive_Mode){
 		retval = -1;
 	
 	return retval;
-
 }
 
 lmlint_t Make_ID_Number(lmint_t sockfd){
