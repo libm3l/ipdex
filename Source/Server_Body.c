@@ -56,6 +56,7 @@
 #include "ACK.h"
 #include "Allocate_Data_Thread_DataSet.h"
 #include "Ident_Sys_Comm_Channel.h"
+#include "Add_Data_Thread.h"
 
 
 lmint_t Server_Body(node_t *Gnode, lmint_t portno){
@@ -183,7 +184,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * 
  * the second is data transfer request for Data_Thread
  * 
- * Data_Thread thread spanws n SR threads (1 Sending thread and n-1 Reading threads) which take care of data transfer,
+ * Data_Thread thread spawns n SR threads (1 Sending thread and n-1 Reading threads) which take care of data transfer,
  * so once the data_thread is identified n-times, the thread is taken away from 
  * pool of available data threads (ie. decrement  (*Data_Threads->data_threads_availth_counter)--)
  * Once the data transfer is finished, add the data thread to the pool of available data threads
@@ -318,9 +319,38 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * request which changes status of existing channels or adds a new one
  */
 				*Data_Threads->checkdata = 1;
+
+				
 // 				*Data_Threads->incrm = 1;  /* nunber of sync jobs is going to be + 1 */
 // 				*Data_Threads->addj  = 1;  /* nunber of sync jobs is going to be + 1 */
-			
+				Pthread_mutex_unlock(&Data_Threads->lock);
+/*
+ * let all Data_Threads waiting on pt_sync to make a step and enter the second pt_sync at the end 
+ * of Data_Thread identification process. Before that set Data_Thread counter increment to 1
+ */
+				pt_sync(Data_Threads->sync);
+/*
+ * lock the mutex and spawn a new thread
+ */
+				Pthread_mutex_lock(&Data_Threads->lock);
+				
+				if( Add_Data_Thread(&RecNode, Data_Threads, &DataBuffer) != 0)
+					Error("Server_body: Error in Add_Data_Thread"); 
+
+				Pthread_mutex_unlock(&Data_Threads->lock);
+/*
+ * this is the second pt_sync. The last thread will increase number of synced 
+ * jobs by 1. Because there is already additional thread spawned by Add_Data_Thread, increase temporarily
+ * the number of synced jobs
+ */
+				pt_sync_mod(Data_Threads->sync, 1, 1);
+/* 
+ * when all Data_Thread are finished, - the identification part, the threads are waiting on each other. 
+ * the last thread unlock the semaphore so that the next loop can start
+ */		
+				pt_sync(Data_Threads->sync);
+				if( close(newsockfd) == -1)
+					Perror("close");
 			break;
 			
 			case 200:
@@ -370,7 +400,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 
 	Pthread_mutex_destroy(&Data_Threads->lock);
 	Pthread_cond_destroy(&Data_Threads->cond);
-// 	Sem_destroy(&Data_Threads->sem);
 	
 	free(Data_Threads->name_of_data_set);
 	free(Data_Threads->SR_mode);

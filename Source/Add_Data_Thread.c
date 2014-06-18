@@ -47,8 +47,6 @@
 
 
 
-
-
 #include "libm3l.h"
 #include "lsipdx_header.h"
 #include "Add_Data_Thread.h"
@@ -69,14 +67,12 @@ lmsize_t Add_Data_Thread(node_t **Gnode, data_thread_str_t *Data_Thread, node_t 
  * 
  * the heap memery was allocated in Allocate_Data_Thread_DataSet
  */
-	lmsize_t retval, newnum;
+	lmsize_t newnum;
 	lmint_t pth_err;
 	find_t *SFounds;
 	data_thread_args_t *DataArgs;
 	node_t *List;
 	data_thread_int_str_t **Tmp;
-	
-	retval = 0;
 	
 	if(*Gnode == NULL){
 		Warning("Add_Data_Thread: NULL Gnode");
@@ -85,9 +81,11 @@ lmsize_t Add_Data_Thread(node_t **Gnode, data_thread_str_t *Data_Thread, node_t 
 /*
  * find how many data sets - defines how many data_threads to spawn
  */
+// 	Pthread_mutex_lock(&Data_Thread->lock);
+	
 	if( (SFounds = m3l_Locate(*Gnode, "/Channel", "/*/*", (lmchar_t *)NULL)) == NULL){
 		printf("Add_Data_Thread: did not find any Channel data\n");
-		exit(0);
+		return -1;
 	}
 /*
  * new thread is going to be added to the exiting threads
@@ -99,8 +97,8 @@ lmsize_t Add_Data_Thread(node_t **Gnode, data_thread_str_t *Data_Thread, node_t 
  */
 	if(Data_Thread->Data_Str != NULL){
 		
-		if( ( Tmp = (data_thread_int_str_t **)realloc( Data_Thread->Data_Str, (newnum) * 
-			sizeof(data_thread_int_str_t *))) == NULL){
+		if( ( Tmp = (data_thread_int_str_t **)realloc( Data_Thread->Data_Str, 
+			newnum*sizeof(data_thread_int_str_t *))) == NULL){
 			
 			Perror("Add_Data_Thread: realloc error");
 		}
@@ -108,6 +106,7 @@ lmsize_t Add_Data_Thread(node_t **Gnode, data_thread_str_t *Data_Thread, node_t 
 	}
 	else{
 		Error("Add_Data_Thread: Data_Thread->Data_Str not yet malloced");
+		return -1;
 	}
 /*
  * allocate Data_Str
@@ -145,12 +144,11 @@ lmsize_t Add_Data_Thread(node_t **Gnode, data_thread_str_t *Data_Thread, node_t 
  * this determines that i-th thread will take care of channel with 
  * name specified in /Buffer/Channel/Name_of_Channel
  */
-	Pthread_mutex_lock(&Data_Thread->lock);
 	List = m3l_get_Found_node(SFounds, 0);
-	Pthread_mutex_unlock(&Data_Thread->lock);
 		
 	if(  (DataArgs = Associate_Data_Thread(List, Data_Thread, Data_Thread->n_data_threads+1, 1)) == NULL)
 		Error("Add_Data_Thread: DataArgs NULL pointer");
+// 	Pthread_mutex_unlock(&Data_Thread->lock);
 /*
  * create thread
  */
@@ -159,13 +157,6 @@ lmsize_t Add_Data_Thread(node_t **Gnode, data_thread_str_t *Data_Thread, node_t 
 		Perror("pthread_create()");
 
 	m3l_DestroyFound(&SFounds);
-/*
- * Add the new Channel to Buffer
- */
- 	if( m3l_Mv(Gnode,  "./Channel", "./*", Buffer, "/Buffer", "/*", (lmchar_t *)NULL) == -1)
-		Error("Allocate_DataBuffer: Mv");
 	
-	Additional_Data2Buffer(Gnode);
-	
-	return retval;
+	return 0;
 }
