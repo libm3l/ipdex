@@ -121,28 +121,48 @@ node_t *client_name(char *name)
 node_t *Header(lmchar_t *name, lmchar_t RWmode){
 
 	node_t *Gnode, *TmpNode;
-	lmsize_t *dim;
+	lmsize_t dim[1];
+	
+	if(RWmode == 'S' || RWmode == 'R'){
+/*
+ * sender/receiver request
+ */
 
-	if(  (Gnode = m3l_Mklist("Header", "DIR", 0, 0, (node_t **)NULL, (const char *)NULL, (const char *)NULL, (char *)NULL)) == 0)
-		Perror("m3l_Mklist");
-	
-	dim = (size_t *) malloc( 1* sizeof(size_t));
-	dim[0] = strlen(name)+1;
-	
-	if(  (TmpNode = m3l_Mklist("Name_of_Channel", "C", 1, dim, &Gnode, "/Header", "./", "--no_malloc", (char *)NULL)) == 0)
-		Error("m3l_Mklist");
-	TmpNode->data.c = name;
-	
-	
-	dim[0] = 2;
-	
-	if(  (TmpNode = m3l_Mklist("SR_mode", "C", 1, dim, &Gnode, "/Header", "./", (char *)NULL)) == 0)
-		Error("m3l_Mklist");
-	TmpNode->data.c[0] = RWmode;
-	TmpNode->data.c[1] = '\0';
-	free(dim);
-	
-	return Gnode;
+		if(  (Gnode = m3l_Mklist("Header", "DIR", 0, 0, (node_t **)NULL, (const char *)NULL, (const char *)NULL, (char *)NULL)) == 0)
+			Perror("m3l_Mklist");
+		
+// 		dim = (size_t *) malloc( 1* sizeof(size_t));
+		dim[0] = strlen(name)+1;
+		
+		if(  (TmpNode = m3l_Mklist("Name_of_Channel", "C", 1, dim, &Gnode, "/Header", "./", "--no_malloc", (char *)NULL)) == 0)
+			Error("m3l_Mklist");
+		TmpNode->data.c = name;
+		
+		
+		dim[0] = 2;
+		
+		if(  (TmpNode = m3l_Mklist("SR_mode", "C", 1, dim, &Gnode, "/Header", "./", (char *)NULL)) == 0)
+			Error("m3l_Mklist");
+		TmpNode->data.c[0] = RWmode;
+		TmpNode->data.c[1] = '\0';
+// 		free(dim);
+		
+		return Gnode;
+	}
+	else if(RWmode == 'X'){
+/*
+ * system request
+ */
+		if(  (Gnode = m3l_Mklist("_sys_comm_", "DIR", 0, 0, (node_t **)NULL, (const char *)NULL, (const char *)NULL, (char *)NULL)) == 0)
+			Perror("m3l_Mklist");
+		dim[0] = 1;
+		if(  (TmpNode = m3l_Mklist("request_type", "I", 1, dim, &Gnode, "/_sys_comm_", "./", (char *)NULL)) == 0)
+			Error("m3l_Mklist");
+		TmpNode->data.i[0] = 100;
+		return Gnode;
+	}
+	else
+		return NULL;
 }
 
 
@@ -203,8 +223,12 @@ node_t * ChannelList(lmchar_t *name, lmsize_t Rproc, lmchar_t ATDT_mode, lmchar_
 	lmsize_t dim[1], *tmpsize;
 	lmchar_t *tmpchar;
 	lmint_t *tmpint;
-	
-	if(  (RetNode = m3l_Mklist("Channel", "DIR", 0, 0, (node_t **)NULL, (const char *)NULL, (const char *)NULL, (char *)NULL)) == 0)
+/*
+ * start this request with _sys_comm_ name
+ * once it arrives and is identified as a _sys_comm_
+ * it will be renamed to Channel
+ */
+	if(  (RetNode = m3l_Mklist("_sys_comm_", "DIR", 0, 0, (node_t **)NULL, (const char *)NULL, (const char *)NULL, (char *)NULL)) == 0)
 		Perror("ChannelList: Mklist");
 	
 	if( (dim[0] = strlen(name)+1) < 1)

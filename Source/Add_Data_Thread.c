@@ -149,6 +149,9 @@ lmsize_t Add_Data_Thread(node_t **Gnode, data_thread_str_t *Data_Thread, node_t 
  * name specified in /Buffer/Channel/Name_of_Channel
  */
 	List = m3l_get_Found_node(SFounds, 0);
+	
+	if(m3l_RenameList(List, "Channel", (opts_t *)NULL) != 0)
+		Error("Add_Data_Thread: ");
 		
 	if(  (DataArgs = Associate_Data_Thread(List, Data_Thread, Data_Thread->n_data_threads+1, 1)) == NULL)
 		Error("Add_Data_Thread: DataArgs NULL pointer");

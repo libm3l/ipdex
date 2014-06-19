@@ -167,7 +167,7 @@ node_t *client_receiver(lmint_t sockfd, client_fce_struct_t *ClientInPar, opts_t
  * receive payload
  */
 	if( (Gnode = m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts_1)) == NULL)
-		Error("Receiving data");
+		Error("client_receiver: Receiving data");
 /*
  * confirm the data was received (--SEOB)
  */
@@ -179,7 +179,7 @@ node_t *client_receiver(lmint_t sockfd, client_fce_struct_t *ClientInPar, opts_t
 	case 2:
 		opts.opt_REOBseq     = '\0';  /* --REOB */
 		if( (Gnode = m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts_1)) == NULL)
-			Error("Receiving data");
+			Error("client_receiver: Receiving data");
 /*
  * Sender closes socket, before that it conforms all data were transferred
  */
@@ -192,7 +192,7 @@ node_t *client_receiver(lmint_t sockfd, client_fce_struct_t *ClientInPar, opts_t
 
 	case 3:
 		if( (Gnode = m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts_1)) == NULL)
-			Error("Receiving data");
+			Error("client_receiver: Receiving data");
 // 		m3l_send_to_tcpipsocket((node_t *)END_OK, (lmchar_t *)NULL, sockfd, Popts_1);
 		
 // 		if(hostname != NULL && Caller == 'S'){  /* Sender closes socket */
@@ -204,7 +204,7 @@ node_t *client_receiver(lmint_t sockfd, client_fce_struct_t *ClientInPar, opts_t
 
 	case 4:
 		if( (Gnode = m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts_1)) == NULL)
-			Error("Receiving data");
+			Error("client_receiver: Receiving data");
 		opts.opt_REOBseq 	= 'G';  /* --REOB */
 // 		m3l_send_receive_tcpipsocket((node_t *)END_OK, (lmchar_t *)NULL, sockfd, Popts_1);
 		
@@ -216,7 +216,7 @@ node_t *client_receiver(lmint_t sockfd, client_fce_struct_t *ClientInPar, opts_t
  */
 
 		if( (Gnode = m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts_1)) == NULL)
-			Error("Receiving data");
+			Error("client_receiver: Receiving data");
 /*
  * confirm the data was received (--SEOB)
  */
@@ -230,7 +230,7 @@ node_t *client_receiver(lmint_t sockfd, client_fce_struct_t *ClientInPar, opts_t
 	case 6:
 		opts.opt_REOBseq     = '\0';  /* --REOB */
 		if( (Gnode = m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts_1)) == NULL)
-			Error("Receiving data");
+			Error("client_receiver: Receiving data");
 /*
  * Sender closes socket, before that it conforms all data were transferred
  */
@@ -243,10 +243,44 @@ node_t *client_receiver(lmint_t sockfd, client_fce_struct_t *ClientInPar, opts_t
 	break;
 	
 	default:
-		Error("client_sender: Wrong mode - check KeepAlive and ATDT specifications");
+		Error("client_receiver: Wrong mode - check KeepAlive and ATDT specifications");
 	break;
 	}
 
 	return Gnode;
 }
 
+
+
+lmint_t client_system(void *data, lmint_t sockfd, opts_t *Popts, opts_t *Popst_lm3l){
+	
+	node_t *Answer;
+	opts_t *Popts_1, opts;
+	lmint_t retval;
+
+	Popts_1 = &opts;
+	m3l_set_Send_receive_tcpipsocket(&Popts_1);
+
+/*
+ * send data and receive confirmation that the data were received
+ */
+	if ( (Answer = m3l_send_receive_tcpipsocket((node_t *)data, (lmchar_t *)NULL, sockfd, Popts_1)) == NULL)
+		Error("client_system: m3l_send_receive_tcpipsocket");
+/*
+ * get the value of the /RR/val
+ * this is an answer from the server which stores the return value in 
+ * ret_receipt == 0 all connections to the server specified for 
+ * given data set were taken, retry opening it again after certain time
+ */
+	retval = Answer->child->data.i[0];
+	if(retval != 0)
+		Error("client_system: operation not successfull");
+/*
+ * if retval == 1 the requested system operation was successfull, 
+ * if retval == 0 the requested system operation was not successfull
+ */	
+	if(m3l_Umount(&Answer) != 1)
+		Perror("m3l_Umount");
+
+	return 1;
+}

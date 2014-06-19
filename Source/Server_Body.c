@@ -82,12 +82,12 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * create standard answers and queue
  */
 	if (  (Answers = MakePredefinedAnswers()) == NULL)
-		Error("Server_Body: error while makeing answers");
+		Error("Server_Body: Server_Body: error while makeing answers");
 /*
  * create buffer structure for buffering recevied data requests if needed
  */
 	if( (DataBuffer = Allocate_DataBuffer(Gnode)) == NULL)
-		Error("Buffering problem");
+		Error("Server_Body: Buffering problem");
 /*
  * allocate Data_Thread used by Data_Thread.c and Start_Data_Thread.c
  */
@@ -167,11 +167,15 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * receive header with solver and data set information
  */
 // 		if( (RecNode = m3l_Receive_tcpipsocket((const char *)NULL, newsockfd, "--encoding" , "IEEE-754", (char *)NULL)) == NULL)
-// 			Error("Error during reading data from socket");
+// 			Error("Server_Body: Error during reading data from socket");
 
 		opts.opt_REOBseq = '\0'; // send EOFbuff sequence only
 		if( (RecNode = m3l_receive_tcpipsocket((const char *)NULL, newsockfd, Popts)) == NULL)
-			Error("Error during reading data from socket");
+			Error("Server_Body: Error during reading data from socket");
+		
+		
+		if(m3l_Cat(RecNode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
+			Error("Server_Body: CatData");
 /*
  * identify type of request and get back with name of required connection and SR_mode
  */
@@ -205,19 +209,19 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  */
 					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
 					if( m3l_send_to_tcpipsocket(Answers->RR_POS, (const char *)NULL, newsockfd, Popts) < 1)
-						Error("Error during sending data to socket");
+						Error("Server_Body: Error during sending data to socket");
 				}
 				else if(SR_mode == 'R'){
 
-					opts.opt_REOBseq = 'G'; // send EOFbuff sequence only
+					opts.opt_REOBseq = 'G'; // receive EOFbuff sequence only
 					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only	
 					if( m3l_send_receive_tcpipsocket(Answers->RR_POS, (const lmchar_t *)NULL, newsockfd, Popts) < 0){
-						Error(" Error during receving data from socket \n");
+						Error("Server_Body:  Error during receving data from socket \n");
 						return -1;
 					}
 				}
 				else
-					Error("Wrong SR mode\n");
+					Error("Server_Body: Wrong SR mode\n");
 /*
  * at least one data thread is available:
  *  -  set number of remainign data threads equalt to available data threads
@@ -284,20 +288,20 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * if process is Receiver send acknowledgment and get back REOB
  */
 // 				if( m3l_Send_to_tcpipsocket(RR_NEG, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754",  (char *)NULL) < 1)
-// 					Error("Error during sending data from socket");
+// 					Error("Server_Body: Error during sending data from socket");
 					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
 					if( m3l_send_to_tcpipsocket(Answers->RR_NEG, (const char *)NULL, newsockfd, Popts) < 1)
-						Error("Error during sending data from socket");
+						Error("Server_Body: Error during sending data from socket");
 					
 				}
 				else if(SR_mode == 'R'){
 // 					m3l_Send_to_tcpipsocket(RR_NEG, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754", (char *)NULL);
 					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
 					if( m3l_send_to_tcpipsocket(Answers->RR_NEG, (const char *)NULL, newsockfd, Popts) < 1)
-						Error("Error during sending data from socket");
+						Error("Server_Body: Error during sending data from socket");
 				}
 				else{
-					Error("Wrong SR mode\n");
+					Error("Server_Body: Wrong SR mode\n");
 				}
 				
 				
@@ -314,6 +318,15 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			break;
 			
 			case 100:
+				
+				printf(" here in case 100\n");
+/*
+ * system request is always done as a sender, indicate Sender that header was received before receiving payload
+ * if process is Receiver send acknowledgment and get back REOB
+ */
+				opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
+				if( m3l_send_to_tcpipsocket(Answers->RR_POS, (const char *)NULL, newsockfd, Popts) < 1)
+					Error("Server_Body: Error during sending data to socket");
 /*
  * notify Data_Thread that this is a "system" request, ie. 
  * request which changes status of existing channels or adds a new one
@@ -333,9 +346,11 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * lock the mutex and spawn a new thread
  */
 				Pthread_mutex_lock(&Data_Threads->lock);
+				printf(" befire adding in case 100\n");
 				
 				if( Add_Data_Thread(&RecNode, Data_Threads, &DataBuffer) != 0)
-					Error("Server_body: Error in Add_Data_Thread"); 
+					Error("Server_Body: Server_body: Error in Add_Data_Thread"); 
+				printf(" after adding in case 100\n");
 
 				Pthread_mutex_unlock(&Data_Threads->lock);
 /*
@@ -351,6 +366,9 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 				pt_sync(Data_Threads->sync);
 				if( close(newsockfd) == -1)
 					Perror("close");
+				
+	if(m3l_Cat(DataBuffer, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
+		Error("Server_Body: CatData");
 			break;
 			
 			case 200:
@@ -390,7 +408,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	for(i=0; i< Data_Threads->n_data_threads; i++){
 		if( Data_Threads->Data_Str[i]->data_threadPID != NULL){
 			if( pthread_join(*Data_Threads->Data_Str[i]->data_threadPID, NULL) != 0)
-				Error(" Joining thread failed");
+				Error("Server_Body:  Joining thread failed");
 		}
 	
 		free(Data_Threads->Data_Str[i]->data_threadPID);
