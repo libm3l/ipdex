@@ -149,22 +149,26 @@ node_t *Header(lmchar_t *name, lmchar_t RWmode){
 		
 		return Gnode;
 	}
-	else if(RWmode == 'X'){
-/*
- * system request
- */
-		if(  (Gnode = m3l_Mklist("_sys_comm_", "DIR", 0, 0, (node_t **)NULL, (const char *)NULL, (const char *)NULL, (char *)NULL)) == 0)
-			Perror("m3l_Mklist");
-		dim[0] = 1;
-		if(  (TmpNode = m3l_Mklist("request_type", "I", 1, dim, &Gnode, "/_sys_comm_", "./", (char *)NULL)) == 0)
-			Error("m3l_Mklist");
-		TmpNode->data.i[0] = 100;
-		return Gnode;
-	}
 	else
 		return NULL;
 }
 
+
+// node_t *Sys_Header(lmchar_t *name){
+// 
+// 	node_t *Gnode, *TmpNode;
+// 	lmsize_t dim[1];
+// /*
+//  * system request
+//  */
+// 	if(  (Gnode = m3l_Mklist("_sys_comm_", "DIR", 0, 0, (node_t **)NULL, (const char *)NULL, (const char *)NULL, (char *)NULL)) == 0)
+// 		Perror("m3l_Mklist");
+// 	dim[0] = 1;
+// 	if(  (TmpNode = m3l_Mklist("request_type", "I", 1, dim, &Gnode, "/_sys_comm_", "./", (char *)NULL)) == 0)
+// 		Error("m3l_Mklist");
+// 	TmpNode->data.i[0] = 100;
+// 	return Gnode;
+// }
 
 lsipdx_answer_t *MakePredefinedAnswers(){
 /*
@@ -200,7 +204,7 @@ void DestroyPredefinedAnswers(lsipdx_answer_t **Answers){
 	*Answers = NULL;
 }
 
-node_t * ChannelList(lmchar_t *name, lmsize_t Rproc, lmchar_t ATDT_mode, lmchar_t KA_mode){
+node_t *ChannelList(lmchar_t *name, lmsize_t Rproc, lmchar_t ATDT_mode, lmchar_t KA_mode){
 /*
  * function makes a node with details about Channel
  * example is below
@@ -219,18 +223,25 @@ node_t * ChannelList(lmchar_t *name, lmsize_t Rproc, lmchar_t ATDT_mode, lmchar_
  *   -C                            KEEP_CONN_ALIVE_Mode 1  2
  *                                       KA_mode
  */                                       
-	node_t *RetNode = NULL, *TmpNode = NULL, *TmpNode1=NULL;
+	node_t *RetNode = NULL, *TmpNode = NULL, *TmpNode1=NULL, *Gnode=NULL;
 	lmsize_t dim[1], *tmpsize;
 	lmchar_t *tmpchar;
 	lmint_t *tmpint;
 /*
  * start this request with _sys_comm_ name
- * once it arrives and is identified as a _sys_comm_
- * it will be renamed to Channel
  */
-	if(  (RetNode = m3l_Mklist("_sys_comm_", "DIR", 0, 0, (node_t **)NULL, (const char *)NULL, (const char *)NULL, (char *)NULL)) == 0)
-		Perror("ChannelList: Mklist");
-	
+	if(  (Gnode = m3l_Mklist("_sys_comm_", "DIR", 0, 0, (node_t **)NULL, (const char *)NULL, (const char *)NULL, (char *)NULL)) == 0)
+		Perror("m3l_Mklist");
+	dim[0] = 1;
+	if(  (TmpNode = m3l_Mklist("request_type", "I", 1, dim, &Gnode, "/_sys_comm_", "./", (char *)NULL)) == 0)
+		Error("m3l_Mklist");
+	TmpNode->data.i[0] = 100;
+/*
+ * add subset Channel
+ */
+	if(  (RetNode = m3l_Mklist("Channel", "DIR", 0, 0, &Gnode, "/_sys_comm_", "./", (char *)NULL)) == 0)
+		Error("m3l_Mklist");
+
 	if( (dim[0] = strlen(name)+1) < 1)
 		Error("ChannelList: wrong name of channel");
 	
@@ -263,10 +274,9 @@ node_t * ChannelList(lmchar_t *name, lmsize_t Rproc, lmchar_t ATDT_mode, lmchar_
 
 	if(  (TmpNode1 = m3l_Mklist("KEEP_CONN_ALIVE_Mode", "C", 1, dim, &TmpNode, "./CONNECTION", "./", (char *)NULL)) == 0)
 		Error("m3l_Mklist");
-	TmpNode1->data.c[0] = ATDT_mode;
+	TmpNode1->data.c[0] = KA_mode;
 	TmpNode1->data.c[1] = '\0';
 
-
-	return RetNode;
+	return Gnode;
 	
 }

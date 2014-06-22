@@ -328,7 +328,7 @@ void *Data_Threads(void *arg)
 /*
  * request was _sys_link_ request
  */
-				pt_sync(c->psync);
+				pt_sync(c->psync); // ADD ptsync_mod()
 // 				pt_sync_mod_sem(c->psync,0,0,c->psem);
 			}
 

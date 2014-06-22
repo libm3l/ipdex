@@ -104,7 +104,8 @@ node_t *Allocate_DataBuffer(node_t *Gnode){
 		if( m3l_Mv(&TmpNode,  "./Channel", "./*", &BuffNode, "/Buffer", "/*", (lmchar_t *)NULL) == -1)
 			Error("Allocate_DataBuffer: Mv");
 		
-		Additional_Data2Buffer(&TmpNode);
+		if( Additional_Data2Buffer(&TmpNode) != 1)
+			Error("Allocate_DataBuffer: Additional_Data2Buffer");
 	}
 	
 // 	if(m3l_Cat(BuffNode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
@@ -129,9 +130,11 @@ lmint_t Additional_Data2Buffer(node_t **TmpNode){
  *               == number of allocated R_channels - all R channels are occupied
  */
 	lmsize_t dim[1];
-	lmint_t *tmpint;
+	lmint_t *tmpint, retval;
 	lmsize_t *tmpszt;
 	node_t *TmpNode1;
+	
+	retval = 0;
 	
 	dim[0] = 1;
 	if(  (TmpNode1 = m3l_Mklist("Thread_Status", "I", 1, dim, TmpNode, "./Channel", "./", (char *)NULL)) == 0)
@@ -146,6 +149,7 @@ lmint_t Additional_Data2Buffer(node_t **TmpNode){
 		Error("Allocate_DataBuffer:m3l_Mklist");
 	tmpszt = (lmsize_t *)m3l_get_data_pointer(TmpNode1);
 	tmpszt[0] = 0;
-		
-	return 1;
+	
+	retval = 1;
+	return retval;
 }
