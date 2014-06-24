@@ -171,20 +171,15 @@ lmsize_t Add_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread, node_t *
 	while ( ( pth_err = pthread_create(Data_Thread->Data_Str[newnum]->data_threadPID, NULL, &Data_Threads,  DataArgs)) != 0 && errno == EAGAIN);
 	if(pth_err != 0)
 		Perror("pthread_create()");
-	
-// 	.... wait for semaphore, this semaphore notifies that Data_Thread is after pt_sync
-	
 
 	m3l_DestroyFound(&SFounds);
 /*
  * add List to Buffer
  */
-// 	Pthread_mutex_lock(&Data_Thread->lock);
-
 	if( m3l_Mv(&List,  "./Channel", "./*", Buffer, "/Buffer", "/*", (lmchar_t *)NULL) == -1)
 		Error("Allocate_DataBuffer: Mv");
 	
-	m3l_Cat(*Buffer, "--all", "-P", "-L",  "*",   (char *)NULL);
+// 	m3l_Cat(*Buffer, "--all", "-P", "-L",  "*",   (char *)NULL);
 
 	Pthread_mutex_unlock(&Data_Thread->lock);
 	
