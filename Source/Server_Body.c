@@ -318,8 +318,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			break;
 			
 			case 100:
-				
-				printf(" here in case 100\n");
 /*
  * system request is always done as a sender, indicate Sender that header was received before receiving payload
  * if process is Receiver send acknowledgment and get back REOB
@@ -340,16 +338,18 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * let all Data_Threads waiting on pt_sync to make a step and enter the second pt_sync at the end 
  * of Data_Thread identification process. Before that set Data_Thread counter increment to 1
  */
-// 				pt_sync(Data_Threads->sync);
-/*
- * lock the mutex and spawn a new thread
- */
-// 				Pthread_mutex_lock(&Data_Threads->lock);
 				*Data_Threads->sync->incrm = 1;
 				if( Add_Data_Thread(RecNode, Data_Threads, &DataBuffer) != 0)
 					Error("Server_Body: Server_body: Error in Add_Data_Thread"); 
-				
-// 				Pthread_mutex_lock(&Data_Threads->lock); 
+/*
+ * This semaphore signalizes Server_Body that it can enter
+ * the pt_sync. For case of adding thread, the Server body has just one pt_sync instead of two.
+ * The first missing pt_sync is then provided by newly spawned Data_Thread. 
+ * This semaphore makes sure that the pt_sync in the newly spawned Data_Thread is executed before pt_sync
+ * in Server_Body so that the Server_Body pt_sync_mod is used in conunction with 
+ * second pt_sync in Data_Threads
+ */				
+				Sem_wait(&Data_Threads->sem);
 /* having mutex lock here caused dead-lock, needed to move it before Add_Data_Thread */
 /*
  * delte borrowed memory, at this stage the 
@@ -358,16 +358,12 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  */
 				if( m3l_Umount(&RecNode) != 1)
 					Perror("m3l_Umount");
-
-// 				Pthread_mutex_unlock(&Data_Threads->lock);
 /*
  * this is the second pt_sync. The last thread will increase number of synced 
  * jobs by 1. Because there is already additional thread spawned by Add_Data_Thread, increase temporarily
  * the number of synced jobs
  */
-				printf(" SERVER_BODY brefore second pt_sync\n");
 				pt_sync_mod(Data_Threads->sync, 1, 1);
-				printf(" SERVER_BODY AFTER second pt_sync\n");
 			break;
 			
 			case 200:
@@ -417,7 +413,8 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 
 	Pthread_mutex_destroy(&Data_Threads->lock);
 	Pthread_cond_destroy(&Data_Threads->cond);
-	
+	Sem_destroy(&Data_Threads->sem);
+
 	free(Data_Threads->name_of_data_set);
 	free(Data_Threads->SR_mode);
 	free(Data_Threads->data_threads_availth_counter);

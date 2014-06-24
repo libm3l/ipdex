@@ -85,11 +85,12 @@ lmsize_t Add_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread, node_t *
 /*
  * find how many data sets - defines how many data_threads to spawn
  */
-	
 	if( (SFounds = m3l_Locate(Gnode, "/_sys_comm_/Channel", "/*/*", (lmchar_t *)NULL)) == NULL){
 		printf("Add_Data_Thread: did not find any Channel data\n");
 		return -1;
 	}
+	
+	Pthread_mutex_lock(&Data_Thread->lock);
 /*
  * new thread is going to be added to the exiting threads
  */
@@ -136,20 +137,22 @@ lmsize_t Add_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread, node_t *
 		Perror("Add_Data_Thread: Data_Thread->Data_Str->lmint_t malloc");
 	*Data_Thread->Data_Str[newnum]->status_run = 1;
 /*
- * increase number of sync threads by 1 and number of threads by 1
+ * increase number of threads by 1
+ * number of synced threads (*Data_Thread->sync->nthreads) will be increased
+ * in pt_sync_mod() in either Data_Thread or Sever_Body
  */
-// 	*Data_Thread->sync->nthreads = *Data_Thread->sync->nthreads + 1;
 	Data_Thread->n_data_threads  =  Data_Thread->n_data_threads + 1;
 /*
  * set Node pointer to data set in /_sys_comm_/Channel
  */
 	List = m3l_get_Found_node(SFounds, 0);
-	m3l_Cat(List, "--all", "-P", "-L",  "*",   (char *)NULL);
+// 	m3l_Cat(List, "--all", "-P", "-L",  "*",   (char *)NULL);
 /*
- * dettach the list from the main tree
+ * dettach the list from the main tree so that you can later move it to Buffer
+ * the remaining of the list will be freed in Server_Body
  */
 	m3l_detach_list(0, &List, (opts_t *)NULL);
-	m3l_Cat(List, "--all", "-P", "-L",  "*",   (char *)NULL);
+// 	m3l_Cat(List, "--all", "-P", "-L",  "*",   (char *)NULL);
 /*
  * add additional data (Thread_Status etc.)
  */
@@ -169,7 +172,8 @@ lmsize_t Add_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread, node_t *
 	if(pth_err != 0)
 		Perror("pthread_create()");
 	
-	.... wait for semaphore, this semaphore notifies that Data_Thread is after pt_sync
+// 	.... wait for semaphore, this semaphore notifies that Data_Thread is after pt_sync
+	
 
 	m3l_DestroyFound(&SFounds);
 /*
@@ -180,9 +184,9 @@ lmsize_t Add_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread, node_t *
 	if( m3l_Mv(&List,  "./Channel", "./*", Buffer, "/Buffer", "/*", (lmchar_t *)NULL) == -1)
 		Error("Allocate_DataBuffer: Mv");
 	
-// 	m3l_Cat(*Buffer, "--all", "-P", "-L",  "*",   (char *)NULL);
+	m3l_Cat(*Buffer, "--all", "-P", "-L",  "*",   (char *)NULL);
 
-// 	Pthread_mutex_unlock(&Data_Thread->lock);
+	Pthread_mutex_unlock(&Data_Thread->lock);
 	
 	return 0;
 }

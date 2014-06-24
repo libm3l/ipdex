@@ -78,7 +78,7 @@ void *Data_Threads(void *arg)
 	lmchar_t *data_set_name, local_set_name[MAX_NAME_LENGTH];
 	find_t *SFounds, *THRStat_SFounds;
 
-	lmint_t  *Thread_Status, *Thread_S_Status;
+	lmint_t  *Thread_Status, *Thread_S_Status, round;
 	lmsize_t *Thread_R_Status;
 	
 	SR_thread_str_t *SR_Threads;
@@ -90,6 +90,7 @@ void *Data_Threads(void *arg)
 	opts.opt_i = '\0'; opts.opt_d = '\0'; opts.opt_f = '\0'; opts.opt_r = 'r'; opts.opt_I = '\0'; opts.opt_L = '\0'; opts.opt_l = '\0';
 
 	Popts = &opts;
+	round = 0;
 	
 /*
  * get my thread ID
@@ -139,7 +140,6 @@ void *Data_Threads(void *arg)
  * find name of process which will read the data set
  * there is only one writing processes
  */
-// 		if( (SFounds = m3l_Locate(c->Node, "./Channel/Receiving_Processes", "./*/*",  (lmchar_t *)NULL)) != NULL){
 		if( (SFounds = m3l_locator_caller(c->Node, "./Channel/Receiving_Processes", "./*/*", Popts)) != NULL){
 
 			if( m3l_get_Found_number(SFounds) != 1)
@@ -169,7 +169,6 @@ void *Data_Threads(void *arg)
  */
 		n_avail_loc_theads = n_rec_proc + 1;
 
-// 		if( (THRStat_SFounds = m3l_Locate(c->Node, "./Channel/Thread_Status", "/*/*", (lmchar_t *)NULL)) == NULL){
 		if( (THRStat_SFounds = m3l_locator_caller(c->Node, "./Channel/Thread_Status", "./*/*", Popts)) == NULL){
 			printf("Data_Thread: did not find any Thread_Status\n");
 			m3l_DestroyFound(&THRStat_SFounds);
@@ -184,7 +183,6 @@ void *Data_Threads(void *arg)
 		*Thread_Status = 0;
 		m3l_DestroyFound(&THRStat_SFounds);
 		
-// 		if( (THRStat_SFounds = m3l_Locate(c->Node, "./Channel/S_Status", "/*/*", (lmchar_t *)NULL)) == NULL){
 		if( (THRStat_SFounds = m3l_locator_caller(c->Node, "./Channel/S_Status", "./*/*", Popts)) == NULL){
 			printf("Data_Thread: did not find any S_Status\n");
 			m3l_DestroyFound(&THRStat_SFounds);
@@ -196,7 +194,6 @@ void *Data_Threads(void *arg)
 		*Thread_S_Status = 0;
 		m3l_DestroyFound(&THRStat_SFounds);
 
-// 		if( (THRStat_SFounds = m3l_Locate(c->Node, "./Channel/R_Status", "/*/*", (lmchar_t *)NULL)) == NULL){
 		if( (THRStat_SFounds = m3l_locator_caller(c->Node, "./Channel/R_Status", "./*/*", Popts)) == NULL){
 			printf("Thread_Status: did not find any R_Status\n");
 			m3l_DestroyFound(&THRStat_SFounds);
@@ -247,14 +244,7 @@ void *Data_Threads(void *arg)
  * set the value of for syncing thread to number of data sets + 1 (it. sync all Data_Thread (n_data_threads) + 
  * 1 for Server_Body (one synchronization point is in Server_Body
  */
-			printf(" DATA THREADS before pt_sync \n");
 			pt_sync(c->psync);
-			
-			.... add semaphore post, this semaphore notifies Add_Data_Thread after pthread_create that 
-			this new data set is created
-
-			printf(" DATA THREADS after pt_sync %d\n", *c->pcheckdata);
-
 /*
  * if arriving request was not sys_link_ type of request
  * check which connection arrived
@@ -333,11 +323,24 @@ void *Data_Threads(void *arg)
 /*
  * request was _sys_link_ request
  */
-				printf(" DATA THREADS before finished \n");
+/*
+ * if the first round, ie. Data_Thread was added now,
+ * post semaphore. The semaphore signalizes Server_Body that it can enter
+ * the pt_sync. For case of adding thread, the Server body has just one pt_sync instead of two.
+ * The first missing pt_sync is then provided by newly spawned Data_Thread. 
+ * This semaphore makes sure that the pt_sync in this thread is executed before pt_sync
+ * in Server_Body so that the Server_Body pt_sync_mod is used in conunction with 
+ * second pt_sync in Data_Threads
+ */
+				if(round == 0)Sem_post(c->psem);
 				pt_sync_mod(c->psync, 1, 1);
 			}
-			
-			printf(" DATA THREADS finished \n");
+/*
+ * indicate that thread went through the identfication 
+ * loop at least once. 
+ * This variable is used to identify newly added threads
+ */
+			round =1;
 
 		}while(n_avail_loc_theads != 0);  /* all connecting thread arrivied, ie. one Sender and n_rec_proc Receivers */
 		

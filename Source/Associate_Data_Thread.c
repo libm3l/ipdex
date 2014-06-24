@@ -76,6 +76,7 @@ data_thread_args_t *Associate_Data_Thread(node_t *List, data_thread_str_t *Data_
 		DataArgs->pname_of_data_set   	=  Data_Thread->name_of_data_set;
 		DataArgs->pSR_mode	    	=  Data_Thread->SR_mode;
 		DataArgs->pcheckdata 		=  Data_Thread->checkdata;
+		DataArgs->psem	 		= &Data_Thread->sem;
 
 		DataArgs->psync 		=  Data_Thread->sync;
 		DataArgs->psync->pnsync 	=  Data_Thread->sync->nsync;
