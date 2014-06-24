@@ -1,0 +1,41 @@
+#!/bin/csh
+#
+#   this is a conigure file
+#   run: ./configure PATH
+#   where PATH is path to libm3l.so library and header file
+#
+#   the script deletes line in the Makefile which starts with PATHLIBM3L
+#   and replaces it with new line
+#   PATHLIBM3L = PATH
+#
+
+#
+#   check that there is one input argument
+#
+	if ($#argv != 1) then
+		echo "Usage: $0 LIBMSLPATH"
+		echo " "
+		stop
+	endif
+#
+#  set PATH to this artgument
+#
+	set PATHLIBM3L=$1
+	echo $PATHLIBM3L
+#
+#  check that the source directory in PATH contanins libm3l library and header file
+#
+	set EMPTYL = `find $PATHLIBM3L \( -name libm3l.so -o -iname libm3l.h -o -iname libm3l.so.1.0 \) | wc -l `
+	
+	if ($EMPTYL != 3) then  
+		echo
+		echo ERROR: wrong path to libm3l library
+		exit
+	endif
+#
+#   delete line in Makefile starting with PATHLIBM3L
+#   and replace it with new PATHLIBM3L definition
+#
+#	sed -i "s|^\bPATHLIBM3L\b.*$|PATHLIBM3L = $PATHLIBM3L|" Makefile
+	sed -i '/^PATHLIBM3L/d' Makefile
+	sed -i '/^HFILES/a \PATHLIBM3L = '"$PATHLIBM3L"'' Makefile

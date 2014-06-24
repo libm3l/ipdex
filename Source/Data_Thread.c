@@ -103,7 +103,6 @@ void *Data_Threads(void *arg)
  * find name of data set
  * if it does not exist or more then one data set is found, give error message
  */
-// 		if( (SFounds = m3l_Locate        (c->Node, "./Channel/Name_of_Channel", "./*/*",  (lmchar_t *)NULL)) != NULL){
 		if( (SFounds = m3l_locator_caller(c->Node, "./Channel/Name_of_Channel", "./*/*", Popts)) != NULL){
 			if( m3l_get_Found_number(SFounds) != 1)
 				Error("Data_Thread: Only one Name_of_Channel per Channel allowed");
@@ -248,7 +247,14 @@ void *Data_Threads(void *arg)
  * set the value of for syncing thread to number of data sets + 1 (it. sync all Data_Thread (n_data_threads) + 
  * 1 for Server_Body (one synchronization point is in Server_Body
  */
+			printf(" DATA THREADS before pt_sync \n");
 			pt_sync(c->psync);
+			
+			.... add semaphore post, this semaphore notifies Add_Data_Thread after pthread_create that 
+			this new data set is created
+
+			printf(" DATA THREADS after pt_sync %d\n", *c->pcheckdata);
+
 /*
  * if arriving request was not sys_link_ type of request
  * check which connection arrived
@@ -286,7 +292,6 @@ void *Data_Threads(void *arg)
  */
 						else if(*c->pSR_mode == 'R'){
 							(*Thread_R_Status)++;
-	// 						printf(" Increasing number of connections %ld \n", *Thread_R_Status);
 						}
 						else
 							Error("Data_Thread: Wrong SR_mode");
@@ -328,9 +333,11 @@ void *Data_Threads(void *arg)
 /*
  * request was _sys_link_ request
  */
-				pt_sync(c->psync); // ADD ptsync_mod()
-// 				pt_sync_mod_sem(c->psync,0,0,c->psem);
+				printf(" DATA THREADS before finished \n");
+				pt_sync_mod(c->psync, 1, 1);
 			}
+			
+			printf(" DATA THREADS finished \n");
 
 		}while(n_avail_loc_theads != 0);  /* all connecting thread arrivied, ie. one Sender and n_rec_proc Receivers */
 		

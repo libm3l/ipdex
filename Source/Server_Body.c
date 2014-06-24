@@ -327,31 +327,30 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 				opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
 				if( m3l_send_to_tcpipsocket(Answers->RR_POS, (const char *)NULL, newsockfd, Popts) < 1)
 					Error("Server_Body: Error during sending data to socket");
+				if( close(newsockfd) == -1)
+					Perror("close");
 /*
  * notify Data_Thread that this is a "system" request, ie. 
  * request which changes status of existing channels or adds a new one
  */
-				*Data_Threads->checkdata = 1;
+				*Data_Threads->checkdata = 100;
 
-// 				*Data_Threads->incrm = 1;  /* nunber of sync jobs is going to be + 1 */
-// 				*Data_Threads->addj  = 1;  /* nunber of sync jobs is going to be + 1 */
 				Pthread_mutex_unlock(&Data_Threads->lock);
 /*
  * let all Data_Threads waiting on pt_sync to make a step and enter the second pt_sync at the end 
  * of Data_Thread identification process. Before that set Data_Thread counter increment to 1
  */
-				pt_sync(Data_Threads->sync);
+// 				pt_sync(Data_Threads->sync);
 /*
  * lock the mutex and spawn a new thread
  */
-				printf(" before adding in case 100\n");
-				
+// 				Pthread_mutex_lock(&Data_Threads->lock);
+				*Data_Threads->sync->incrm = 1;
 				if( Add_Data_Thread(RecNode, Data_Threads, &DataBuffer) != 0)
 					Error("Server_Body: Server_body: Error in Add_Data_Thread"); 
-				printf(" after adding in case 100\n");
 				
-				
-				Pthread_mutex_lock(&Data_Threads->lock);
+// 				Pthread_mutex_lock(&Data_Threads->lock); 
+/* having mutex lock here caused dead-lock, needed to move it before Add_Data_Thread */
 /*
  * delte borrowed memory, at this stage the 
  * node does not contain Channel as it was 
@@ -360,23 +359,15 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 				if( m3l_Umount(&RecNode) != 1)
 					Perror("m3l_Umount");
 
-				Pthread_mutex_unlock(&Data_Threads->lock);
+// 				Pthread_mutex_unlock(&Data_Threads->lock);
 /*
  * this is the second pt_sync. The last thread will increase number of synced 
  * jobs by 1. Because there is already additional thread spawned by Add_Data_Thread, increase temporarily
  * the number of synced jobs
  */
+				printf(" SERVER_BODY brefore second pt_sync\n");
 				pt_sync_mod(Data_Threads->sync, 1, 1);
-/* 
- * when all Data_Thread are finished, - the identification part, the threads are waiting on each other. 
- * the last thread unlock the semaphore so that the next loop can start
- */		
-// 				pt_sync(Data_Threads->sync);
-				if( close(newsockfd) == -1)
-					Perror("close");
-				
-	if(m3l_Cat(DataBuffer, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
-		Error("Server_Body: CatData");
+				printf(" SERVER_BODY AFTER second pt_sync\n");
 			break;
 			
 			case 200:

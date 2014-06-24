@@ -82,12 +82,9 @@ lmsize_t Add_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread, node_t *
 		Warning("Add_Data_Thread: NULL Gnode");
 		return -1;
 	}
-	
-	m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL);
 /*
  * find how many data sets - defines how many data_threads to spawn
  */
-// 	Pthread_mutex_lock(&Data_Thread->lock);
 	
 	if( (SFounds = m3l_Locate(Gnode, "/_sys_comm_/Channel", "/*/*", (lmchar_t *)NULL)) == NULL){
 		printf("Add_Data_Thread: did not find any Channel data\n");
@@ -102,7 +99,7 @@ lmsize_t Add_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread, node_t *
  * the data is then freed in Data_Thread.c function
  */
 	if(Data_Thread->Data_Str != NULL){
-		
+		Tmp = NULL;
 		if( ( Tmp = (data_thread_int_str_t **)realloc( Data_Thread->Data_Str, 
 			newnum*sizeof(data_thread_int_str_t *))) == NULL){
 
@@ -114,8 +111,9 @@ lmsize_t Add_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread, node_t *
 		Error("Add_Data_Thread: Data_Thread->Data_Str not yet malloced");
 		return -1;
 	}
+	newnum--;
 /*
- * allocate Data_Str
+ * allocate Data_Str - Same as in Start_Data_Threads
  */
 	if( (Data_Thread->Data_Str[newnum] = (data_thread_int_str_t *)malloc(sizeof(data_thread_int_str_t))) == NULL)
 		Perror("Add_Data_Thread: Data_Thread->Data_Str[] malloc");
@@ -140,11 +138,8 @@ lmsize_t Add_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread, node_t *
 /*
  * increase number of sync threads by 1 and number of threads by 1
  */
-	*Data_Thread->sync->nthreads = *Data_Thread->sync->nthreads + 1;
+// 	*Data_Thread->sync->nthreads = *Data_Thread->sync->nthreads + 1;
 	Data_Thread->n_data_threads  =  Data_Thread->n_data_threads + 1;
-/*
- * spawn thread
- */	
 /*
  * set Node pointer to data set in /_sys_comm_/Channel
  */
@@ -167,26 +162,27 @@ lmsize_t Add_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread, node_t *
  */	
 	if(  (DataArgs = Associate_Data_Thread(List, Data_Thread, 1, 1)) == NULL)
 		Error("Add_Data_Thread: DataArgs NULL pointer");
-// 	Pthread_mutex_unlock(&Data_Thread->lock);
 /*
  * create thread
  */
-	while ( ( pth_err = pthread_create(Data_Thread->Data_Str[Data_Thread->n_data_threads]->data_threadPID, NULL, &Data_Threads,  DataArgs)) != 0 && errno == EAGAIN);
+	while ( ( pth_err = pthread_create(Data_Thread->Data_Str[newnum]->data_threadPID, NULL, &Data_Threads,  DataArgs)) != 0 && errno == EAGAIN);
 	if(pth_err != 0)
 		Perror("pthread_create()");
+	
+	.... wait for semaphore, this semaphore notifies that Data_Thread is after pt_sync
 
 	m3l_DestroyFound(&SFounds);
 /*
  * add List to Buffer
  */
-	Pthread_mutex_lock(&Data_Thread->lock);
+// 	Pthread_mutex_lock(&Data_Thread->lock);
 
 	if( m3l_Mv(&List,  "./Channel", "./*", Buffer, "/Buffer", "/*", (lmchar_t *)NULL) == -1)
 		Error("Allocate_DataBuffer: Mv");
 	
 // 	m3l_Cat(*Buffer, "--all", "-P", "-L",  "*",   (char *)NULL);
 
-	Pthread_mutex_unlock(&Data_Thread->lock);
+// 	Pthread_mutex_unlock(&Data_Thread->lock);
 	
 	return 0;
 }

@@ -2,7 +2,8 @@
 FILES = $(shell ls  *.c )
 PATHL  = $(shell pwd )
 HFILES = $(shell ls  *.h  |   sed '/lsipdx_header.h/d' | sed '/libm3l.h/d' | sort -df)
-
+PATHLIBM3L = /home/jka/Cprograms/2D_Double_Allocation/Source/libm3l/Source
+EMPTYL = $(shell find $(PATHLIBM3L) \( -name libm3l.so -o -iname libm3l.h -o -iname libm3l.so.1.0 \) | wc -l )
 
 # OBJS=$(FILES:%.c=%.o)
 OBJS = $(shell ls *.c | sed 's/\.c/\.o/'  |   sed '/Server_Main.o/d' | sort -df)
@@ -18,8 +19,17 @@ LFLAGS = -fbounds-check -fstack-check -g
 # link
 #
 main:
-	ln -sf ../../libm3l/Source/libm3l.* .
-	
+#
+#  delete empty links
+#
+	@find -L -type l -delete
+
+ifeq ($(EMPTYL),3)
+
+	@ln -sf $(PATHLIBM3L)/libm3l.so .
+	@ln -sf libm3l.so libm3l.so.1.0
+	@ln -sf $(PATHLIBM3L)/libm3l.h .
+
 	@cat COPYRIGHT_NOTICE > lsipdx.h
 	@echo >> lsipdx.h
 	@echo "#ifndef   __IPDEX_H__" >> lsipdx.h
@@ -31,6 +41,16 @@ main:
 	@echo "#endif" >> lsipdx.h
 	
 	make prog
+else
+#
+#  did not find libm3l files, posibly PATHLIBM#L wrong
+#
+	@echo ERROR: Did not find libml3 libraries and header file
+	@echo
+	@echo Check PATHLIBM3L variable setting
+	@echo
+endif
+
 
 prog: $(OBJS)
 	gcc -shared -Wl,-soname,liblsipdx.so.1.0 -o liblsipdx.so.1.0   $(OBJS)
@@ -42,8 +62,8 @@ prog: $(OBJS)
 -include $(OBJS:.o=.d)
 
 %.o: %.c
-	gcc -c -g -Wall -fPIC $*.c -o $*.o
-	gcc -MM -g -Wall -fPIC $*.c > $*.d
+	gcc -c -O -Wall -fPIC $*.c -o $*.o
+	gcc -MM -O -Wall -fPIC $*.c > $*.d
 	@mv -f $*.d $*.d.tmp
 	@sed -e 's|.*:|$*.o:|' < $*.d.tmp > $*.d
 	@sed -e 's/.*://' -e 's/\\$$//' < $*.d.tmp | fmt -1 | \
@@ -51,4 +71,4 @@ prog: $(OBJS)
 	@rm -f $*.d.tmp
 
 clean:
-	rm -f Server_Main.out *.o *.d
+	rm -f Server_Main.out *.o *.d  libm3l.so libm3l.h libm3l.so.1.0
