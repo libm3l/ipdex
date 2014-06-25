@@ -72,7 +72,8 @@ lmint_t open_connection_to_server(const lmchar_t *hostname, lmint_t portno, clie
 /*
  * create header which will identify name of data set and Sender (S) or Receiver (R)
  */
-		Gnode = Header(ClientInPar->data_name, ClientInPar->SR_MODE);
+		if( (Gnode = Header(ClientInPar->data_name, ClientInPar->SR_MODE)) == NULL)
+			Error("open_connection_to_server: NULL Gnode");
 again:
 		if ( (sockfd =  m3l_cli_open_socket(hostname, portno, (lmchar_t *)NULL)) < 0)
 			Error("open_connection_to_server: Could not open socket");
@@ -167,8 +168,8 @@ lmint_t open_sys_to_server(const lmchar_t *hostname, lmint_t portno, opts_t *Pop
 /*
  * create header which will identify name of data set and Sender (S) or Receiver (R)
  */
-// 		Gnode = Header(ClientInPar->data_name, ClientInPar->SR_MODE);
-		Gnode = ChannelList("HEAT", 2,  'D', 'N');
+		if( ( Gnode = ChannelList("HEAT", 2,  'D', 'N')) == NULL)
+			Error("open_connection_to_server: NULL Gnode");
 again: 
 		if ( (sockfd =  m3l_cli_open_socket(hostname, portno, (lmchar_t *)NULL)) < 0)
 			Error("open_connection_to_server: Could not open socket");

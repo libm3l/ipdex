@@ -61,10 +61,7 @@
 
 lmsize_t Add_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread, node_t **Buffer){
 /*
- * function spawns data_threads
- * the number of threads is defined by the number of data sets to be transferred
- * each data_thread then spawns additional n-threads which take care of communication
- * where 1 thread is Sender and n-1 threads are Receivers
+ * function spawns additional Data_Thread
  * 
  * Allocated data set in this function are freed when threads are finished (ie. satement free(c) in Data_Thread.c) 
  * and the main data structure is freed in function invoking this function (ie. Server_Body.c)
@@ -94,7 +91,8 @@ lmsize_t Add_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread, node_t *
 /*
  * new thread is going to be added to the exiting threads
  */
-	newnum = Data_Thread->n_data_threads+1;
+	if(  (newnum = Data_Thread->n_data_threads+1) < 1)
+		return 0;
 /* 
  * malloc data Data_Thread->Data_Str, will be used to store data specific to each Data_Thread (ie. PID, name of channel etc.)
  * the data is then freed in Data_Thread.c function
@@ -146,18 +144,17 @@ lmsize_t Add_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread, node_t *
  * set Node pointer to data set in /_sys_comm_/Channel
  */
 	List = m3l_get_Found_node(SFounds, 0);
-// 	m3l_Cat(List, "--all", "-P", "-L",  "*",   (char *)NULL);
 /*
  * dettach the list from the main tree so that you can later move it to Buffer
  * the remaining of the list will be freed in Server_Body
  */
-	m3l_detach_list(0, &List, (opts_t *)NULL);
-// 	m3l_Cat(List, "--all", "-P", "-L",  "*",   (char *)NULL);
+	if( m3l_detach_list(0, &List, (opts_t *)NULL) < 0)
+		Error("Add_Data_Thread: m3l_detach_list error");
 /*
  * add additional data (Thread_Status etc.)
  */
 	if( Additional_Data2Buffer(&List) != 1)
-		Error("Allocate_DataBuffer: Additional_Data2Buffer");
+		Error("Add_Data_Thread: Additional_Data2Buffer");
 /*
  * associate data with Data_Thread
  * as a counter of the Channel use 1 as there is always one Channel
@@ -177,11 +174,11 @@ lmsize_t Add_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread, node_t *
  * add List to Buffer
  */
 	if( m3l_Mv(&List,  "./Channel", "./*", Buffer, "/Buffer", "/*", (lmchar_t *)NULL) == -1)
-		Error("Allocate_DataBuffer: Mv");
+		Error("Add_Data_Thread: Mv");
 	
 // 	m3l_Cat(*Buffer, "--all", "-P", "-L",  "*",   (char *)NULL);
 
 	Pthread_mutex_unlock(&Data_Thread->lock);
 	
-	return 0;
+	return 1;
 }

@@ -322,11 +322,9 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * system request is always done as a sender, indicate Sender that header was received before receiving payload
  * if process is Receiver send acknowledgment and get back REOB
  */
-				opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
-				if( m3l_send_to_tcpipsocket(Answers->RR_POS, (const char *)NULL, newsockfd, Popts) < 1)
-					Error("Server_Body: Error during sending data to socket");
-				if( close(newsockfd) == -1)
-					Perror("close");
+// 				opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
+// 				if( m3l_send_to_tcpipsocket(Answers->RR_POS, (const char *)NULL, newsockfd, Popts) < 1)
+// 					Error("Server_Body: Error during sending data to socket");
 /*
  * notify Data_Thread that this is a "system" request, ie. 
  * request which changes status of existing channels or adds a new one
@@ -339,8 +337,19 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * of Data_Thread identification process. Before that set Data_Thread counter increment to 1
  */
 				*Data_Threads->sync->incrm = 1;
-				if( Add_Data_Thread(RecNode, Data_Threads, &DataBuffer) != 0)
-					Error("Server_Body: Server_body: Error in Add_Data_Thread"); 
+				if( Add_Data_Thread(RecNode, Data_Threads, &DataBuffer) < 0){
+					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
+					if( m3l_send_to_tcpipsocket(Answers->RR_NEG, (const char *)NULL, newsockfd, Popts) < 1)
+					Error("Server_Body: Error during sending data to socket");
+				}
+				else{
+					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
+					if( m3l_send_to_tcpipsocket(Answers->RR_POS, (const char *)NULL, newsockfd, Popts) < 1)
+					Error("Server_Body: Error during sending data to socket");
+				}
+				printf(" Server added channel \n");
+				if( close(newsockfd) == -1)
+					Perror("close");
 /*
  * This semaphore signalizes Server_Body that it can enter
  * the pt_sync. For case of adding thread, the Server body has just one pt_sync instead of two.
@@ -350,10 +359,11 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * second pt_sync in Data_Threads
  */				
 				Sem_wait(&Data_Threads->sem);
-/* having mutex lock here caused dead-lock, needed to move it before Add_Data_Thread */
+/* 
+ * having mutex lock here caused dead-lock, needed to move it before Add_Data_Thread */
 /*
  * delte borrowed memory, at this stage the 
- * node does not contain Channel as it was 
+ * node does not contain Channel subset, it was 
  * dettached from the node in Add_Data_Thread
  */
 				if( m3l_Umount(&RecNode) != 1)
@@ -367,19 +377,18 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			break;
 			
 			case 200:
-				*Data_Threads->checkdata = 1;
-// 				*Data_Threads->incrm = -1;  /* nunber of sync jobs is going to be + 1 */
-// 				*Data_Threads->addj  = -1;  /* nunber of sync jobs is going to be + 1 */
 /*
  * notify Data_Thread that this is a "system" request, ie. 
  * request which changes status of existing channels or adds a new one
  */
-				*Data_Threads->checkdata = 1;			
-			break;			
+				*Data_Threads->checkdata = 200;			
+			break;
+
 			case -1:
 /*
  * wrong data set, possibly the name of connection does not exist
  */
+				Pthread_mutex_unlock(&Data_Threads->lock);
 				Warning("Server_Body: wrong connection request");
 				
 				if( close(newsockfd) == -1)

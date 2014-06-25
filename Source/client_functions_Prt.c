@@ -153,6 +153,8 @@ node_t *client_receiver(lmint_t sockfd, client_fce_struct_t *ClientInPar, opts_t
 	Popts_1 = &opts;
 	m3l_set_Send_receive_tcpipsocket(&Popts_1);
 	
+	Gnode = NULL;
+	
 	switch(ClientInPar->mode){
 	case 1:
 /*
@@ -212,8 +214,6 @@ node_t *client_receiver(lmint_t sockfd, client_fce_struct_t *ClientInPar, opts_t
 /*
  * confirm the data was received (--SEOB)
  */
-// 	m3l_Send_to_tcpipsocket(NULL,(char *)NULL, sockfd, "--encoding" , "IEEE-754", "--SEOB", (char *)NULL);
-
 		opts.opt_EOBseq = 'E';   /* --SEOB */
 		m3l_send_to_tcpipsocket((node_t *)NULL, (lmchar_t *)NULL, sockfd, Popts_1);
 
@@ -236,7 +236,7 @@ node_t *client_receiver(lmint_t sockfd, client_fce_struct_t *ClientInPar, opts_t
 
 
 
-lmint_t client_system(void *data, lmint_t sockfd, opts_t *Popts, opts_t *Popst_lm3l){
+lmint_t client_system(node_t *data, lmint_t sockfd, opts_t *Popts, opts_t *Popst_lm3l){
 
 	node_t *Answer;
 	opts_t *Popts_1, opts;
@@ -244,11 +244,11 @@ lmint_t client_system(void *data, lmint_t sockfd, opts_t *Popts, opts_t *Popst_l
 
 	Popts_1 = &opts;
 	m3l_set_Send_receive_tcpipsocket(&Popts_1);
-
 /*
  * send data and receive confirmation that the data were received
  */
-	if ( (Answer = m3l_send_receive_tcpipsocket((node_t *)data, (lmchar_t *)NULL, sockfd, Popts_1)) == NULL)
+	printf("Sending Answer\n");
+	if ( (Answer = m3l_send_receive_tcpipsocket(data, (lmchar_t *)NULL, sockfd, Popts_1)) == NULL)
 		Error("client_system: m3l_send_receive_tcpipsocket");
 /*
  * get the value of the /RR/val
@@ -256,7 +256,9 @@ lmint_t client_system(void *data, lmint_t sockfd, opts_t *Popts, opts_t *Popst_l
  * ret_receipt == 0 all connections to the server specified for 
  * given data set were taken, retry opening it again after certain time
  */
+	printf("Getting Answer\n");
 	retval = Answer->child->data.i[0];
+	printf("Server answered %d\n", retval);
 	if(retval != 0)
 		Error("client_system: operation not successfull");
 /*
