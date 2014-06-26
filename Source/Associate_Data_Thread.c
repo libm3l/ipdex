@@ -76,6 +76,7 @@ data_thread_args_t *Associate_Data_Thread(node_t *List, data_thread_str_t *Data_
 		DataArgs->pname_of_data_set   	=  Data_Thread->name_of_data_set;
 		DataArgs->pSR_mode	    	=  Data_Thread->SR_mode;
 		DataArgs->pcheckdata 		=  Data_Thread->checkdata;
+		DataArgs->psem	 		= &Data_Thread->sem;
 
 		DataArgs->psync 		=  Data_Thread->sync;
 		DataArgs->psync->pnsync 	=  Data_Thread->sync->nsync;
@@ -84,7 +85,7 @@ data_thread_args_t *Associate_Data_Thread(node_t *List, data_thread_str_t *Data_
 		DataArgs->psync->pblock		= &Data_Thread->sync->block;
 		DataArgs->psync->pcondvar	= &Data_Thread->sync->condvar;
 		DataArgs->psync->plast		= &Data_Thread->sync->last;
-		DataArgs->psync->pincrm		= &Data_Thread->sync->incrm;
+		DataArgs->psync->pincrm		=  Data_Thread->sync->incrm;
 /*
  * malloc pData_Str and associate with Data_Str
  * only if specified

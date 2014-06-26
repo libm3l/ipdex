@@ -129,7 +129,7 @@ data_thread_str_t *Allocate_Data_Thread_DataSet(void){
  */
 	Pthread_mutex_init(&Data_Thread->lock);
 	Pthread_cond_init(&Data_Thread->cond);
-// 	Sem_init(&Data_Thread->sem, 0);
+ 	Sem_init(&Data_Thread->sem, 0);
 /*
  * this parameter says if the Data_Thread identifies data or no
  * if client ask for connection to another client (usual mode) checkdata == 0

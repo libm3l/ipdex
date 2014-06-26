@@ -83,7 +83,7 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 	Popts = &opts;	
 	m3l_set_Find(&Popts);
 	
-	Popts_tcp = &opts_tcp;	
+	Popts_tcp = &opts_tcp;
 	m3l_set_Send_receive_tcpipsocket(&Popts_tcp);
 
 	retval = 0;
@@ -101,7 +101,7 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 /*
  * usual data request
  */
-		if( (SFounds = m3l_locator_caller(RecNode, "/Header/Name_of_Channel", "./*/*",  Popts)) != NULL){
+		if( (SFounds = m3l_locate(RecNode, "/Header/Name_of_Channel", "./*/*",  Popts)) != NULL){
 			if( m3l_get_Found_number(SFounds) != 1)
 				Error("Ident_Sys_Comm_Channel: Only one Name_of_Channel per Channel allowed");
 			if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
@@ -121,7 +121,7 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 /*
  * find type of process SR_Mode  S-sender, R-receiver
  */
-			if( (SFounds = m3l_locator_caller(RecNode, "/Header/SR_mode", "./*/*",  Popts)) != NULL){
+			if( (SFounds = m3l_locate(RecNode, "/Header/SR_mode", "./*/*",  Popts)) != NULL){
 				
 				if( m3l_get_Found_number(SFounds) != 1)
 					Error("Ident_Sys_Comm_Channel: Only one SR_mode per Channel allowed");
@@ -147,7 +147,7 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 /*
  * check legality and availability of request
  */			
-			retval = Check_Request( (*DataBuffer), name_of_required_data_set, *SR_mode);
+			retval = Check_Request( *DataBuffer, name_of_required_data_set, *SR_mode, (opts_t *)NULL);
 /*
  * indicate request is a DATA type request
  */
@@ -165,8 +165,8 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 	else{
 /*
  * did not find the node, the channel is a request of a client to communicate 
- * with server, this request start with _comm_link_ check that it 
- * is really so by looking at name of head node which is _comm_link_
+ * with server, this request start with _sys_comm_ check that it 
+ * is really so by looking at name of head node which is _sys_comm_
  */
 		*Data_Threads->checkdata = 1;
 
@@ -186,12 +186,12 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
  * if found, the request is a communication request of client with server
  * if not found, the request is a normal request of client asking to communicate with another client
  */
-// 		if( (SFounds = m3l_Locate(RecNode, "/_comm_link_/request_type", "./*/*",  (lmchar_t *)NULL)) != NULL){
-		if( (SFounds = m3l_locator_caller(RecNode, "/_comm_link_/request_type", "./*/*",  Popts)) != NULL){
+// 		if( (SFounds = m3l_Locate(RecNode, "/_sys_comm_/request_type", "./*/*",  (lmchar_t *)NULL)) != NULL){
+		if( (SFounds = m3l_locate(RecNode, "/_sys_comm_/request_type", "./*/*",  Popts)) != NULL){
 			if( m3l_get_Found_number(SFounds) != 1)
-				Error("Ident_Sys_Comm_Channel: Only one /_comm_link_/request_type allowed");
+				Error("Ident_Sys_Comm_Channel: Only one /_sys_comm_/request_type allowed");
 			if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
-				Error("Ident_Sys_Comm_Channel: NULL /_comm_link_/request_type");
+				Error("Ident_Sys_Comm_Channel: NULL /_sys_comm_/request_type");
 			reqtype = (lmint_t *)m3l_get_data_pointer(List);
 /* 
  * free memory allocated in m3l_Locate
@@ -200,8 +200,10 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 		}
 		else
 		{
-			Error("Ident_Sys_Comm_Channel: /_comm_link_/request_type not found\n");
+			Error("Ident_Sys_Comm_Channel: /_sys_comm_/request_type not found\n");
 		}
+		
+		return *reqtype;
 		
 		switch(*reqtype){
 
@@ -212,7 +214,7 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 /*
  * find /_sys_link_/Name_of_Channel in RecNode
  */
-				if( (SFounds = m3l_locator_caller(RecNode, "/_sys_link_/Name_of_Channel", "./*/*",  Popts)) != NULL){
+				if( (SFounds = m3l_locate(RecNode, "/_sys_link_/Name_of_Channel", "./*/*",  Popts)) != NULL){
 					if( m3l_get_Found_number(SFounds) != 1)
 						Error("Ident_Sys_Comm_Channel: Only one Name_of_Channel per Channel allowed");
 					if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
@@ -221,30 +223,28 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 					
 					if( (len = m3l_get_List_totdim(List)-1) < 1)
 						Error("Ident_Sys_Comm_Channel: too short name of data set");
+					
+					if( Check_Request( (*DataBuffer), name_of_required_data_set, *SR_mode, (opts_t *)NULL) == 1){
+/*
+ * channel already exists
+ */
+						opts_tcp.opt_EOBseq = '\0'; // send EOFbuff sequence only
+						if( m3l_send_to_tcpipsocket(Answers->RR_WRREQ, (const char *)NULL, sockfd, Popts_tcp) < 1)
+							Error("Ident_Sys_Comm_Channel: Error during sending RR_WRCONREQ to sockfd");
+						m3l_DestroyFound(&SFounds);
+						if( close(sockfd) == -1)
+							Perror("close");
+						return -1;
+					}
 /* 
  * free memory allocated in m3l_Locate
  */
 					m3l_DestroyFound(&SFounds);
 				}
 /*
- * check if connection is already available
- */
-// 				for(i=0, i< Queue->n_conn; i++){
-// 					len1 = strlen(Queue->name_of_connection);
-// 					if( len == len1 && strncmp(Queue->name_of_connection, name_of_required_data_set,len) == 0){
-// /*
-//  * connection alraedy exists, send WRCONREQ
-//  */
-// 						opts_tcp.opt_EOBseq = '\0'; // send EOFbuff sequence only
-// 						if( m3l_send_to_tcpipsocket(Answers->RR_WRREQ, (const char *)NULL, sockfd, Popts_Send) < 1)
-// 							Error("Ident_Sys_Comm_Channel: Error during sending RR_WRCONREQ to sockfd");
-// 						return -1;
-// 					}
-// 				}
-/*
  * find SR mode, KA_mode, Receiving clients number
  */
-				if( (SFounds = m3l_locator_caller(RecNode, "/_sys_link_/CONNECTION/ATDT_Mode", "./*/*/*",  Popts)) != NULL){
+				if( (SFounds = m3l_locate(RecNode, "/_sys_link_/CONNECTION/ATDT_Mode", "./*/*/*",  Popts)) != NULL){
 
 					if( m3l_get_Found_number(SFounds) != 1)
 						Error("Ident_Sys_Comm_Channel: Only one CONNECTION/ATDT_Mode per Channel allowed");
@@ -265,7 +265,7 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 					Error("SR_hub: CONNECTION/ATDT_Mode not found\n");
 				}
 
-				if( (SFounds = m3l_locator_caller(RecNode, "/_sys_link_/CONNECTION/KEEP_CONN_ALIVE_Mode", "./*/*/*",  Popts)) != NULL){
+				if( (SFounds = m3l_locate(RecNode, "/_sys_link_/CONNECTION/KEEP_CONN_ALIVE_Mode", "./*/*/*",  Popts)) != NULL){
 
 					if( m3l_get_Found_number(SFounds) != 1){
 						Warning("Ident_Sys_Comm_Channel: Only one CONNECTION/KEEP_CONN_ALIVE_Mode per Channel allowed");
@@ -300,7 +300,7 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 				}
 
 
-				if( (SFounds = m3l_locator_caller(RecNode, "/_sys_link_/Receiving_Processes", "./*/*",  Popts)) != NULL){
+				if( (SFounds = m3l_locate(RecNode, "/_sys_link_/Receiving_Processes", "./*/*",  Popts)) != NULL){
 
 					if( m3l_get_Found_number(SFounds) != 1){
 						Warning("Ident_Sys_Comm_Channel: Only one Receiving_Processes per Channel allowed");
@@ -344,8 +344,8 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 /*
  * close connection, find the name of closed connection
  */
-// 				if( (SFounds = m3l_Locate(RecNode, "/_comm_link_/Name_of_Channel", "./*/*",  (lmchar_t *)NULL)) != NULL){
-				if( (SFounds = m3l_locator_caller(RecNode, "/_comm_link_/Name_of_Channel", "./*/*",  Popts)) != NULL){
+// 				if( (SFounds = m3l_Locate(RecNode, "/_sys_comm_/Name_of_Channel", "./*/*",  (lmchar_t *)NULL)) != NULL){
+				if( (SFounds = m3l_locate(RecNode, "/_sys_comm_/Name_of_Channel", "./*/*",  Popts)) != NULL){
 					if( m3l_get_Found_number(SFounds) != 1)
 						Error("Ident_Sys_Comm_Channel: Only one Name_of_Channel per Channel allowed");
 					if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)

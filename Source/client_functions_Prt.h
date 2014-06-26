@@ -43,7 +43,8 @@
 
 #include "lsipdx_header.h"
 
-lmint_t client_sender(void *, lmint_t, client_fce_struct_t *, opts_t *, opts_t *);
-node_t *client_receiver(lmint_t , client_fce_struct_t *, opts_t *, opts_t *);
+extern lmint_t client_sender(void *, lmint_t, client_fce_struct_t *, opts_t *, opts_t *);
+extern node_t *client_receiver(lmint_t , client_fce_struct_t *, opts_t *, opts_t *);
+extern lmint_t client_system(node_t *, lmint_t , opts_t *, opts_t *);
 
 #endif

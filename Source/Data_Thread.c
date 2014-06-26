@@ -78,7 +78,7 @@ void *Data_Threads(void *arg)
 	lmchar_t *data_set_name, local_set_name[MAX_NAME_LENGTH];
 	find_t *SFounds, *THRStat_SFounds;
 
-	lmint_t  *Thread_Status, *Thread_S_Status;
+	lmint_t  *Thread_Status, *Thread_S_Status, round;
 	lmsize_t *Thread_R_Status;
 	
 	SR_thread_str_t *SR_Threads;
@@ -90,7 +90,8 @@ void *Data_Threads(void *arg)
 	opts.opt_i = '\0'; opts.opt_d = '\0'; opts.opt_f = '\0'; opts.opt_r = 'r'; opts.opt_I = '\0'; opts.opt_L = '\0'; opts.opt_l = '\0';
 
 	Popts = &opts;
-	
+	round = 0;
+	len = 0;
 /*
  * get my thread ID
  */
@@ -103,8 +104,7 @@ void *Data_Threads(void *arg)
  * find name of data set
  * if it does not exist or more then one data set is found, give error message
  */
-// 		if( (SFounds = m3l_Locate        (c->Node, "./Channel/Name_of_Channel", "./*/*",  (lmchar_t *)NULL)) != NULL){
-		if( (SFounds = m3l_locator_caller(c->Node, "./Channel/Name_of_Channel", "./*/*", Popts)) != NULL){
+		if( (SFounds = m3l_locate(c->Node, "./Channel/Name_of_Channel", "./*/*", Popts)) != NULL){
 			if( m3l_get_Found_number(SFounds) != 1)
 				Error("Data_Thread: Only one Name_of_Channel per Channel allowed");
 /* 
@@ -140,8 +140,7 @@ void *Data_Threads(void *arg)
  * find name of process which will read the data set
  * there is only one writing processes
  */
-// 		if( (SFounds = m3l_Locate(c->Node, "./Channel/Receiving_Processes", "./*/*",  (lmchar_t *)NULL)) != NULL){
-		if( (SFounds = m3l_locator_caller(c->Node, "./Channel/Receiving_Processes", "./*/*", Popts)) != NULL){
+		if( (SFounds = m3l_locate(c->Node, "./Channel/Receiving_Processes", "./*/*", Popts)) != NULL){
 
 			if( m3l_get_Found_number(SFounds) != 1)
 				Error("Data_Thread: Only one Receiving_Processes set per Channel allowed");
@@ -170,8 +169,7 @@ void *Data_Threads(void *arg)
  */
 		n_avail_loc_theads = n_rec_proc + 1;
 
-// 		if( (THRStat_SFounds = m3l_Locate(c->Node, "./Channel/Thread_Status", "/*/*", (lmchar_t *)NULL)) == NULL){
-		if( (THRStat_SFounds = m3l_locator_caller(c->Node, "./Channel/Thread_Status", "./*/*", Popts)) == NULL){
+		if( (THRStat_SFounds = m3l_locate(c->Node, "./Channel/Thread_Status", "./*/*", Popts)) == NULL){
 			printf("Data_Thread: did not find any Thread_Status\n");
 			m3l_DestroyFound(&THRStat_SFounds);
 			exit(0);
@@ -185,8 +183,7 @@ void *Data_Threads(void *arg)
 		*Thread_Status = 0;
 		m3l_DestroyFound(&THRStat_SFounds);
 		
-// 		if( (THRStat_SFounds = m3l_Locate(c->Node, "./Channel/S_Status", "/*/*", (lmchar_t *)NULL)) == NULL){
-		if( (THRStat_SFounds = m3l_locator_caller(c->Node, "./Channel/S_Status", "./*/*", Popts)) == NULL){
+		if( (THRStat_SFounds = m3l_locate(c->Node, "./Channel/S_Status", "./*/*", Popts)) == NULL){
 			printf("Data_Thread: did not find any S_Status\n");
 			m3l_DestroyFound(&THRStat_SFounds);
 			exit(0);
@@ -197,8 +194,7 @@ void *Data_Threads(void *arg)
 		*Thread_S_Status = 0;
 		m3l_DestroyFound(&THRStat_SFounds);
 
-// 		if( (THRStat_SFounds = m3l_Locate(c->Node, "./Channel/R_Status", "/*/*", (lmchar_t *)NULL)) == NULL){
-		if( (THRStat_SFounds = m3l_locator_caller(c->Node, "./Channel/R_Status", "./*/*", Popts)) == NULL){
+		if( (THRStat_SFounds = m3l_locate(c->Node, "./Channel/R_Status", "./*/*", Popts)) == NULL){
 			printf("Thread_Status: did not find any R_Status\n");
 			m3l_DestroyFound(&THRStat_SFounds);
 			exit(0);
@@ -286,7 +282,6 @@ void *Data_Threads(void *arg)
  */
 						else if(*c->pSR_mode == 'R'){
 							(*Thread_R_Status)++;
-	// 						printf(" Increasing number of connections %ld \n", *Thread_R_Status);
 						}
 						else
 							Error("Data_Thread: Wrong SR_mode");
@@ -324,13 +319,34 @@ void *Data_Threads(void *arg)
 
 				pt_sync(c->psync);
 			}
-			else{
+			else if(*c->pcheckdata == 100){
 /*
  * request was _sys_link_ request
  */
-				pt_sync(c->psync);
-// 				pt_sync_mod_sem(c->psync,0,0,c->psem);
+/*
+ * if the first round, ie. Data_Thread was added now,
+ * post semaphore. The semaphore signalizes Server_Body that it can enter
+ * the pt_sync. For case of adding thread, the Server body has just one pt_sync instead of two.
+ * The first missing pt_sync is then provided by newly spawned Data_Thread. 
+ * This semaphore makes sure that the pt_sync in this thread is executed before pt_sync
+ * in Server_Body so that the Server_Body pt_sync_mod is used in conunction with 
+ * second pt_sync in Data_Threads
+ */
+				if(round == 0)Sem_post(c->psem);
+/*
+ * Because there is already additional thread spawned by Add_Data_Thread, increase temporarily
+ * the number of synced jobs - second 1 in pt_sync_mod
+ */
+				pt_sync_mod(c->psync, 1, 1);
 			}
+			else
+				Error("Wrong value of pcheckdata");
+/*
+ * indicate that thread went through the identfication 
+ * loop at least once. 
+ * This variable is used to identify newly added threads
+ */
+			round =1;
 
 		}while(n_avail_loc_theads != 0);  /* all connecting thread arrivied, ie. one Sender and n_rec_proc Receivers */
 		

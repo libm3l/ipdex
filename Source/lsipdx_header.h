@@ -94,6 +94,7 @@ typedef struct data_thread_args{
 	lmchar_t 		*pname_of_data_set, *pSR_mode;	/* stores data_set name which is then compared in data_thread and SM_mode */
 	pt_sync_t		*psync;
 	data_thread_int_str_t	*pData_Str;		/* Data_Thread specific data PID, name_of_channel etc. */
+	sem_t			*psem;
 }data_thread_args_t;
 
 /*
@@ -109,8 +110,8 @@ typedef struct data_thread_str{
 	lmint_t  		*socket,  *retval, *checkdata;		/* socket ID passed to data_Thread, message upon receiving it, yes or not to check data*/
 	pt_sync_t		*sync;
 	data_thread_int_str_t	**Data_Str;		/* Data_Thread specific data PID, name_of_channel etc. */
+	sem_t			sem;
 }data_thread_str_t;
-
 
 
 /*

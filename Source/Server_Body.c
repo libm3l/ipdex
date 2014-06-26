@@ -82,12 +82,12 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * create standard answers and queue
  */
 	if (  (Answers = MakePredefinedAnswers()) == NULL)
-		Error("Server_Body: error while makeing answers");
+		Error("Server_Body: Server_Body: error while makeing answers");
 /*
  * create buffer structure for buffering recevied data requests if needed
  */
 	if( (DataBuffer = Allocate_DataBuffer(Gnode)) == NULL)
-		Error("Buffering problem");
+		Error("Server_Body: Buffering problem");
 /*
  * allocate Data_Thread used by Data_Thread.c and Start_Data_Thread.c
  */
@@ -166,12 +166,13 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 /*
  * receive header with solver and data set information
  */
-// 		if( (RecNode = m3l_Receive_tcpipsocket((const char *)NULL, newsockfd, "--encoding" , "IEEE-754", (char *)NULL)) == NULL)
-// 			Error("Error during reading data from socket");
-
 		opts.opt_REOBseq = '\0'; // send EOFbuff sequence only
 		if( (RecNode = m3l_receive_tcpipsocket((const char *)NULL, newsockfd, Popts)) == NULL)
-			Error("Error during reading data from socket");
+			Error("Server_Body: Error during reading data from socket");
+		
+		
+// 		if(m3l_Cat(RecNode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
+// 			Error("Server_Body: CatData");
 /*
  * identify type of request and get back with name of required connection and SR_mode
  */
@@ -190,7 +191,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * Once the data transfer is finished, add the data thread to the pool of available data threads
  * (ie. increment  (*Data_Threads->data_threads_availth_counter)++)
  */
-		switch( Ident_Sys_Comm_Channel(RecNode, &DataBuffer, Data_Threads, 
+		switch(Ident_Sys_Comm_Channel(RecNode, &DataBuffer, Data_Threads, 
 				name_of_required_data_set, &SR_mode, Answers,newsockfd)){
 			case 0:
 /* 
@@ -205,19 +206,19 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  */
 					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
 					if( m3l_send_to_tcpipsocket(Answers->RR_POS, (const char *)NULL, newsockfd, Popts) < 1)
-						Error("Error during sending data to socket");
+						Error("Server_Body: Error during sending data to socket");
 				}
 				else if(SR_mode == 'R'){
 
-					opts.opt_REOBseq = 'G'; // send EOFbuff sequence only
+					opts.opt_REOBseq = 'G'; // receive EOFbuff sequence only
 					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only	
 					if( m3l_send_receive_tcpipsocket(Answers->RR_POS, (const lmchar_t *)NULL, newsockfd, Popts) < 0){
-						Error(" Error during receving data from socket \n");
+						Error("Server_Body:  Error during receving data from socket \n");
 						return -1;
 					}
 				}
 				else
-					Error("Wrong SR mode\n");
+					Error("Server_Body: Wrong SR mode\n");
 /*
  * at least one data thread is available:
  *  -  set number of remainign data threads equalt to available data threads
@@ -284,20 +285,20 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * if process is Receiver send acknowledgment and get back REOB
  */
 // 				if( m3l_Send_to_tcpipsocket(RR_NEG, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754",  (char *)NULL) < 1)
-// 					Error("Error during sending data from socket");
+// 					Error("Server_Body: Error during sending data from socket");
 					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
 					if( m3l_send_to_tcpipsocket(Answers->RR_NEG, (const char *)NULL, newsockfd, Popts) < 1)
-						Error("Error during sending data from socket");
+						Error("Server_Body: Error during sending data from socket");
 					
 				}
 				else if(SR_mode == 'R'){
 // 					m3l_Send_to_tcpipsocket(RR_NEG, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754", (char *)NULL);
 					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
 					if( m3l_send_to_tcpipsocket(Answers->RR_NEG, (const char *)NULL, newsockfd, Popts) < 1)
-						Error("Error during sending data from socket");
+						Error("Server_Body: Error during sending data from socket");
 				}
 				else{
-					Error("Wrong SR mode\n");
+					Error("Server_Body: Wrong SR mode\n");
 				}
 				
 				
@@ -318,55 +319,69 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * notify Data_Thread that this is a "system" request, ie. 
  * request which changes status of existing channels or adds a new one
  */
-				*Data_Threads->checkdata = 1;
+				*Data_Threads->checkdata = 100;
 
-				
-// 				*Data_Threads->incrm = 1;  /* nunber of sync jobs is going to be + 1 */
-// 				*Data_Threads->addj  = 1;  /* nunber of sync jobs is going to be + 1 */
 				Pthread_mutex_unlock(&Data_Threads->lock);
 /*
  * let all Data_Threads waiting on pt_sync to make a step and enter the second pt_sync at the end 
  * of Data_Thread identification process. Before that set Data_Thread counter increment to 1
+ * This increment is used in pt_sync_mod()
+ * 
+ * Notify Sender that header was received, if operation successfull, send Answers->RR_POS
+ * otherwise Answers->RR_NEG
  */
-				pt_sync(Data_Threads->sync);
-/*
- * lock the mutex and spawn a new thread
- */
-				Pthread_mutex_lock(&Data_Threads->lock);
-				
-				if( Add_Data_Thread(&RecNode, Data_Threads, &DataBuffer) != 0)
-					Error("Server_body: Error in Add_Data_Thread"); 
+				*Data_Threads->sync->incrm = 1;
 
-				Pthread_mutex_unlock(&Data_Threads->lock);
-/*
- * this is the second pt_sync. The last thread will increase number of synced 
- * jobs by 1. Because there is already additional thread spawned by Add_Data_Thread, increase temporarily
- * the number of synced jobs
- */
-				pt_sync_mod(Data_Threads->sync, 1, 1);
-/* 
- * when all Data_Thread are finished, - the identification part, the threads are waiting on each other. 
- * the last thread unlock the semaphore so that the next loop can start
- */		
-				pt_sync(Data_Threads->sync);
+				if( Add_Data_Thread(RecNode, Data_Threads, &DataBuffer) < 0){
+					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
+					if( m3l_send_to_tcpipsocket(Answers->RR_NEG, (const char *)NULL, newsockfd, Popts) < 1)
+					Error("Server_Body: Error during sending data to socket");
+				}
+				else{
+					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
+					if( m3l_send_to_tcpipsocket(Answers->RR_POS, (const char *)NULL, newsockfd, Popts) < 1)
+					Error("Server_Body: Error during sending data to socket");
+				}
 				if( close(newsockfd) == -1)
 					Perror("close");
+/*
+ * delte borrowed memory, at this stage the 
+ * node does not contain Channel subset, it was 
+ * dettached from the node in Add_Data_Thread
+ */
+				if( m3l_Umount(&RecNode) != 1)
+					Perror("m3l_Umount");
+/*
+ * This semaphore signalizes Server_Body that it can enter
+ * the pt_sync. For case of adding thread, the Server body has just one pt_sync instead of two.
+ * The first missing pt_sync is then provided by newly spawned Data_Thread. 
+ * This semaphore makes sure that the pt_sync in the newly spawned Data_Thread is executed before pt_sync
+ * in Server_Body so that the Server_Body pt_sync_mod is used in conunction with 
+ * second pt_sync in Data_Threads
+ */				
+				Sem_wait(&Data_Threads->sem);
+/*
+ * This pt_sync corresponds to the second pt_sync (more specifically pt_sync_mod) in 
+ * Data_Threads. The last thread will increase number of synced 
+ * jobs by incrm = 1. Because there is already additional thread spawned by Add_Data_Thread, increase temporarily
+ * the number of synced jobs - second 1 in pt_sync_mod
+ */
+				pt_sync_mod(Data_Threads->sync, 1, 1);
 			break;
 			
 			case 200:
-				*Data_Threads->checkdata = 1;
-// 				*Data_Threads->incrm = -1;  /* nunber of sync jobs is going to be + 1 */
-// 				*Data_Threads->addj  = -1;  /* nunber of sync jobs is going to be + 1 */
 /*
  * notify Data_Thread that this is a "system" request, ie. 
  * request which changes status of existing channels or adds a new one
  */
-				*Data_Threads->checkdata = 1;			
-			break;			
+				*Data_Threads->checkdata = 200;			
+			break;
+
 			case -1:
 /*
  * wrong data set, possibly the name of connection does not exist
  */
+				Pthread_mutex_unlock(&Data_Threads->lock);
 				Warning("Server_Body: wrong connection request");
 				
 				if( close(newsockfd) == -1)
@@ -390,7 +405,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 	for(i=0; i< Data_Threads->n_data_threads; i++){
 		if( Data_Threads->Data_Str[i]->data_threadPID != NULL){
 			if( pthread_join(*Data_Threads->Data_Str[i]->data_threadPID, NULL) != 0)
-				Error(" Joining thread failed");
+				Error("Server_Body:  Joining thread failed");
 		}
 	
 		free(Data_Threads->Data_Str[i]->data_threadPID);
@@ -400,7 +415,8 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 
 	Pthread_mutex_destroy(&Data_Threads->lock);
 	Pthread_cond_destroy(&Data_Threads->cond);
-	
+	Sem_destroy(&Data_Threads->sem);
+
 	free(Data_Threads->name_of_data_set);
 	free(Data_Threads->SR_mode);
 	free(Data_Threads->data_threads_availth_counter);
