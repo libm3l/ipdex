@@ -344,6 +344,9 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 				}
 				if( close(newsockfd) == -1)
 					Perror("close");
+				
+// 				m3l_Cat(DataBuffer, "--all", "-P", "-L",  "*",   (char *)NULL)
+// 				m3l_Cat(DataBuffer, "--detailed", "-P", "-L",  "*",   (char *)NULL);
 /*
  * delte borrowed memory, at this stage the 
  * node does not contain Channel subset, it was 
@@ -369,6 +372,20 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 				pt_sync_mod(Data_Threads->sync, 1, 1);
 			break;
 			
+			case 101:
+/*
+ * requested new channel already exist
+ */
+				Pthread_mutex_unlock(&Data_Threads->lock);
+				opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
+				if( m3l_send_to_tcpipsocket(Answers->RR_WNEG, (const char *)NULL, newsockfd, Popts) < 1)
+					Error("Server_Body: Error during sending data to socket");
+				if( close(newsockfd) == -1)
+					Perror("close");
+				if( m3l_Umount(&RecNode) != 1)
+					Perror("m3l_Umount");
+			break;
+			
 			case 200:
 /*
  * notify Data_Thread that this is a "system" request, ie. 
@@ -378,6 +395,19 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			break;
 
 			case -1:
+/*
+ * wrong data set, possibly the name of connection does not exist
+ */
+				Pthread_mutex_unlock(&Data_Threads->lock);
+				Warning("Server_Body: wrong connection request");
+				
+				if( close(newsockfd) == -1)
+					Perror("close");
+				if( m3l_Umount(&RecNode) != 1)
+					Perror("m3l_Umount");
+			break;
+			
+			case -101:
 /*
  * wrong data set, possibly the name of connection does not exist
  */
