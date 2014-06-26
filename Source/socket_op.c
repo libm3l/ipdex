@@ -156,7 +156,6 @@ lmint_t open_sys_to_server(const lmchar_t *hostname, lmint_t portno, opts_t *Pop
 	
 	lmsize_t conn_retry_counter;
 	lmsize_t max_conn_attemps = 100;
-	opts_t *Popts_1, opts;   /* NOTE:  URGENT Popts_1 is the same as Popts */
 
 	tim.tv_sec = 0;
 // 	tim.tv_nsec = 100000000L;    /* 0.1 secs */

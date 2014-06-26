@@ -153,23 +153,6 @@ node_t *Header(lmchar_t *name, lmchar_t RWmode){
 		return NULL;
 }
 
-
-// node_t *Sys_Header(lmchar_t *name){
-// 
-// 	node_t *Gnode, *TmpNode;
-// 	lmsize_t dim[1];
-// /*
-//  * system request
-//  */
-// 	if(  (Gnode = m3l_Mklist("_sys_comm_", "DIR", 0, 0, (node_t **)NULL, (const char *)NULL, (const char *)NULL, (char *)NULL)) == 0)
-// 		Perror("m3l_Mklist");
-// 	dim[0] = 1;
-// 	if(  (TmpNode = m3l_Mklist("request_type", "I", 1, dim, &Gnode, "/_sys_comm_", "./", (char *)NULL)) == 0)
-// 		Error("m3l_Mklist");
-// 	TmpNode->data.i[0] = 100;
-// 	return Gnode;
-// }
-
 lsipdx_answer_t *MakePredefinedAnswers(){
 /*
  * functions creates predefined answers
