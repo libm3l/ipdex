@@ -148,7 +148,7 @@ again:
 
 
 
-lmint_t open_sys_to_server(const lmchar_t *hostname, lmint_t portno, opts_t *Popts){
+lmint_t add_connection(const lmchar_t *hostname, lmint_t portno, opts_t *Popts){
 
 	lmint_t sockfd, retval;
 	node_t *Gnode, *TmpNode;
@@ -191,8 +191,9 @@ again:
  */
 		retval = TmpNode->child->data.i[0];
 /*
- * if retval == 1 the data_thread is prepared to transmit the data, 
- * if retval == 0 the data_thread is busy, close socket and try again
+ * if retval == 1 adding new connection was succesfull
+ * if retval == 0 adding new connection failed
+ * if retval == 101 requested new connection already exist
  */		
 		if(retval == 0){
 
@@ -212,6 +213,18 @@ again:
 			else{
 				goto again;
 			}
+		}
+		else if(retval == 101){
+/*
+ * requested connection already exist
+ */
+			if( close(sockfd) == -1)
+				Perror("close");
+			if(m3l_Umount(&Gnode) != 1)
+				Perror("m3l_Umount");
+			if(m3l_Umount(&TmpNode) != 1)
+				Perror("m3l_Umount");
+			return -101;
 		}
 
 		if(m3l_Umount(&Gnode) != 1)

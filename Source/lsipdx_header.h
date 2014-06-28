@@ -54,7 +54,7 @@
  * predefined answers
  */
 typedef struct lsipdx_answer{
-	node_t *RR_POS, *RR_NEG, *RR_WRREQ, *RR_WRCONREQ;
+	node_t *RR_POS, *RR_NEG, *RR_WNEG, *RR_WRREQ, *RR_WRCONREQ;
 }lsipdx_answer_t;
 
 /*

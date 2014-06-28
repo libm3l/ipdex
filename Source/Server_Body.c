@@ -140,10 +140,10 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  *
  * this condition is signaled by SR_hub
  */
-		if(*Data_Threads->data_threads_availth_counter == 0){
-			while(*Data_Threads->data_threads_availth_counter == 0)
-				Pthread_cond_wait(&Data_Threads->cond, &Data_Threads->lock);
-		}
+// 		if(*Data_Threads->data_threads_availth_counter == 0){
+// 			while(*Data_Threads->data_threads_availth_counter == 0)
+// 				Pthread_cond_wait(&Data_Threads->cond, &Data_Threads->lock);
+// 		}
 
 		Pthread_mutex_unlock(&Data_Threads->lock);
 	
@@ -170,7 +170,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 		if( (RecNode = m3l_receive_tcpipsocket((const char *)NULL, newsockfd, Popts)) == NULL)
 			Error("Server_Body: Error during reading data from socket");
 		
-		
 // 		if(m3l_Cat(RecNode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
 // 			Error("Server_Body: CatData");
 /*
@@ -192,7 +191,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
  * (ie. increment  (*Data_Threads->data_threads_availth_counter)++)
  */
 		switch(Ident_Sys_Comm_Channel(RecNode, &DataBuffer, Data_Threads, 
-				name_of_required_data_set, &SR_mode, Answers,newsockfd)){
+				name_of_required_data_set, &SR_mode, Answers)){
 			case 0:
 /* 
  * Legal request, not in buffer, data_thread available 
@@ -344,6 +343,9 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 				}
 				if( close(newsockfd) == -1)
 					Perror("close");
+				
+// 				m3l_Cat(DataBuffer, "--all", "-P", "-L",  "*",   (char *)NULL)
+// 				m3l_Cat(DataBuffer, "--detailed", "-P", "-L",  "*",   (char *)NULL);
 /*
  * delte borrowed memory, at this stage the 
  * node does not contain Channel subset, it was 
@@ -369,6 +371,20 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 				pt_sync_mod(Data_Threads->sync, 1, 1);
 			break;
 			
+			case 101:
+/*
+ * requested new channel already exist
+ */
+				Pthread_mutex_unlock(&Data_Threads->lock);
+				opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
+				if( m3l_send_to_tcpipsocket(Answers->RR_WNEG, (const char *)NULL, newsockfd, Popts) < 1)
+					Error("Server_Body: Error during sending data to socket");
+				if( close(newsockfd) == -1)
+					Perror("close");
+				if( m3l_Umount(&RecNode) != 1)
+					Perror("m3l_Umount");
+			break;
+			
 			case 200:
 /*
  * notify Data_Thread that this is a "system" request, ie. 
@@ -378,6 +394,19 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			break;
 
 			case -1:
+/*
+ * wrong data set, possibly the name of connection does not exist
+ */
+				Pthread_mutex_unlock(&Data_Threads->lock);
+				Warning("Server_Body: wrong connection request");
+				
+				if( close(newsockfd) == -1)
+					Perror("close");
+				if( m3l_Umount(&RecNode) != 1)
+					Perror("m3l_Umount");
+			break;
+			
+			case -101:
 /*
  * wrong data set, possibly the name of connection does not exist
  */

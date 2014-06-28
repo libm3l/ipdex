@@ -99,6 +99,7 @@ lmsize_t Add_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread, node_t *
  */
 	if(Data_Thread->Data_Str != NULL){
 		Tmp = NULL;
+		
 		if( ( Tmp = (data_thread_int_str_t **)realloc( Data_Thread->Data_Str, 
 			newnum*sizeof(data_thread_int_str_t *))) == NULL){
 
@@ -107,8 +108,14 @@ lmsize_t Add_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread, node_t *
 		Data_Thread->Data_Str = Tmp;
 	}
 	else{
-		Error("Add_Data_Thread: Data_Thread->Data_Str not yet malloced");
-		return -1;
+/*
+ * this situation can happen only if the Server is started without any 
+ * preopened channels
+ */
+// 		Error("Add_Data_Thread: Data_Thread->Data_Str not yet malloced");
+// 		return -1;
+		if( (Data_Thread->Data_Str = (data_thread_int_str_t **)malloc(sizeof(data_thread_int_str_t *))) == NULL)
+			Perror("Start_Data_Thread: Data_Thread->Data_Str malloc");
 	}
 	newnum--;
 /*
@@ -160,7 +167,7 @@ lmsize_t Add_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread, node_t *
  * as a counter of the Channel use 1 as there is always one Channel
  * in _sys_comm_ request
  */	
-	if(  (DataArgs = Associate_Data_Thread(List, Data_Thread, 1, 1)) == NULL)
+	if(  (DataArgs = Associate_Data_Thread(List, Data_Thread, 0, 1)) == NULL)
 		Error("Add_Data_Thread: DataArgs NULL pointer");
 /*
  * create thread

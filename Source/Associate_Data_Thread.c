@@ -65,8 +65,8 @@ data_thread_args_t *Associate_Data_Thread(node_t *List, data_thread_str_t *Data_
 		
 		if( (DataArgs = (data_thread_args_t *)malloc(sizeof(data_thread_args_t))) == NULL)
 			Perror("Associate_Data_Thread: DataArgs malloc");
-	
 		DataArgs->Node  		=  List;
+
 		DataArgs->plock 		= &Data_Thread->lock;	
 		DataArgs->pcond 		= &Data_Thread->cond;	
 		DataArgs->psocket    		=  Data_Thread->socket;	
@@ -99,6 +99,5 @@ data_thread_args_t *Associate_Data_Thread(node_t *List, data_thread_str_t *Data_
 		else
 			DataArgs->pData_Str = NULL;
 		
-
 		return DataArgs;
 }

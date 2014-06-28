@@ -72,20 +72,16 @@ node_t *Allocate_DataBuffer(node_t *Gnode){
 		n_data_threads = m3l_get_Found_number(SFounds);
 		
 		if(n_data_threads == 0){
-			Error("Allocate_DataBuffer: did not find any Data_set");
+			Error("Allocate_DataBuffer: did not find any /COMM_DEF/Channels/Channe");
 			m3l_DestroyFound(&SFounds);
 		}
 	}
 	else
 	{
-		printf("Allocate_DataBuffer: did not find any Data_set\n");
-		exit(0);
+// 		printf("Allocate_DataBuffer: did not find any /COMM_DEF/Channels/Channel\n");
+		n_data_threads = 0;
+// 		exit(0);
 	}
-	
-	
-// 	if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
-// 		Error("CatData");
-	
 /*
  * make buffer structure
  */
@@ -107,9 +103,6 @@ node_t *Allocate_DataBuffer(node_t *Gnode){
 		if( Additional_Data2Buffer(&TmpNode) != 1)
 			Error("Allocate_DataBuffer: Additional_Data2Buffer");
 	}
-	
-// 	if(m3l_Cat(BuffNode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
-// 		Error("CatData");
 
 	free(dim);
 	

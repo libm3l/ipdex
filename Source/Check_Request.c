@@ -76,6 +76,8 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
 	Popts = &opts;
 	
 	len1 = strlen(name_of_required_data_set);
+	
+	n_data_threads = 0;
 /*
  * find if the data set thread is available
  */
@@ -84,15 +86,15 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
 		n_data_threads = m3l_get_Found_number(DATA_SFounds);
 		
 		if(n_data_threads == 0){
-			Error("Check_Request: did not find any Data_set");
+			Error("Check_Request: did not find any /Buffer/Channel");
 			m3l_DestroyFound(&DATA_SFounds);
 		}
 	}
-	else
-	{
-		printf("Check_Request: did not find any Data_set\n");
-		exit(0);
-	}
+// 	else
+// 	{
+// 		printf("Check_Request: did not find any Data_set\n");
+// 		exit(0);
+// 	}
 /*
  * loop over and find out if the process thread is free to use
  */
