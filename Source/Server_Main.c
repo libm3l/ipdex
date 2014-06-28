@@ -64,7 +64,13 @@ lmint_t main (int argc, char **argv){
 	lmchar_t *Filename=NULL;
 	
 	node_t *Gnode = NULL;
-	lmchar_t opt_s='\0';
+// 	lmchar_t opt_s='\0'; opt_f = '\0', 
+	
+	opts_t opts, *Popts;
+	
+	Popts = &opts;
+	
+	opts.opt_s='\0'; opts.opt_f = '\0',
 /*
  * set initial value of port numbe to -1 
  */
@@ -79,13 +85,14 @@ lmint_t main (int argc, char **argv){
 
 		static struct option long_options[] = {
 			{"port",    		required_argument, 	0, 'p' },
+			{"fixed",     		no_argument,       	0, 'f' },
 			{"help",     		no_argument,       	0, 'h' },
 			{"input_file",     	required_argument,	0, 'i' },
 			{"show_file",     	no_argument,       	0, 's' },
 			{0,         0,                 0,  0 }
 		};
 
-		c = getopt_long(argc, argv, "hi:p:s:012?",long_options, &option_index);
+		c = getopt_long(argc, argv, "fhi:p:s:012?",long_options, &option_index);
 		if (c == -1)
 			break;
 
@@ -105,6 +112,10 @@ lmint_t main (int argc, char **argv){
 				digit_optind = this_option_optind;
 				printf("option %c\n", c);
 			break;
+
+			case 'f':
+				opts.opt_f = 'f';
+			break;
 			
 			case 'i':
 				printf("option i with value '%s'\n", optarg);
@@ -117,7 +128,7 @@ lmint_t main (int argc, char **argv){
 				portnum = atoi(optarg);
 			break;
 			case 's':
-				opt_s = 'y';
+				opts.opt_s = 'y';
 			break;
 			
 			case '?':
@@ -161,7 +172,7 @@ lmint_t main (int argc, char **argv){
 /*
  * if specified, write the file on screen
  */	
-	if(opt_s == 'y'){
+	if(opts.opt_s == 'y'){
  		if(m3l_Cat(Gnode, "--all", "-L", "-P", "*",   (lmchar_t *)NULL) != 0)
  			Warning("CatData");
 	}
@@ -176,7 +187,7 @@ lmint_t main (int argc, char **argv){
 // 	Data_Fork(Gnode);
 	
 	
-	Server_Body(Gnode, portnum);
+	Server_Body(Gnode, portnum, Popts);
 /*
  * free borrowed memory
  */
