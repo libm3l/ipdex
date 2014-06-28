@@ -317,13 +317,27 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 			break;
 			
 			case 100:
+				if( Popts_SB->opt_f == 'f'){
+/*
+ * if fixed comm scheme, do not allow opening additional channels
+ */
+					Pthread_mutex_unlock(&Data_Threads->lock);
+					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
+					if( m3l_send_to_tcpipsocket(Answers->RR_NA, (const char *)NULL, newsockfd, Popts) < 1)
+					Error("Server_Body: Error during sending data to socket");
+					if( close(newsockfd) == -1)
+						Perror("close");
+					if( m3l_Umount(&RecNode) != 1)
+						Perror("m3l_Umount");
+				}
+				else{
 /*
  * notify Data_Thread that this is a "system" request, ie. 
  * request which changes status of existing channels or adds a new one
  */
-				*Data_Threads->checkdata = 100;
+					*Data_Threads->checkdata = 100;
 
-				Pthread_mutex_unlock(&Data_Threads->lock);
+					Pthread_mutex_unlock(&Data_Threads->lock);
 /*
  * let all Data_Threads waiting on pt_sync to make a step and enter the second pt_sync at the end 
  * of Data_Thread identification process. Before that set Data_Thread counter increment to 1
@@ -332,30 +346,27 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
  * Notify Sender that header was received, if operation successfull, send Answers->RR_POS
  * otherwise Answers->RR_NEG
  */
-				*Data_Threads->sync->incrm = 1;
+					*Data_Threads->sync->incrm = 1;
 
-				if( Add_Data_Thread(RecNode, Data_Threads, &DataBuffer) < 0){
-					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
-					if( m3l_send_to_tcpipsocket(Answers->RR_NEG, (const char *)NULL, newsockfd, Popts) < 1)
-					Error("Server_Body: Error during sending data to socket");
-				}
-				else{
-					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
-					if( m3l_send_to_tcpipsocket(Answers->RR_POS, (const char *)NULL, newsockfd, Popts) < 1)
-					Error("Server_Body: Error during sending data to socket");
-				}
-				if( close(newsockfd) == -1)
-					Perror("close");
-				
-// 				m3l_Cat(DataBuffer, "--all", "-P", "-L",  "*",   (char *)NULL)
-// 				m3l_Cat(DataBuffer, "--detailed", "-P", "-L",  "*",   (char *)NULL);
+					if( Add_Data_Thread(RecNode, Data_Threads, &DataBuffer) < 0){
+						opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
+						if( m3l_send_to_tcpipsocket(Answers->RR_NEG, (const char *)NULL, newsockfd, Popts) < 1)
+						Error("Server_Body: Error during sending data to socket");
+					}
+					else{
+						opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
+						if( m3l_send_to_tcpipsocket(Answers->RR_POS, (const char *)NULL, newsockfd, Popts) < 1)
+						Error("Server_Body: Error during sending data to socket");
+					}
+					if( close(newsockfd) == -1)
+						Perror("close");
 /*
  * delte borrowed memory, at this stage the 
  * node does not contain Channel subset, it was 
  * dettached from the node in Add_Data_Thread
  */
-				if( m3l_Umount(&RecNode) != 1)
-					Perror("m3l_Umount");
+					if( m3l_Umount(&RecNode) != 1)
+						Perror("m3l_Umount");
 /*
  * This semaphore signalizes Server_Body that it can enter
  * the pt_sync. For case of adding thread, the Server body has just one pt_sync instead of two.
@@ -364,28 +375,44 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
  * in Server_Body so that the Server_Body pt_sync_mod is used in conunction with 
  * second pt_sync in Data_Threads
  */				
-				Sem_wait(&Data_Threads->sem);
+					Sem_wait(&Data_Threads->sem);
 /*
  * This pt_sync corresponds to the second pt_sync (more specifically pt_sync_mod) in 
  * Data_Threads. The last thread will increase number of synced 
  * jobs by incrm = 1. Because there is already additional thread spawned by Add_Data_Thread, increase temporarily
  * the number of synced jobs - second 1 in pt_sync_mod
  */
-				pt_sync_mod(Data_Threads->sync, 1, 1);
+					pt_sync_mod(Data_Threads->sync, 1, 1);
+				}
 			break;
 			
 			case 101:
+				if( Popts_SB->opt_f == 'f'){
+/*
+ * if fixed comm scheme, do not allow opening additional channels
+ */
+					Pthread_mutex_unlock(&Data_Threads->lock);
+					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
+					if( m3l_send_to_tcpipsocket(Answers->RR_NA, (const char *)NULL, newsockfd, Popts) < 1)
+					Error("Server_Body: Error during sending data to socket");
+					if( close(newsockfd) == -1)
+						Perror("close");
+					if( m3l_Umount(&RecNode) != 1)
+						Perror("m3l_Umount");
+				}
+				else{
 /*
  * requested new channel already exist
  */
-				Pthread_mutex_unlock(&Data_Threads->lock);
-				opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
-				if( m3l_send_to_tcpipsocket(Answers->RR_WNEG, (const char *)NULL, newsockfd, Popts) < 1)
-					Error("Server_Body: Error during sending data to socket");
-				if( close(newsockfd) == -1)
-					Perror("close");
-				if( m3l_Umount(&RecNode) != 1)
-					Perror("m3l_Umount");
+					Pthread_mutex_unlock(&Data_Threads->lock);
+					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
+					if( m3l_send_to_tcpipsocket(Answers->RR_WNEG, (const char *)NULL, newsockfd, Popts) < 1)
+						Error("Server_Body: Error during sending data to socket");
+					if( close(newsockfd) == -1)
+						Perror("close");
+					if( m3l_Umount(&RecNode) != 1)
+						Perror("m3l_Umount");
+				}
 			break;
 			
 			case 200:

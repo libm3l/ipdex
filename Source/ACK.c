@@ -167,6 +167,7 @@ lsipdx_answer_t *MakePredefinedAnswers(){
 	Answers->RR_WNEG = ret_receipt(101);
 	Answers->RR_WRREQ = ret_receipt(-1);
 	Answers->RR_WRCONREQ = ret_receipt(2);
+	Answers->RR_NA = ret_receipt(-100);
 	
 	return Answers;
 }
