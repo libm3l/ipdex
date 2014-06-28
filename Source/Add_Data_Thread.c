@@ -99,6 +99,9 @@ lmsize_t Add_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread, node_t *
  */
 	if(Data_Thread->Data_Str != NULL){
 		Tmp = NULL;
+		
+// 		if(
+		
 		if( ( Tmp = (data_thread_int_str_t **)realloc( Data_Thread->Data_Str, 
 			newnum*sizeof(data_thread_int_str_t *))) == NULL){
 

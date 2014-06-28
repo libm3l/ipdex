@@ -78,6 +78,9 @@ lmsize_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
 		Warning("Start_Data_Thread: NULL Gnode");
 		return -1;
 	}
+	
+	Data_Thread->n_data_threads = 0;
+	retval = 0;
 /*
  * find how many data sets - defines how many data_threads to spawn
  */
@@ -87,23 +90,25 @@ lmsize_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
 		retval = Data_Thread->n_data_threads;
 		
 		if(Data_Thread->n_data_threads == 0){
-			Error("Server: did not find any Data_set");
+			Error("Server: did not find any /Buffer/Channel");
 			m3l_DestroyFound(&SFounds);
 		}
 	}
-	else
-	{
-		printf("Server: did not find any Data_set\n");
-		exit(0);
-	}
+// 	else
+// 	{
+// 		printf("Server: did not find any Data_set\n");
+// 		exit(0);
+// 	}
 /* 
  * malloc data Data_Thread->Data_Str, will be used to store data specific to each Data_Thread (ie. PID, name of channel etc.)
  * the data is then freed in Data_Thread.c function
  */
 
 	if(Data_Thread->Data_Str == NULL){
-		if( (Data_Thread->Data_Str = (data_thread_int_str_t **)malloc(sizeof(data_thread_int_str_t *) * Data_Thread->n_data_threads)) == NULL)
-		Perror("Start_Data_Thread: Data_Thread->Data_Str malloc");
+		if(Data_Thread->n_data_threads > 0){
+			if( (Data_Thread->Data_Str = (data_thread_int_str_t **)malloc(sizeof(data_thread_int_str_t *) * Data_Thread->n_data_threads)) == NULL)
+			Perror("Start_Data_Thread: Data_Thread->Data_Str malloc");
+		}			
 	}
 	else{
 		Error("Start_Data_Thread: Data_Thread->Data_Str already malloced");

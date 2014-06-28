@@ -99,6 +99,7 @@ data_thread_args_t *Associate_Data_Thread(node_t *List, data_thread_str_t *Data_
 		else
 			DataArgs->pData_Str = NULL;
 		
+// printf(" Here1 %p \n", DataArgs);
 
 		return DataArgs;
 }
