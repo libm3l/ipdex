@@ -22,7 +22,7 @@
 
 
 /*
- *     Function Data_Thread.c
+ *     Function Start_Data_Thread.c
  *
  *     Date: 2013-07-16
  * 
@@ -94,11 +94,6 @@ lmsize_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
 			m3l_DestroyFound(&SFounds);
 		}
 	}
-// 	else
-// 	{
-// 		printf("Server: did not find any Data_set\n");
-// 		exit(0);
-// 	}
 /* 
  * malloc data Data_Thread->Data_Str, will be used to store data specific to each Data_Thread (ie. PID, name of channel etc.)
  * the data is then freed in Data_Thread.c function
@@ -139,53 +134,11 @@ lmsize_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
 			Perror("Start_Data_Thread: Data_Thread->Data_Str->lmint_t malloc");
 		*Data_Thread->Data_Str[i]->status_run = 1;
 	}
-	
-// 	if( (Data_Thread->data_threads_availth_counter = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
-// 		Perror("Start_Data_Thread: Data_Thread->data_threads_availth_counter");
-// 	if( (Data_Thread->data_threads_remainth_counter = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
-// 		Perror("Start_Data_Thread: Data_Thread->data_threads_remainth_counter");
-// 	if( (Data_Thread->socket = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
-// 		Perror("Start_Data_Thread: Data_Thread->socket");
-// 	if( (Data_Thread->retval = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
-// 		Perror("Start_Data_Thread: Data_Thread->retval");
-// 	if ( (Data_Thread->name_of_data_set  = (lmchar_t *)malloc(MAX_NAME_LENGTH* sizeof(lmchar_t))) == NULL)
-// 		Perror("Start_Data_Thread: Data_Thread->name_of_data_set");	
-// 	if ( (Data_Thread->SR_mode  = (lmchar_t *)malloc(sizeof(lmchar_t))) == NULL)
-// 		Perror("Start_Data_Thread: Data_Thread->SR_mode");
-// /*
-//  * initialize sync 
-//  */
-// 	if ( (Data_Thread->sync  = (pt_sync_t *)malloc(sizeof(pt_sync_t))) == NULL)
-// 		Perror("Start_Data_Thread: Data_Thread->sync");
-// 	if ( (Data_Thread->sync->nsync  = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
-// 		Perror("Start_Data_Thread: Data_Thread->sybc->nsync");	
-// 	if ( (Data_Thread->sync->nthreads  = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
-// 		Perror("Start_Data_Thread: Data_Thread->sybc->nthreads");
-// 
-// 	Pthread_mutex_init(&Data_Thread->sync->mutex);
-// 	Pthread_mutex_init(&Data_Thread->sync->block);
-// 	Pthread_cond_init(&Data_Thread->sync->condvar);
-// 	Pthread_cond_init(&Data_Thread->sync->last);
-/*
- * plus the values of the syncing - ie. nsync = 0 and nthreads = n_data_threads + 1
- * during the run, the *Data_Thread->sync->nsync should not be never reset
- * *Data_Thread->sync->nthreads will always be set to number of jobs the 
- * syncing points is required to sync
- */	
-// 	*Data_Thread->data_threads_availth_counter  = 0;
-// 	*Data_Thread->data_threads_remainth_counter = 0;
-// 	*Data_Thread->sync->nsync    = 0;
 /*
  * set the value of for syncing thread to number of data sets + 2 (it. sync all Data_Thread (n_data_threads) + 
  * 1 for Server_Body
  */
 	*Data_Thread->sync->nthreads = Data_Thread->n_data_threads + 1;
-/*
- * initialize mutex and condition variable
- */
-// 	Pthread_mutex_init(&Data_Thread->lock);
-// 	Pthread_cond_init(&Data_Thread->cond);
-// 	Sem_init(&Data_Thread->sem, 0);
 /*
  * spawn threads
  */	
