@@ -148,7 +148,7 @@ again:
 
 
 
-lmint_t open_sys_to_server(const lmchar_t *hostname, lmint_t portno, opts_t *Popts){
+lmint_t add_connection(const lmchar_t *hostname, lmint_t portno, opts_t *Popts){
 
 	lmint_t sockfd, retval;
 	node_t *Gnode, *TmpNode;
