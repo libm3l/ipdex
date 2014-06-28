@@ -59,7 +59,7 @@
 #include "Add_Data_Thread.h"
 
 
-lmint_t Server_Body(node_t *Gnode, lmint_t portno){
+lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 	
 	lmsize_t i;
 	lmint_t sockfd, newsockfd, cycle;
@@ -134,16 +134,19 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno){
 			Pthread_mutex_lock(&Data_Threads->lock);
 		}
 /* 
- * if number of available threads is 0, wait until some of the Data_Threads become available. 
+ * If "fixed" specified upon start, test if there are any Data_Threads available.
+ * If number of available threads is 0, wait until some of the Data_Threads become available. 
  * without this condition, the server would be looping on accepting connection and then refusing it 
  * at the Thread_Status of all threads is 1 and Check_Request return value is 1
  *
  * this condition is signaled by SR_hub
  */
-// 		if(*Data_Threads->data_threads_availth_counter == 0){
-// 			while(*Data_Threads->data_threads_availth_counter == 0)
-// 				Pthread_cond_wait(&Data_Threads->cond, &Data_Threads->lock);
-// 		}
+		if( Popts_SB->opt_f == 'f'){
+			if(*Data_Threads->data_threads_availth_counter == 0){
+				while(*Data_Threads->data_threads_availth_counter == 0)
+					Pthread_cond_wait(&Data_Threads->cond, &Data_Threads->lock);
+			}
+		}
 
 		Pthread_mutex_unlock(&Data_Threads->lock);
 	
