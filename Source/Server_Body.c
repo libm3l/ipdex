@@ -286,8 +286,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
  * if process is sender, indicate Sender that header was received before receiving payload
  * if process is Receiver send acknowledgment and get back REOB
  */
-// 				if( m3l_Send_to_tcpipsocket(RR_NEG, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754",  (char *)NULL) < 1)
-// 					Error("Server_Body: Error during sending data from socket");
 					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
 					if( m3l_send_to_tcpipsocket(Answers->RR_NEG, (const char *)NULL, newsockfd, Popts) < 1)
 						Error("Server_Body: Error during sending data from socket");
@@ -421,7 +419,46 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
  * notify Data_Thread that this is a "system" request, ie. 
  * request which changes status of existing channels or adds a new one
  */
-				*Data_Threads->checkdata = 200;			
+				*Data_Threads->checkdata = 200;
+				*Data_Threads->retval = 0;
+				
+				if( snprintf(Data_Threads->name_of_data_set, MAX_NAME_LENGTH,"%s",name_of_required_data_set) < 0)
+					Perror("snprintf");
+				Pthread_mutex_unlock(&Data_Threads->lock);
+/*
+ * once all necessary data are set, send signal to all threads to start unloc mutex
+ * and release borrowed memory. The following syncing point is the same as the syncing point in Data_Thread.c
+ */
+				pt_sync(Data_Threads->sync);
+/* 
+ * when all Data_Thread are finished, - the identification part, the threads are waiting on each other. 
+ * the last thread unlock the semaphore so that the next loop can start
+ */		
+				pt_sync_mod(Data_Threads->sync, 1, -1);
+/*
+ * when data set is identified in Data_Thread the retval is set to 1
+ * If all threads went attempted to evaluate the incoming request and 
+ * none of them identifed the thread, give error message
+ */
+				if(*Data_Threads->retval == 1){
+/*
+ * data set was identified
+ */
+					if( m3l_Umount(&RecNode) != 1)
+						Perror("m3l_Umount");
+				}
+				else{
+/*
+ * none of the data set was able to identify request, issue warnign and close socket
+ */
+					printf(" Case 200 retval (%d)  --- %s   %c\n", *Data_Threads->retval, name_of_required_data_set, SR_mode);
+					Warning("Server_Body: Not valid data set");
+					if( m3l_Umount(&RecNode) != 1)
+						Perror("m3l_Umount");
+					if( close(newsockfd) == -1)
+						Perror("close");
+					continue;
+				}
 			break;
 
 			case -1:

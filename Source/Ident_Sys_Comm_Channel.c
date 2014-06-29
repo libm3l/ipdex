@@ -320,28 +320,39 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 /*
  * close connection, find the name of closed connection
  */
-				if( (SFounds = m3l_locate(RecNode, "/_sys_comm_/Name_of_Channel", "/*/*",  Popts)) != NULL){
+/*
+ * find /_sys_link_/Name_of_Channel in RecNode
+ */
+				if( (SFounds = m3l_locate(RecNode, "/_sys_comm_/Channel/Name_of_Channel", "/*/*/*",  Popts)) != NULL){
 					if( m3l_get_Found_number(SFounds) != 1)
 						Error("Ident_Sys_Comm_Channel: Only one Name_of_Channel per Channel allowed");
-					if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
+					if( (ListChan = m3l_get_Found_node(SFounds, 0)) == NULL)
 						Error("Ident_Sys_Comm_Channel: NULL Name_of_Channel");
-					tmpchar = m3l_get_data_pointer(List);
+					if( (name_of_required_data_set = m3l_get_data_pointer(ListChan)) == NULL)
+						Error("Ident_Sys_Comm_Channel: wrong name of new channel");
 					
-					if( (len = m3l_get_List_totdim(List)-1) < 1)
+					if( (len = m3l_get_List_totdim(ListChan)-1) < 1)
 						Error("Ident_Sys_Comm_Channel: too short name of data set");
 					
-					for(i=0; i<len; i++)
-						*name_of_required_data_set++ = *tmpchar++;
-				
-					*name_of_required_data_set='\0';
-					
-					m3l_DestroyFound(&SFounds);
-
-					retval = 101;
+					Popts_CR->opt_s = 's';
+					if( Check_Request( (*DataBuffer), name_of_required_data_set, *SR_mode, Popts_CR) == 1){
+/*
+ * channel exists
+ */						m3l_DestroyFound(&SFounds);
+						return 200;
+					}
+					else{
+/* 
+ * channe does not exist
+ */
+						m3l_DestroyFound(&SFounds);
+						return 201;
+					}
 				}
-				else
-					m3l_DestroyFound(&SFounds);
-					retval = -1;
+				else{
+					Error("Did not find any /_sys_comm_/Channel/Name_of_Channel");
+					return -10;
+				}
 			break;
 			
 			default:
