@@ -56,7 +56,7 @@
 #include "Check_Request.h"
 
 lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread_str_t *Data_Threads, 
-	     lmchar_t *name_of_required_data_set, lmchar_t *SR_mode, lsipdx_answer_t *Answers)
+	     lmchar_t *name_of_required_data_set, lmchar_t *SR_mode)
 {
 /*
  * function handles communication between client and server via _sys_comm_ request.
@@ -71,6 +71,7 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
  * 		-1	Error
  * 		 0	Usual request for connection between clients
  * 		 100	Add new connection (channel)
+ * 		 101	Add new connection (channel) failed
  * 		 200	Delete existing connection
  */
 	lmint_t retval, *reqtype;
@@ -149,10 +150,7 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 /*
  * check legality and availability of request
  */			
-
-// printf(" Going to Check request \n");
 			retval = Check_Request( *DataBuffer, name_of_required_data_set, *SR_mode, (opts_t *)NULL);
-// printf(" From Check request %d \n", retval);
 /*
  * indicate request is a DATA type request
  */
@@ -314,9 +312,7 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 					m3l_DestroyFound(&SFounds);
 					return -1;
 				}
-				
-// 		!!!!!		NOTE: Start SR_hub and SR_Data_Threads   !!!!!!
-					
+
 				retval = 100;
 			break;
 

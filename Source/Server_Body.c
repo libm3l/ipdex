@@ -194,7 +194,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
  * (ie. increment  (*Data_Threads->data_threads_availth_counter)++)
  */
 		switch(Ident_Sys_Comm_Channel(RecNode, &DataBuffer, Data_Threads, 
-				name_of_required_data_set, &SR_mode, Answers)){
+				name_of_required_data_set, &SR_mode)){
 			case 0:
 /* 
  * Legal request, not in buffer, data_thread available 
@@ -387,6 +387,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 			break;
 			
 			case 101:
+				
 				if( Popts_SB->opt_f == 'f'){
 /*
  * if fixed comm scheme, do not allow opening additional channels
@@ -424,19 +425,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 			break;
 
 			case -1:
-/*
- * wrong data set, possibly the name of connection does not exist
- */
-				Pthread_mutex_unlock(&Data_Threads->lock);
-				Warning("Server_Body: wrong connection request");
-				
-				if( close(newsockfd) == -1)
-					Perror("close");
-				if( m3l_Umount(&RecNode) != 1)
-					Perror("m3l_Umount");
-			break;
-			
-			case -101:
 /*
  * wrong data set, possibly the name of connection does not exist
  */

@@ -222,8 +222,9 @@ void *Data_Threads(void *arg)
  */
 	Sem_init(&loc_sem, 0);
 	
-	SR_Hub_Thread = Start_SR_HubThread(SR_Threads, c, &n_avail_loc_theads, &n_rec_proc, Thread_Status, 
-		&loc_sem, Thread_S_Status, Thread_R_Status);
+	if ( (SR_Hub_Thread = Start_SR_HubThread(SR_Threads, c, &n_avail_loc_theads, &n_rec_proc, Thread_Status, 
+		&loc_sem, Thread_S_Status, Thread_R_Status)) == NULL)
+		Error("Data_Thread: Start_SR_HubThread");
 
 	Pthread_mutex_unlock(c->plock);
 /*
@@ -231,7 +232,6 @@ void *Data_Threads(void *arg)
  * as soon as c->pData_Str->status_run  is set to 0, terminate the thread
  * this means a client requested closing this connection
  */	
-// 	while(1){
 	while(*c->pData_Str->status_run==1){
 		
 		local_cntr = 0;
