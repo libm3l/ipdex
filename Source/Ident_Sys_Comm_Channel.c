@@ -109,7 +109,8 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 				Error("Ident_Sys_Comm_Channel: Only one Name_of_Channel per Channel allowed");
 			if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
 				Error("Ident_Sys_Comm_Channel: NULL Name_of_Channel");
-			tmpchar = m3l_get_data_pointer(List);
+			if( (tmpchar = m3l_get_data_pointer(List)) == NULL)
+				Error("Ident_Sys_Comm_Channel: wrong name of new channel");
 			
 			if( (len = m3l_get_List_totdim(List)-1) < 1)
 				Error("Ident_Sys_Comm_Channel: too short name of data set");
@@ -201,9 +202,7 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 		{
 			Error("Ident_Sys_Comm_Channel: /_sys_comm_/request_type not found\n");
 		}
-		
-// 		return *reqtype;
-		
+
 		switch(*reqtype){
 
 			case 100:
@@ -328,12 +327,20 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 						Error("Ident_Sys_Comm_Channel: Only one Name_of_Channel per Channel allowed");
 					if( (ListChan = m3l_get_Found_node(SFounds, 0)) == NULL)
 						Error("Ident_Sys_Comm_Channel: NULL Name_of_Channel");
-					if( (name_of_required_data_set = m3l_get_data_pointer(ListChan)) == NULL)
-						Error("Ident_Sys_Comm_Channel: wrong name of new channel");
+// 					if( (name_of_required_data_set = m3l_get_data_pointer(ListChan)) == NULL)
+// 						Error("Ident_Sys_Comm_Channel: wrong name of new channel");
 					
+					name_of_required_data_set = tmpname;
+					if( (tmpchar = m3l_get_data_pointer(ListChan)) == NULL)
+						Error("Ident_Sys_Comm_Channel: wrong name of new channel");
+			
 					if( (len = m3l_get_List_totdim(ListChan)-1) < 1)
 						Error("Ident_Sys_Comm_Channel: too short name of data set");
-					
+
+					for(i=0; i<len; i++)
+						*tmpname++ = *tmpchar++;
+					*tmpname='\0';
+
 					Popts_CR->opt_s = 's';
 					if( Check_Request( (*DataBuffer), name_of_required_data_set, *SR_mode, Popts_CR) == 1){
 /*

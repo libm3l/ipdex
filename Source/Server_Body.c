@@ -173,8 +173,8 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 		if( (RecNode = m3l_receive_tcpipsocket((const char *)NULL, newsockfd, Popts)) == NULL)
 			Error("Server_Body: Error during reading data from socket");
 		
-// 		if(m3l_Cat(RecNode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
-// 			Error("Server_Body: CatData");
+		if(m3l_Cat(RecNode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
+			Error("Server_Body: CatData");
 /*
  * identify type of request and get back with name of required connection and SR_mode
  */
@@ -404,9 +404,10 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
  */
 				*Data_Threads->checkdata = 200;
 				*Data_Threads->retval = 0;
-				
+
 				if( snprintf(Data_Threads->name_of_data_set, MAX_NAME_LENGTH,"%s",name_of_required_data_set) < 0)
 					Perror("snprintf");
+
 				Pthread_mutex_unlock(&Data_Threads->lock);
 /*
  * once all necessary data are set, send signal to all threads to start unloc mutex
@@ -423,6 +424,8 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
  * If all threads went attempted to evaluate the incoming request and 
  * none of them identifed the thread, give error message
  */
+
+				printf(" Server-Body -----   %d\n",*Data_Threads->retval); 
 				if(*Data_Threads->retval == 1){
 /*
  * data set was identified
