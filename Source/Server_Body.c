@@ -314,6 +314,19 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 			
 			break;
 			
+			case -1:
+/*
+ * wrong data set, possibly the name of connection does not exist
+ */
+				Pthread_mutex_unlock(&Data_Threads->lock);
+				Warning("Server_Body: wrong connection request");
+				
+				if( close(newsockfd) == -1)
+					Perror("close");
+				if( m3l_Umount(&RecNode) != 1)
+					Perror("m3l_Umount");
+			break;
+			
 			case 100:
 				if( Popts_SB->opt_f == 'f'){
 /*
@@ -384,36 +397,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 				}
 			break;
 			
-			case 101:
-				
-				if( Popts_SB->opt_f == 'f'){
-/*
- * if fixed comm scheme, do not allow opening additional channels
- */
-					Pthread_mutex_unlock(&Data_Threads->lock);
-					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
-					if( m3l_send_to_tcpipsocket(Answers->RR_NA, (const char *)NULL, newsockfd, Popts) < 1)
-					Error("Server_Body: Error during sending data to socket");
-					if( close(newsockfd) == -1)
-						Perror("close");
-					if( m3l_Umount(&RecNode) != 1)
-						Perror("m3l_Umount");
-				}
-				else{
-/*
- * requested new channel already exist
- */
-					Pthread_mutex_unlock(&Data_Threads->lock);
-					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
-					if( m3l_send_to_tcpipsocket(Answers->RR_WNEG, (const char *)NULL, newsockfd, Popts) < 1)
-						Error("Server_Body: Error during sending data to socket");
-					if( close(newsockfd) == -1)
-						Perror("close");
-					if( m3l_Umount(&RecNode) != 1)
-						Perror("m3l_Umount");
-				}
-			break;
-			
 			case 200:
 /*
  * notify Data_Thread that this is a "system" request, ie. 
@@ -460,18 +443,35 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 					continue;
 				}
 			break;
-
-			case -1:
-/*
- * wrong data set, possibly the name of connection does not exist
- */
-				Pthread_mutex_unlock(&Data_Threads->lock);
-				Warning("Server_Body: wrong connection request");
+			
+			case 501:
 				
-				if( close(newsockfd) == -1)
-					Perror("close");
-				if( m3l_Umount(&RecNode) != 1)
-					Perror("m3l_Umount");
+				if( Popts_SB->opt_f == 'f'){
+/*
+ * if fixed comm scheme, do not allow opening additional channels
+ */
+					Pthread_mutex_unlock(&Data_Threads->lock);
+					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
+					if( m3l_send_to_tcpipsocket(Answers->RR_NA, (const char *)NULL, newsockfd, Popts) < 1)
+					Error("Server_Body: Error during sending data to socket");
+					if( close(newsockfd) == -1)
+						Perror("close");
+					if( m3l_Umount(&RecNode) != 1)
+						Perror("m3l_Umount");
+				}
+				else{
+/*
+ * requested new channel already exist
+ */
+					Pthread_mutex_unlock(&Data_Threads->lock);
+					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
+					if( m3l_send_to_tcpipsocket(Answers->RR_WNEG, (const char *)NULL, newsockfd, Popts) < 1)
+						Error("Server_Body: Error during sending data to socket");
+					if( close(newsockfd) == -1)
+						Perror("close");
+					if( m3l_Umount(&RecNode) != 1)
+						Perror("m3l_Umount");
+				}
 			break;
 		}
 /*

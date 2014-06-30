@@ -229,7 +229,7 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 /*
  * channel already exists
  */						m3l_DestroyFound(&SFounds);
-						return 101;
+						return 501;
 					}
 /* 
  * free memory allocated in m3l_Locate
@@ -346,7 +346,7 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
  * channe does not exist
  */
 						m3l_DestroyFound(&SFounds);
-						return 201;
+						return 501;
 					}
 				}
 				else{
