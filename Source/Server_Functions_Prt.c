@@ -420,9 +420,10 @@ void pt_sync_mod(pt_sync_t *sync, lmsize_t addjob, lmsize_t incrm)
  * if number of synced jobs is larger then pnthreads by incrm add it
  */
 	n_actual_sync_jobs = *sync->pnthreads + incrm;
+// 	printf(" Actual jobs is %ld   %ld   %ld  %ld  %ld\n", n_actual_sync_jobs, *sync->pnthreads, addjob, incrm, *sync->pnsync);
 	
-	if (n_actual_sync_jobs<2) {
-		return;};           /* trivial case            */
+	if (n_actual_sync_jobs<2)
+		return;           /* trivial case    */
 /*
  * lock the block and mutex
  */
@@ -434,6 +435,8 @@ void pt_sync_mod(pt_sync_t *sync, lmsize_t addjob, lmsize_t incrm)
  * syncing starts
  */
 	if (++(*sync->pnsync) < n_actual_sync_jobs) { 
+		
+// 		printf(" Job # %ld of %ld\n", *sync->pnsync, n_actual_sync_jobs);
 /*
  * no, unlock block and 
  */
@@ -442,18 +445,19 @@ void pt_sync_mod(pt_sync_t *sync, lmsize_t addjob, lmsize_t incrm)
  * wait for condvar
  */
 		Pthread_cond_wait(sync->pcondvar, sync->pmutex);
-
 	} 
 /*
  * last process
- */	else 
+ */	
+	else 
   	{
 /*
  * modify number of jobs which are synced
  */
+// 		printf(" ============= Job # %ld of %ld\n", *sync->pnsync, n_actual_sync_jobs);
 		if(addjob > 0){
+// 			printf(" INCREASING PT_SYNC\n");
 			if(  (*sync->pnthreads = *sync->pnthreads + *sync->incrm) < 0) *sync->pnthreads = 0;
-// 			*sync->pnsync = *sync->pnsync + *sync->incrm;
 			*sync->incrm = 0;
 		}
 /*

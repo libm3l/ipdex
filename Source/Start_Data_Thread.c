@@ -78,8 +78,14 @@ lmsize_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
 		Warning("Start_Data_Thread: NULL Gnode");
 		return -1;
 	}
-	
+/*
+ * Data_Thread->n_data_threads shows number of Data_Threads
+ * Data_Thread->nall_data_threads shows number of size of array Data_Threads->Data_Str
+ * when Data_Thread is removed, the numbers are different because the Data_Threads->Data_Str
+ * is not reallocated
+ */
 	Data_Thread->n_data_threads = 0;
+	Data_Thread->nall_data_threads = 0;
 	retval = 0;
 /*
  * find how many data sets - defines how many data_threads to spawn
@@ -88,6 +94,7 @@ lmsize_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
 		
 		Data_Thread->n_data_threads = m3l_get_Found_number(SFounds);
 		retval = Data_Thread->n_data_threads;
+		Data_Thread->nall_data_threads = Data_Thread->n_data_threads;
 		
 		if(Data_Thread->n_data_threads == 0){
 			Error("Server: did not find any /Buffer/Channel");

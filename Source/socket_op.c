@@ -148,7 +148,7 @@ again:
 
 
 
-lmint_t add_connection(const lmchar_t *hostname, lmint_t portno, opts_t *Popts){
+lmint_t add_connection(const lmchar_t *hostname, lmint_t portno, const lmchar_t *name_of_newchannel, opts_t *Popts){
 
 	lmint_t sockfd, retval;
 	node_t *Gnode, *TmpNode;
@@ -167,7 +167,7 @@ lmint_t add_connection(const lmchar_t *hostname, lmint_t portno, opts_t *Popts){
 /*
  * create header which will identify name of data set and Sender (S) or Receiver (R)
  */
-		if( ( Gnode = ChannelList("HEAT", 2,  'D', 'N')) == NULL)
+		if( ( Gnode = ChannelList(name_of_newchannel, 2,  'D', 'N')) == NULL)
 			Error("open_connection_to_server: NULL Gnode");
 again: 
 		if ( (sockfd =  m3l_cli_open_socket(hostname, portno, (lmchar_t *)NULL)) < 0)

@@ -91,7 +91,7 @@ lmsize_t Add_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread, node_t *
 /*
  * new thread is going to be added to the exiting threads
  */
-	if(  (newnum = Data_Thread->n_data_threads+1) < 1)
+	if(  (newnum = Data_Thread->nall_data_threads+1) < 1)
 		return 0;
 /* 
  * malloc data Data_Thread->Data_Str, will be used to store data specific to each Data_Thread (ie. PID, name of channel etc.)
@@ -112,8 +112,6 @@ lmsize_t Add_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread, node_t *
  * this situation can happen only if the Server is started without any 
  * preopened channels
  */
-// 		Error("Add_Data_Thread: Data_Thread->Data_Str not yet malloced");
-// 		return -1;
 		if( (Data_Thread->Data_Str = (data_thread_int_str_t **)malloc(sizeof(data_thread_int_str_t *))) == NULL)
 			Perror("Start_Data_Thread: Data_Thread->Data_Str malloc");
 	}
@@ -146,7 +144,9 @@ lmsize_t Add_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread, node_t *
  * number of synced threads (*Data_Thread->sync->nthreads) will be increased
  * in pt_sync_mod() in either Data_Thread or Sever_Body
  */
-	Data_Thread->n_data_threads  =  Data_Thread->n_data_threads + 1;
+	Data_Thread->n_data_threads     =  Data_Thread->n_data_threads + 1;
+	Data_Thread->nall_data_threads  =  Data_Thread->nall_data_threads + 1;
+
 /*
  * set Node pointer to data set in /_sys_comm_/Channel
  */
@@ -166,8 +166,8 @@ lmsize_t Add_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread, node_t *
  * associate data with Data_Thread
  * as a counter of the Channel use 1 as there is always one Channel
  * in _sys_comm_ request
- */	
-	if(  (DataArgs = Associate_Data_Thread(List, Data_Thread, 0, 1)) == NULL)
+ */
+	if(  (DataArgs = Associate_Data_Thread(List, Data_Thread, newnum, 1)) == NULL)
 		Error("Add_Data_Thread: DataArgs NULL pointer");
 /*
  * create thread
@@ -182,9 +182,8 @@ lmsize_t Add_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread, node_t *
  */
 	if( m3l_Mv(&List,  "./Channel", "./*", Buffer, "/Buffer", "/*", (lmchar_t *)NULL) == -1)
 		Error("Add_Data_Thread: Mv");
-	
 
 	Pthread_mutex_unlock(&Data_Thread->lock);
-	
+
 	return 1;
 }

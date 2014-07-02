@@ -131,11 +131,18 @@ data_thread_str_t *Allocate_Data_Thread_DataSet(void){
 	Pthread_cond_init(&Data_Thread->cond);
  	Sem_init(&Data_Thread->sem, 0);
 /*
- * this parameter says if the Data_Thread identifies data or no
+ * this parameter says if the Data_Thread identifies data or does another task (ie. adding or removing threads)
  * if client ask for connection to another client (usual mode) checkdata == 0
  * if client sends _comm_link_ request (ie. open/close new connection etc.) checkdata == 1
+ * 
+ * for now, set the value below 0: 
+ * if the threads are opened at the startup of the 
+ * server, ie. from the definition file, Data_Threads set the value of the round to 0.
+ * By setting checkdata to value below 0, the value of round is 
+ * set to round = 1 so that they do not post the semafore in *c->pcheckdata == 100
+ * The semaphore is used only by threads  which are dynamically added
  */
-	*Data_Thread->checkdata = 0;
+	*Data_Thread->checkdata = -100;
 	
 	return Data_Thread;
 }

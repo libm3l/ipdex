@@ -64,12 +64,16 @@ node_t *Allocate_DataBuffer(node_t *Gnode){
 		Warning("Allocate_DataBuffer: NULL Gnode");
 		return NULL;
 	}
+	
+// 	Data_Thread->nall_data_threads = 0;
+// 	Data_Thread->n_data_threads = 0;
 /*
  * find how many data sets - defines how many data_threads will be required
  */
 	if( (SFounds = m3l_Locate(Gnode, "/COMM_DEF/Channels/Channel", "/*/*/*", (lmchar_t *)NULL)) != NULL){
 		
 		n_data_threads = m3l_get_Found_number(SFounds);
+// 		Data_Thread->nall_data_threads = n_data_threads;
 		
 		if(n_data_threads == 0){
 			Error("Allocate_DataBuffer: did not find any /COMM_DEF/Channels/Channe");
@@ -78,9 +82,7 @@ node_t *Allocate_DataBuffer(node_t *Gnode){
 	}
 	else
 	{
-// 		printf("Allocate_DataBuffer: did not find any /COMM_DEF/Channels/Channel\n");
 		n_data_threads = 0;
-// 		exit(0);
 	}
 /*
  * make buffer structure

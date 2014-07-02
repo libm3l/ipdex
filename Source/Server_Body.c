@@ -62,7 +62,7 @@
 lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 	
 	lmsize_t i;
-	lmint_t sockfd, newsockfd, cycle;
+	lmint_t sockfd, newsockfd, cycle,tmpval;
 	struct sockaddr_in cli_addr;
 	data_thread_str_t *Data_Threads;
 	lmchar_t name_of_required_data_set[MAX_NAME_LENGTH], SR_mode;
@@ -152,6 +152,8 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 	
 		clilen = sizeof(cli_addr);
 		
+// 		printf(" \n\nServer_Body : %ld  %ld \n", Data_Threads->n_data_threads, *Data_Threads->sync->nthreads);
+		
 		if ( (newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen)) < 0){
 			if(errno == EINTR) /* If Interrupted system call, restart - back to while ()  UNP V1 p124  */
 				continue;
@@ -173,8 +175,8 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 		if( (RecNode = m3l_receive_tcpipsocket((const char *)NULL, newsockfd, Popts)) == NULL)
 			Error("Server_Body: Error during reading data from socket");
 		
-		if(m3l_Cat(RecNode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
-			Error("Server_Body: CatData");
+// 		if(m3l_Cat(RecNode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
+// 			Error("Server_Body: CatData");
 /*
  * identify type of request and get back with name of required connection and SR_mode
  */
@@ -193,8 +195,11 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
  * Once the data transfer is finished, add the data thread to the pool of available data threads
  * (ie. increment  (*Data_Threads->data_threads_availth_counter)++)
  */
-		switch(Ident_Sys_Comm_Channel(RecNode, &DataBuffer, Data_Threads, 
-				name_of_required_data_set, &SR_mode)){
+		tmpval = Ident_Sys_Comm_Channel(RecNode, &DataBuffer, Data_Threads, 
+				name_of_required_data_set, &SR_mode);
+		
+// 		printf(" IDENt val is %d \n", tmpval);
+		switch(tmpval){
 			case 0:
 /* 
  * Legal request, not in buffer, data_thread available 
@@ -347,6 +352,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
  * request which changes status of existing channels or adds a new one
  */
 					*Data_Threads->checkdata = 100;
+					*Data_Threads->sync->incrm = 1;
 
 					Pthread_mutex_unlock(&Data_Threads->lock);
 /*
@@ -357,7 +363,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
  * Notify Sender that header was received, if operation successfull, send Answers->RR_POS
  * otherwise Answers->RR_NEG
  */
-					*Data_Threads->sync->incrm = 1;
 
 					if( Add_Data_Thread(RecNode, Data_Threads, &DataBuffer) < 0){
 						opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
@@ -404,6 +409,8 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
  */
 				*Data_Threads->checkdata = 200;
 				*Data_Threads->retval = 0;
+				*Data_Threads->sync->incrm = -1;
+				Data_Threads->n_data_threads--;
 
 				if( snprintf(Data_Threads->name_of_data_set, MAX_NAME_LENGTH,"%s",name_of_required_data_set) < 0)
 					Perror("snprintf");
@@ -418,18 +425,19 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
  * when all Data_Thread are finished, - the identification part, the threads are waiting on each other. 
  * the last thread unlock the semaphore so that the next loop can start
  */		
-				pt_sync_mod(Data_Threads->sync, 1, -1);
+				pt_sync_mod(Data_Threads->sync, 1, 0);
 /*
  * when data set is identified in Data_Thread the retval is set to 1
  * If all threads went attempted to evaluate the incoming request and 
  * none of them identifed the thread, give error message
  */
-
-				printf(" Server-Body -----   %d\n",*Data_Threads->retval); 
 				if(*Data_Threads->retval == 1){
 /*
  * data set was identified
  */
+					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
+					if( m3l_send_to_tcpipsocket(Answers->RR_POS, (const char *)NULL, newsockfd, Popts) < 1)
+					Error("Server_Body: Error during sending data to socket");
 					if( m3l_Umount(&RecNode) != 1)
 						Perror("m3l_Umount");
 				}
@@ -437,6 +445,9 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 /*
  * none of the data set was able to identify request, issue warnign and close socket
  */
+					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
+					if( m3l_send_to_tcpipsocket(Answers->RR_NEG, (const char *)NULL, newsockfd, Popts) < 1)
+					Error("Server_Body: Error during sending data to socket");
 					printf(" Case 200 retval (%d)  --- %s   %c\n", *Data_Threads->retval, name_of_required_data_set, SR_mode);
 					Warning("Server_Body: Not valid data set");
 					if( m3l_Umount(&RecNode) != 1)
@@ -489,7 +500,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 /*
  * join threads and release memmory
  */
-	for(i=0; i< Data_Threads->n_data_threads; i++){
+	for(i=0; i< Data_Threads->nall_data_threads; i++){
 		if( Data_Threads->Data_Str[i]->data_threadPID != NULL){
 			if( pthread_join(*Data_Threads->Data_Str[i]->data_threadPID, NULL) != 0)
 				Error("Server_Body:  Joining thread failed");

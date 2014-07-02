@@ -189,7 +189,7 @@ void DestroyPredefinedAnswers(lsipdx_answer_t **Answers){
 	*Answers = NULL;
 }
 
-node_t *ChannelList(lmchar_t *name, lmsize_t Rproc, lmchar_t ATDT_mode, lmchar_t KA_mode){
+node_t *ChannelList(const lmchar_t *name, lmsize_t Rproc, lmchar_t ATDT_mode, lmchar_t KA_mode){
 /*
  * function makes a node with details about Channel
  * example is below

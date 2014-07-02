@@ -105,6 +105,7 @@ typedef struct data_thread_str{
 	pthread_cond_t    	cond;   		/* condition variable */
 
 	lmsize_t 		n_data_threads;  	/* number of thread in group data_threads */
+	lmsize_t 		nall_data_threads;  	/* number of allocated Data_Thread str in group data_threads */
 	lmsize_t 		*data_threads_availth_counter, *data_threads_remainth_counter; 	/* number of available and free threads  */
 	lmchar_t 		*name_of_data_set, *SR_mode;	/* stores data_set name which is then compared in data_thread  and SR_moode*/
 	lmint_t  		*socket,  *retval, *checkdata;		/* socket ID passed to data_Thread, message upon receiving it, yes or not to check data*/
