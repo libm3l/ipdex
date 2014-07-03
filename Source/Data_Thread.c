@@ -210,11 +210,6 @@ void *Data_Threads(void *arg)
  */
 	if(  (SR_Threads = Start_SR_Threads(n_avail_loc_theads)) == NULL)
 		Perror("Data_Thread: Start_SR_Threads error");
-	
-	*SR_Threads->WRDIAG =0;
-	if(strncmp(data_set_name,"Temperature",11) == 0)*SR_Threads->WRDIAG =1;
-	if(strncmp(data_set_name,"Pressure",8) == 0)*SR_Threads->WRDIAG =2;
-	if(strncmp(data_set_name,"Density",7) == 0)*SR_Threads->WRDIAG =3;
 /*
  * all ST_threads were spawend
  */

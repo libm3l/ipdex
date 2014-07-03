@@ -133,8 +133,6 @@ typedef struct SR_thread_args{
 									threads = *pcounter - taken threads 
 									length of buffer from TCP/IP */
 	pt_sync_t		*psync_loc;
-	lmint_t			*pWRDIAG;
-
 }SR_thread_args_t;
 
 /*
@@ -154,7 +152,6 @@ typedef struct SR_thread_str{
 											buffer from TCP/IP   */
 	pt_sync_t		*sync_loc;
 	lmint_t			*mode, *EOFC_END;
-	lmint_t			*WRDIAG;
 }SR_thread_str_t;
 
 
