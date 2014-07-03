@@ -62,7 +62,7 @@
 lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 	
 	lmsize_t i;
-	lmint_t sockfd, newsockfd, cycle;
+	lmint_t sockfd, newsockfd, cycle,tmpval;
 	struct sockaddr_in cli_addr;
 	data_thread_str_t *Data_Threads;
 	lmchar_t name_of_required_data_set[MAX_NAME_LENGTH], SR_mode;
@@ -151,7 +151,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 		Pthread_mutex_unlock(&Data_Threads->lock);
 	
 		clilen = sizeof(cli_addr);
-		
+
 		if ( (newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen)) < 0){
 			if(errno == EINTR) /* If Interrupted system call, restart - back to while ()  UNP V1 p124  */
 				continue;
@@ -193,8 +193,9 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
  * Once the data transfer is finished, add the data thread to the pool of available data threads
  * (ie. increment  (*Data_Threads->data_threads_availth_counter)++)
  */
-		switch(Ident_Sys_Comm_Channel(RecNode, &DataBuffer, Data_Threads, 
-				name_of_required_data_set, &SR_mode, Answers)){
+		tmpval = Ident_Sys_Comm_Channel(RecNode, &DataBuffer, Data_Threads, 
+				name_of_required_data_set, &SR_mode);
+		switch(tmpval){
 			case 0:
 /* 
  * Legal request, not in buffer, data_thread available 
@@ -286,8 +287,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
  * if process is sender, indicate Sender that header was received before receiving payload
  * if process is Receiver send acknowledgment and get back REOB
  */
-// 				if( m3l_Send_to_tcpipsocket(RR_NEG, (const char *)NULL, newsockfd, "--encoding" , "IEEE-754",  (char *)NULL) < 1)
-// 					Error("Server_Body: Error during sending data from socket");
 					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
 					if( m3l_send_to_tcpipsocket(Answers->RR_NEG, (const char *)NULL, newsockfd, Popts) < 1)
 						Error("Server_Body: Error during sending data from socket");
@@ -316,6 +315,19 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 			
 			break;
 			
+			case -1:
+/*
+ * wrong data set, possibly the name of connection does not exist
+ */
+				Pthread_mutex_unlock(&Data_Threads->lock);
+				Warning("Server_Body: wrong connection request");
+				
+				if( close(newsockfd) == -1)
+					Perror("close");
+				if( m3l_Umount(&RecNode) != 1)
+					Perror("m3l_Umount");
+			break;
+			
 			case 100:
 				if( Popts_SB->opt_f == 'f'){
 /*
@@ -336,6 +348,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
  * request which changes status of existing channels or adds a new one
  */
 					*Data_Threads->checkdata = 100;
+					*Data_Threads->sync->incrm = 1;
 
 					Pthread_mutex_unlock(&Data_Threads->lock);
 /*
@@ -346,7 +359,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
  * Notify Sender that header was received, if operation successfull, send Answers->RR_POS
  * otherwise Answers->RR_NEG
  */
-					*Data_Threads->sync->incrm = 1;
 
 					if( Add_Data_Thread(RecNode, Data_Threads, &DataBuffer) < 0){
 						opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
@@ -360,6 +372,11 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 					}
 					if( close(newsockfd) == -1)
 						Perror("close");
+					
+// 					Pthread_mutex_lock(&Data_Threads->lock);
+// 					if(m3l_Cat(DataBuffer, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
+// 						Error("Server_Body: CatData");
+// 					Pthread_mutex_unlock(&Data_Threads->lock);
 /*
  * delte borrowed memory, at this stage the 
  * node does not contain Channel subset, it was 
@@ -386,7 +403,69 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 				}
 			break;
 			
-			case 101:
+			case 200:
+/*
+ * notify Data_Thread that this is a "system" request, ie. 
+ * request which changes status of existing channels or adds a new one
+ */
+				*Data_Threads->checkdata = 200;
+				*Data_Threads->retval = 0;
+				*Data_Threads->sync->incrm = -1;
+				Data_Threads->n_data_threads--;
+
+				if( snprintf(Data_Threads->name_of_data_set, MAX_NAME_LENGTH,"%s",name_of_required_data_set) < 0)
+					Perror("snprintf");
+
+				Pthread_mutex_unlock(&Data_Threads->lock);
+/*
+ * once all necessary data are set, send signal to all threads to start unloc mutex
+ * and release borrowed memory. The following syncing point is the same as the syncing point in Data_Thread.c
+ */
+				pt_sync(Data_Threads->sync);
+/* 
+ * when all Data_Thread are finished, - the identification part, the threads are waiting on each other. 
+ * the last thread unlock the semaphore so that the next loop can start
+ */		
+				pt_sync_mod(Data_Threads->sync, 1, 0);
+				
+				Pthread_mutex_lock(&Data_Threads->lock);
+					if(m3l_Cat(DataBuffer, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
+						Error("Server_Body: CatData");
+				Pthread_mutex_unlock(&Data_Threads->lock);
+/*
+ * when data set is identified in Data_Thread the retval is set to 1
+ * If all threads went attempted to evaluate the incoming request and 
+ * none of them identifed the thread, give error message
+ */
+				if(*Data_Threads->retval == 1){
+/*
+ * data set was identified
+ */
+					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
+					if( m3l_send_to_tcpipsocket(Answers->RR_POS, (const char *)NULL, newsockfd, Popts) < 1)
+					Error("Server_Body: Error during sending data to socket");
+					if( m3l_Umount(&RecNode) != 1)
+						Perror("m3l_Umount");
+				}
+				else{
+/*
+ * none of the data set was able to identify request, issue warnign and close socket
+ */
+					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
+					if( m3l_send_to_tcpipsocket(Answers->RR_NEG, (const char *)NULL, newsockfd, Popts) < 1)
+					Error("Server_Body: Error during sending data to socket");
+					printf(" Case 200 retval (%d)  --- %s   %c\n", *Data_Threads->retval, name_of_required_data_set, SR_mode);
+					Warning("Server_Body: Not valid data set");
+					if( m3l_Umount(&RecNode) != 1)
+						Perror("m3l_Umount");
+					if( close(newsockfd) == -1)
+						Perror("close");
+					continue;
+				}
+			break;
+			
+			case 501:
+				
 				if( Popts_SB->opt_f == 'f'){
 /*
  * if fixed comm scheme, do not allow opening additional channels
@@ -414,40 +493,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 						Perror("m3l_Umount");
 				}
 			break;
-			
-			case 200:
-/*
- * notify Data_Thread that this is a "system" request, ie. 
- * request which changes status of existing channels or adds a new one
- */
-				*Data_Threads->checkdata = 200;			
-			break;
-
-			case -1:
-/*
- * wrong data set, possibly the name of connection does not exist
- */
-				Pthread_mutex_unlock(&Data_Threads->lock);
-				Warning("Server_Body: wrong connection request");
-				
-				if( close(newsockfd) == -1)
-					Perror("close");
-				if( m3l_Umount(&RecNode) != 1)
-					Perror("m3l_Umount");
-			break;
-			
-			case -101:
-/*
- * wrong data set, possibly the name of connection does not exist
- */
-				Pthread_mutex_unlock(&Data_Threads->lock);
-				Warning("Server_Body: wrong connection request");
-				
-				if( close(newsockfd) == -1)
-					Perror("close");
-				if( m3l_Umount(&RecNode) != 1)
-					Perror("m3l_Umount");
-			break;
 		}
 /*
  * initial stage was completed, server is running in while(1) loop, set cycle to 1
@@ -461,7 +506,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 /*
  * join threads and release memmory
  */
-	for(i=0; i< Data_Threads->n_data_threads; i++){
+	for(i=0; i< Data_Threads->nall_data_threads; i++){
 		if( Data_Threads->Data_Str[i]->data_threadPID != NULL){
 			if( pthread_join(*Data_Threads->Data_Str[i]->data_threadPID, NULL) != 0)
 				Error("Server_Body:  Joining thread failed");

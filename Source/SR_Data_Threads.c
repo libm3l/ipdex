@@ -368,12 +368,10 @@ lmssize_t Read(lmint_t descrpt , lmchar_t *buff, lmint_t n, lmchar_t SR)
 	
 	if (  (ngotten = read(descrpt,buff,n)) == -1){
 		
-// 		printf("ERR BUFF:  '%s'  %d   %c\n", buff, ngotten, SR);
 		Perror("SR_Data_Threads - Read");
 		return -1;
 	}
 	buff[ngotten] = '\0';
-// 		printf("BUFF:  '%s'    %d\n", buff, ngotten);
 
 	return ngotten;
 }
@@ -422,7 +420,10 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 			Perror("write()");
 			return -1;
 		}
-
+/* prcounter is counter of R_threads which still have not 
+ * read wrote the buffer to TCP/IP socket
+ * The values is reset in S_KAN each time S_KAn reads from socket
+ */ 
 		Pthread_mutex_lock(c->plock);
 			(*c->prcounter)--;
 			*c->psync = 0;

@@ -421,8 +421,8 @@ void pt_sync_mod(pt_sync_t *sync, lmsize_t addjob, lmsize_t incrm)
  */
 	n_actual_sync_jobs = *sync->pnthreads + incrm;
 	
-	if (n_actual_sync_jobs<2) {
-		return;};           /* trivial case            */
+	if (n_actual_sync_jobs<2)
+		return;           /* trivial case    */
 /*
  * lock the block and mutex
  */
@@ -442,18 +442,17 @@ void pt_sync_mod(pt_sync_t *sync, lmsize_t addjob, lmsize_t incrm)
  * wait for condvar
  */
 		Pthread_cond_wait(sync->pcondvar, sync->pmutex);
-
 	} 
 /*
  * last process
- */	else 
+ */	
+	else 
   	{
 /*
  * modify number of jobs which are synced
  */
 		if(addjob > 0){
 			if(  (*sync->pnthreads = *sync->pnthreads + *sync->incrm) < 0) *sync->pnthreads = 0;
-// 			*sync->pnsync = *sync->pnsync + *sync->incrm;
 			*sync->incrm = 0;
 		}
 /*

@@ -189,7 +189,7 @@ void DestroyPredefinedAnswers(lsipdx_answer_t **Answers){
 	*Answers = NULL;
 }
 
-node_t *ChannelList(lmchar_t *name, lmsize_t Rproc, lmchar_t ATDT_mode, lmchar_t KA_mode){
+node_t *ChannelList(const lmchar_t *name, lmsize_t Rproc, lmchar_t ATDT_mode, lmchar_t KA_mode){
 /*
  * function makes a node with details about Channel
  * example is below
@@ -220,7 +220,10 @@ node_t *ChannelList(lmchar_t *name, lmsize_t Rproc, lmchar_t ATDT_mode, lmchar_t
 	dim[0] = 1;
 	if(  (TmpNode = m3l_Mklist("request_type", "I", 1, dim, &Gnode, "/_sys_comm_", "./", (lmchar_t *)NULL)) == 0)
 		Error("m3l_Mklist");
-	TmpNode->data.i[0] = 100;
+	if(Rproc == 0)
+		TmpNode->data.i[0] = 200;
+	else
+		TmpNode->data.i[0] = 100;
 /*
  * add subset Channel
  */
@@ -236,6 +239,8 @@ node_t *ChannelList(lmchar_t *name, lmsize_t Rproc, lmchar_t ATDT_mode, lmchar_t
 	if( snprintf(tmplmchar_t, dim[0],"%s",name) < 0)
 		Perror("snprintf");
 	tmplmchar_t[dim[0]] = '\0';
+	
+	if(Rproc == 0)return Gnode;
 	
 	dim[0] = 1;
 	if(  (TmpNode = m3l_Mklist("Sending_Process", "I", 1, dim, &RetNode, "./Channel", "./", (lmchar_t *)NULL)) == 0)

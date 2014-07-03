@@ -71,9 +71,9 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
 	ident = 0;
 	
 	opts_t *Popts, opts;
-	opts.opt_i = '\0'; opts.opt_d = '\0'; opts.opt_f = '\0'; opts.opt_r = 'r'; opts.opt_I = '\0'; opts.opt_L = '\0'; opts.opt_l = '\0';
 
 	Popts = &opts;
+	m3l_set_Find(&Popts);
 	
 	len1 = strlen(name_of_required_data_set);
 	
@@ -90,11 +90,6 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
 			m3l_DestroyFound(&DATA_SFounds);
 		}
 	}
-// 	else
-// 	{
-// 		printf("Check_Request: did not find any Data_set\n");
-// 		exit(0);
-// 	}
 /*
  * loop over and find out if the process thread is free to use
  */
@@ -102,7 +97,6 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
 /*
  * find name of data thread and compare it to tested data thread name
  */
-// 		if( (THRName_SFounds = m3l_Locate(m3l_get_Found_node(DATA_SFounds, i), "./Channel/Name_of_Channel", "/*/*", (lmchar_t *)NULL)) != NULL){
 		if( (THRName_SFounds = m3l_locate(m3l_get_Found_node(DATA_SFounds, i), "./Channel/Name_of_Channel", "/*/*",  Popts)) != NULL){
 
 			if(n_data_threads == 0){
@@ -140,7 +134,6 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
 /*
  * check status of the thread
  */
-// 			if( (THRStat_SFounds = m3l_Locate(m3l_get_Found_node(DATA_SFounds, i), "./Channel/Thread_Status", "/*/*", (lmchar_t *)NULL)) != NULL){
 			if( (THRStat_SFounds = m3l_locate(m3l_get_Found_node(DATA_SFounds, i), "./Channel/Thread_Status", "/*/*",  Popts)) != NULL){
 
 				if(n_data_threads == 0){
@@ -172,7 +165,6 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
  * if R == Receiving_Processes all receivers already arrived
  * 
  */			else if( SR_mode == 'S'){
-// 				if( (THRStat_SFounds = m3l_Locate(m3l_get_Found_node(DATA_SFounds, i), "./Channel/S_Status", "/*/*", (lmchar_t *)NULL)) != NULL){
 				if( (THRStat_SFounds = m3l_locate(m3l_get_Found_node(DATA_SFounds, i), "./Channel/S_Status", "/*/*", Popts)) != NULL){
 
 					if(n_data_threads == 0){
@@ -196,7 +188,6 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
 /*
  * find actual number of Receiving processes
  */
-// 				if( (THRStat_SFounds = m3l_Locate(m3l_get_Found_node(DATA_SFounds, i), "./Channel/R_Status", "/*/*", (lmchar_t *)NULL)) != NULL){
 				if( (THRStat_SFounds = m3l_locate(m3l_get_Found_node(DATA_SFounds, i), "./Channel/R_Status", "/*/*", Popts)) != NULL){
 
 					if(n_data_threads == 0){
@@ -219,7 +210,6 @@ lmint_t Check_Request(node_t *DataBuffer, lmchar_t *name_of_required_data_set, l
 /*
  * find required number of Receiving_Processes
  */
-// 				if( (THRStat_SFounds = m3l_Locate(m3l_get_Found_node(DATA_SFounds, i), "./Channel/Receiving_Processes", "/*/*", (lmchar_t *)NULL)) != NULL){
 				if( (THRStat_SFounds = m3l_locate(m3l_get_Found_node(DATA_SFounds, i), "./Channel/Receiving_Processes", "/*/*", Popts)) != NULL){
 
 					if(n_data_threads == 0){

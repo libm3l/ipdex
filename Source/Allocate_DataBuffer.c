@@ -78,9 +78,7 @@ node_t *Allocate_DataBuffer(node_t *Gnode){
 	}
 	else
 	{
-// 		printf("Allocate_DataBuffer: did not find any /COMM_DEF/Channels/Channel\n");
 		n_data_threads = 0;
-// 		exit(0);
 	}
 /*
  * make buffer structure

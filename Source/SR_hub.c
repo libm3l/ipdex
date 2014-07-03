@@ -96,19 +96,21 @@ void *SR_hub(void *arg)
  */
 	Pthread_mutex_lock(c->plock);
 
-// 		if( (SFounds = m3l_Locate(c->pList, "./Channel/CONNECTION/ATDT_Mode", "./*/*/*",  (lmchar_t *)NULL)) != NULL){
 		if( (SFounds = m3l_locate(c->pList, "./Channel/CONNECTION/ATDT_Mode", "./*/*/*",  Popts)) != NULL){
 
-			if( m3l_get_Found_number(SFounds) != 1)
+			if( m3l_get_Found_number(SFounds) != 1){
 				Error("SR_hub: Only one CONNECTION/ATDT_Mode per Channel allowed");
+				free(c);
+				return NULL;
+			}
 /* 
  * pointer to list of found nodes
  */
-				if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
-					Error("SR_hub: NULL ATDT_Mode");
+			if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
+				Error("SR_hub: NULL ATDT_Mode");
 			
-				ATDTMode = (lmchar_t *)m3l_get_data_pointer(List);
-				*c->pATDT_mode = *ATDTMode;
+			ATDTMode = (lmchar_t *)m3l_get_data_pointer(List);
+			*c->pATDT_mode = *ATDTMode;
 /* 
  * free memory allocated in m3l_Locate
  */
@@ -117,21 +119,25 @@ void *SR_hub(void *arg)
 		else
 		{
 			Error("SR_hub: CONNECTION/ATDT_Mode not found\n");
+			free(c);
+			return NULL;
 		}
 
-// 		if( (SFounds = m3l_Locate(c->pList, "./Channel/CONNECTION/KEEP_CONN_ALIVE_Mode", "./*/*/*",  (lmchar_t *)NULL)) != NULL){
 		if( (SFounds = m3l_locate(c->pList, "./Channel/CONNECTION/KEEP_CONN_ALIVE_Mode", "./*/*/*",  Popts)) != NULL){
 
-			if( m3l_get_Found_number(SFounds) != 1)
+			if( m3l_get_Found_number(SFounds) != 1){
 				Error("SR_hub: Only one CONNECTION/KEEP_CONN_ALIVE_Mode per Channel allowed");
+				free(c);
+				return NULL;
+			}
 /* 
  * pointer to list of found nodes
  */
-				if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
-					Error("SR_hub: NULL KEEP_CONN_ALIVE_Mode");
+			if( (List = m3l_get_Found_node(SFounds, 0)) == NULL)
+				Error("SR_hub: NULL KEEP_CONN_ALIVE_Mode");
 			
-				KeepAlive_Mode = (lmchar_t *)m3l_get_data_pointer(List);
-				*c->pKA_mode 	= *KeepAlive_Mode;
+			KeepAlive_Mode = (lmchar_t *)m3l_get_data_pointer(List);
+			*c->pKA_mode 	= *KeepAlive_Mode;
 /* 
  * free memory allocated in m3l_Locate
  */
@@ -140,6 +146,8 @@ void *SR_hub(void *arg)
 		else
 		{
 			Error("SR_hub: CONNECTION/KEEP_CONN_ALIVE_Mode not found\n");
+			free(c);
+			return NULL;
 		}
 
 	Pthread_mutex_unlock(c->plock);
@@ -147,13 +155,19 @@ void *SR_hub(void *arg)
  * if ATDT == A(lternate) the communication includes one S(ender) and once R(eceiver)
  * if more R(eceivers) are included, give error message and quit
  */
-	if( *ATDTMode == 'A' && *c->pn_rec_proc > 1)
+	if( *ATDTMode == 'A' && *c->pn_rec_proc > 1){
 		Error("SR_hub - ATDT mode can be A only if the communication is established between one Sender and one Receiver");
+		free(c);
+		return NULL;
+	}
 /*
  * determine mode number
  */
-	if ( (*c->pSRh_mode = get_exchange_channel_mode(*ATDTMode, *KeepAlive_Mode)) == -1)
+	if ( (*c->pSRh_mode = get_exchange_channel_mode(*ATDTMode, *KeepAlive_Mode)) == -1){
 		Error("SR_hub: Wrong transfer mode");
+		free(c);
+		return NULL;
+	}
 /*
  * start loop for transfer
  */
@@ -176,6 +190,7 @@ void *SR_hub(void *arg)
  * once the data transfer is finished wait until all data is tranferred and S and R threads close their socket
 */
 					Sem_wait(c->psem_g);
+
 				break;
 				
 				case 2:
@@ -280,10 +295,9 @@ void *SR_hub(void *arg)
 		Pthread_mutex_unlock(c->plock);
 	}
 /*
- * release borrowed memory, malloced before starting thread in Data_Thread()
+ * release borrowed memory, malloced before starting thread in Data_Thread()->Start_SR_HubThread()
  */
 	free(c);
-
 	return NULL;
 
 }
