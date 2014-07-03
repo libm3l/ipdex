@@ -210,6 +210,11 @@ void *Data_Threads(void *arg)
  */
 	if(  (SR_Threads = Start_SR_Threads(n_avail_loc_theads)) == NULL)
 		Perror("Data_Thread: Start_SR_Threads error");
+	
+	*SR_Threads->WRDIAG =0;
+	if(strncmp(data_set_name,"Temperature",11) == 0)*SR_Threads->WRDIAG =1;
+	if(strncmp(data_set_name,"Pressure",8) == 0)*SR_Threads->WRDIAG =2;
+	if(strncmp(data_set_name,"Density",7) == 0)*SR_Threads->WRDIAG =3;
 /*
  * all ST_threads were spawend
  */
@@ -253,9 +258,7 @@ void *Data_Threads(void *arg)
  * set the value of for syncing thread to number of data sets + 1 (it. sync all Data_Thread (n_data_threads) + 
  * 1 for Server_Body (one synchronization point is in Server_Body
  */
-// 			printf(" =====> pt_sync %s  %d\n", local_set_name, *c->pcheckdata);
 			pt_sync(c->psync);
-// 			printf(" <===== after pt_sync %s  %d\n", local_set_name, *c->pcheckdata);
 /*
  * if arriving request was not sys_link_ type of request
  * check which connection arrived
@@ -331,8 +334,6 @@ void *Data_Threads(void *arg)
 				pt_sync(c->psync);
 			}
 			else if(*c->pcheckdata == 100){
-				
-// 				printf("CASE 100    %ld  %ld  %s\n", pthread_self(), *c->pData_Str->status_run, local_set_name); 
 /*
  * request was _sys_link_ request
  */
@@ -346,30 +347,26 @@ void *Data_Threads(void *arg)
  * second pt_sync in Data_Threads
  */
 				if(round == 0){
-// 					printf("Postign SEM   %s\n", local_set_name); 
 					Sem_post(c->psem);
 				}
 /*
  * Because there is already additional thread spawned by Add_Data_Thread, increase temporarily
  * the number of synced jobs - second 1 in pt_sync_mod
  */
-// 			printf(" =====> pt_sync_MOD %s  %d\n", local_set_name, *c->pcheckdata);
-			pt_sync_mod(c->psync, 1, 1);
-// 			printf(" <===== after pt_sync_MOD %s  %d\n", local_set_name, *c->pcheckdata);
+				pt_sync_mod(c->psync, 1, 1);
 			}
 			else if(*c->pcheckdata == 200){
 /*
  * delete thread
  */
 				Pthread_mutex_lock(c->plock);
-// 				printf("CASE 200    %ld  %ld %s\n", pthread_self(), *c->pData_Str->status_run, local_set_name); 
 				if(*Thread_Status == 0 && *c->pretval == 0){
 					len1 = strlen(c->pname_of_data_set);
 					if(len1 == len && strncmp(c->pname_of_data_set,local_set_name, len) == 0){
 /*
  * this thread is to be removed
  */
-						n_avail_loc_theads = 0;
+// 						n_avail_loc_theads = 0;
 						*c->pData_Str->status_run=0;
 						(*c->prcounter)--;
 						*c->pretval = 1;
@@ -378,10 +375,20 @@ void *Data_Threads(void *arg)
  */
 						if( m3l_Umount(&c->Node) != 1)
 							Perror("m3l_Umount");
+						
+						
+/*
+ * no leave do - while(n_avail_loc_theads != 0) loop 
+ * the value of status_run is set to 0 
+ * so the outer while loop (status_run == 1) will be automatically left too
+ * This sequence may change later when SR_Data_Threads and SR_Hub are terminated
+ */
+						Pthread_mutex_unlock(c->plock);
+						pt_sync_mod(c->psync,1, 0);
+						goto END ;
 					}
 				}
 				Pthread_mutex_unlock(c->plock);
-
 				pt_sync_mod(c->psync,1, 0);
 			}
 			else
@@ -399,7 +406,8 @@ void *Data_Threads(void *arg)
 /*
  * SR_hub sem_wait(c->psem) for this semaphore 
  */
-		if(*c->pcheckdata != 200)Sem_post(&loc_sem);
+// 		if(*c->pcheckdata != 200)
+			Sem_post(&loc_sem);
 /*
  * now this thread signalled its own SR_hub that all connections arrived and SR_hub start synchronizing all 
  * SR_Data_Threads which are taking care of actual data transfer from S to R threads
@@ -416,6 +424,7 @@ void *Data_Threads(void *arg)
  * Some of the threads were already waiting and it gave rise to dead-lock
  */
 	}
+END:
 	
 	printf(" -----------  ENDING ---    %ld  %s\n", pthread_self(), local_set_name);
 /*

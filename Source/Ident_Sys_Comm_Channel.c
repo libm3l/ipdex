@@ -331,8 +331,6 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 						Error("Ident_Sys_Comm_Channel: Only one Name_of_Channel per Channel allowed");
 					if( (ListChan = m3l_get_Found_node(SFounds, 0)) == NULL)
 						Error("Ident_Sys_Comm_Channel: NULL Name_of_Channel");
-// 					if( (name_of_required_data_set = m3l_get_data_pointer(ListChan)) == NULL)
-// 						Error("Ident_Sys_Comm_Channel: wrong name of new channel");
 					
 					name_of_required_data_set = tmpname;
 					if( (tmpchar = m3l_get_data_pointer(ListChan)) == NULL)

@@ -91,7 +91,9 @@ void *SR_Data_Threads(void *arg)
  * One they arrive, SR_Data_Threads will grab them one by one, getting socket number and SR_mode from an array which is filled in
  * Data_Thread (SR_Threads->sockfd) 
  */
+// 		Pthread_mutex_lock(c->plock);
 		*c->pthr_cntr = 0;
+// 		Pthread_mutex_unlock(c->plock);
 /*
  * wait until all SR_threads reach pt_sync, then start actual transfer of the data from S to R(s)
  * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
@@ -103,6 +105,8 @@ void *SR_Data_Threads(void *arg)
  * protext by mutex
  */
 		Pthread_mutex_lock(c->plock);
+		
+// 		printf(" LOCAL COUNTER is %d \n", *c->pthr_cntr);
 
 			SR_mode =  c->pSR_mode[*c->pthr_cntr];
 			sockfd  =  c->psockfd[*c->pthr_cntr];
@@ -126,13 +130,21 @@ void *SR_Data_Threads(void *arg)
 /*
  * R(eceivers)
  */
+// if(*c->pWRDIAG == 1)
+// printf(" HERE READER %d %d \n", *c->pWRDIAG, *c->prcounter);
 				if( R_KAN(c, sockfd, 1) == -1) return NULL;
+// if(*c->pWRDIAG == 1)printf(" HERE1 READER \n");
+// printf(" HERE1 READER %d %d \n", *c->pWRDIAG, *c->prcounter);
 			}
 			else if(SR_mode == 'S'){
 /*
  * S(ender)
  */
+// printf(" HERE SENDER %d %d \n", *c->pWRDIAG, *c->prcounter);
+// if(*c->pWRDIAG == 1)printf(" HERE Sender \n");
 				if( S_KAN(c, sockfd, 1) == -1) return NULL;
+// if(*c->pWRDIAG == 1)printf(" HERE Sender1 \n");
+// printf(" HERE1 SENDER %d %d \n", *c->pWRDIAG, *c->prcounter);
 			}
 			else{
 				Error("SR_Data_Threads: Wrong SR_mode");
@@ -368,12 +380,10 @@ lmssize_t Read(lmint_t descrpt , lmchar_t *buff, lmint_t n, lmchar_t SR)
 	
 	if (  (ngotten = read(descrpt,buff,n)) == -1){
 		
-// 		printf("ERR BUFF:  '%s'  %d   %c\n", buff, ngotten, SR);
 		Perror("SR_Data_Threads - Read");
 		return -1;
 	}
 	buff[ngotten] = '\0';
-// 		printf("BUFF:  '%s'    %d\n", buff, ngotten);
 
 	return ngotten;
 }
@@ -422,7 +432,10 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 			Perror("write()");
 			return -1;
 		}
-
+/* prcounter is counter of R_threads which still have not 
+ * read wrote the buffer to TCP/IP socket
+ * The values is reset in S_KAN each time S_KAn reads from socket
+ */ 
 		Pthread_mutex_lock(c->plock);
 			(*c->prcounter)--;
 			*c->psync = 0;

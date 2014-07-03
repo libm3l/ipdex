@@ -146,7 +146,6 @@ lmsize_t Add_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread, node_t *
  */
 	Data_Thread->n_data_threads     =  Data_Thread->n_data_threads + 1;
 	Data_Thread->nall_data_threads  =  Data_Thread->nall_data_threads + 1;
-
 /*
  * set Node pointer to data set in /_sys_comm_/Channel
  */

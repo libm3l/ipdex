@@ -96,7 +96,6 @@ void *SR_hub(void *arg)
  */
 	Pthread_mutex_lock(c->plock);
 
-// 		if( (SFounds = m3l_Locate(c->pList, "./Channel/CONNECTION/ATDT_Mode", "./*/*/*",  (lmchar_t *)NULL)) != NULL){
 		if( (SFounds = m3l_locate(c->pList, "./Channel/CONNECTION/ATDT_Mode", "./*/*/*",  Popts)) != NULL){
 
 			if( m3l_get_Found_number(SFounds) != 1){
@@ -124,7 +123,6 @@ void *SR_hub(void *arg)
 			return NULL;
 		}
 
-// 		if( (SFounds = m3l_Locate(c->pList, "./Channel/CONNECTION/KEEP_CONN_ALIVE_Mode", "./*/*/*",  (lmchar_t *)NULL)) != NULL){
 		if( (SFounds = m3l_locate(c->pList, "./Channel/CONNECTION/KEEP_CONN_ALIVE_Mode", "./*/*/*",  Popts)) != NULL){
 
 			if( m3l_get_Found_number(SFounds) != 1){
@@ -178,6 +176,8 @@ void *SR_hub(void *arg)
  * wait for semaphore from Data_Thread that 
  * all requests arrived
  */
+
+		printf(" SEMAPHORE %d  %d  %d\n",*c->pWRDIAGh, *c->pcounter, *c->psync_loc->pnthreads);
 		Sem_wait(c->psem);
 			
 			switch(*c->pSRh_mode){
@@ -187,11 +187,22 @@ void *SR_hub(void *arg)
  * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
  * synced too
  */
+
+// 					if(*c->pWRDIAGh == 1)
+						printf(" HERE %d  %d  %d\n",*c->pWRDIAGh, *c->pcounter, *c->psync_loc->pnthreads);
+
 					pt_sync_mod(c->psync_loc, 0, 1);
+// 						printf(" HERE1 %d  %d  %d\n",*c->pWRDIAGh, *c->pcounter, *c->psync_loc->pnthreads);
+
+// 					if(*c->pWRDIAGh == 1)printf(" HERE1 \n");
 /*
  * once the data transfer is finished wait until all data is tranferred and S and R threads close their socket
 */
 					Sem_wait(c->psem_g);
+// 						printf(" HERE2 %d  %d  %d\n",*c->pWRDIAGh, *c->pcounter, *c->psync_loc->pnthreads);
+			
+// 					if(*c->pWRDIAGh == 1)printf(" HERE2 \n");
+
 				break;
 				
 				case 2:

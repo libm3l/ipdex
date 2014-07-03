@@ -151,9 +151,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 		Pthread_mutex_unlock(&Data_Threads->lock);
 	
 		clilen = sizeof(cli_addr);
-		
-// 		printf(" \n\nServer_Body : %ld  %ld \n", Data_Threads->n_data_threads, *Data_Threads->sync->nthreads);
-		
+
 		if ( (newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen)) < 0){
 			if(errno == EINTR) /* If Interrupted system call, restart - back to while ()  UNP V1 p124  */
 				continue;
@@ -197,8 +195,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
  */
 		tmpval = Ident_Sys_Comm_Channel(RecNode, &DataBuffer, Data_Threads, 
 				name_of_required_data_set, &SR_mode);
-		
-// 		printf(" IDENt val is %d \n", tmpval);
 		switch(tmpval){
 			case 0:
 /* 
@@ -376,6 +372,11 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 					}
 					if( close(newsockfd) == -1)
 						Perror("close");
+					
+// 					Pthread_mutex_lock(&Data_Threads->lock);
+// 					if(m3l_Cat(DataBuffer, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
+// 						Error("Server_Body: CatData");
+// 					Pthread_mutex_unlock(&Data_Threads->lock);
 /*
  * delte borrowed memory, at this stage the 
  * node does not contain Channel subset, it was 
@@ -426,6 +427,11 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
  * the last thread unlock the semaphore so that the next loop can start
  */		
 				pt_sync_mod(Data_Threads->sync, 1, 0);
+				
+				Pthread_mutex_lock(&Data_Threads->lock);
+					if(m3l_Cat(DataBuffer, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
+						Error("Server_Body: CatData");
+				Pthread_mutex_unlock(&Data_Threads->lock);
 /*
  * when data set is identified in Data_Thread the retval is set to 1
  * If all threads went attempted to evaluate the incoming request and 
