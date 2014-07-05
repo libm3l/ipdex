@@ -2,7 +2,7 @@
 FILES = $(shell ls  *.c )
 PATHL  = $(shell pwd )
 HFILES = $(shell ls  *.h  |   sed '/lsipdx_header.h/d' | sed '/libm3l.h/d' | sort -df)
-PATHLIBM3L = /home/jka/Cprograms/2D_Double_Allocation/Source/libm3l/Source
+PATHLIBM3L = /home/jka/Cprograms/Sources/libm3l/Source
 EMPTYL = $(shell find $(PATHLIBM3L) \( -name libm3l.so -o -iname libm3l.h -o -iname libm3l.so.1.0 \) | wc -l )
 
 # OBJS=$(FILES:%.c=%.o)
