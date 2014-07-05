@@ -2,3 +2,7 @@
 	commit 14be5fa7d75d4e927461e0e213355cfc92f51d3c 
 		tested Example1-4, gentoo laptop PC, Suse Desktop PC
 		tests OK
+
+	commit 243155d0db5e495da6c5540de699935bdfa53d3f
+		tested Example1-4, gentoo laptop PC, gentoo Intel I7-4h gen
+		tests OK
