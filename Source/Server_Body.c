@@ -233,7 +233,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
  * - set data_set name, SR_Mode and socket number so that data_thread processes can start identification
  * - set the return value to 0, once the thread is identified, the value is set to 1
  */
-				*Data_Threads->data_threads_remainth_counter 	= *Data_Threads->data_threads_availth_counter;	
+				*Data_Threads->data_threads_remainth_counter 	= *Data_Threads->data_threads_availth_counter;
 				*Data_Threads->retval = 0;
 				
 				if( snprintf(Data_Threads->name_of_data_set, MAX_NAME_LENGTH,"%s",name_of_required_data_set) < 0)
@@ -364,6 +364,13 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 						opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
 						if( m3l_send_to_tcpipsocket(Answers->RR_NEG, (const char *)NULL, newsockfd, Popts) < 1)
 						Error("Server_Body: Error during sending data to socket");
+/*
+ * if successfully added new Data_Thread, increase counter of
+ * all avialable threads
+ */
+						Pthread_mutex_lock(&Data_Threads->lock);
+							(*Data_Threads->data_threads_availth_counter)++;
+						Pthread_mutex_unlock(&Data_Threads->lock);
 					}
 					else{
 						opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
@@ -428,10 +435,10 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
  */		
 				pt_sync_mod(Data_Threads->sync, 1, 0);
 				
-				Pthread_mutex_lock(&Data_Threads->lock);
-					if(m3l_Cat(DataBuffer, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
-						Error("Server_Body: CatData");
-				Pthread_mutex_unlock(&Data_Threads->lock);
+// 				Pthread_mutex_lock(&Data_Threads->lock);
+// 					if(m3l_Cat(DataBuffer, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
+// 						Error("Server_Body: CatData");
+// 				Pthread_mutex_unlock(&Data_Threads->lock);
 /*
  * when data set is identified in Data_Thread the retval is set to 1
  * If all threads went attempted to evaluate the incoming request and 
