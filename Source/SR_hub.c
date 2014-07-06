@@ -284,7 +284,7 @@ void *SR_hub(void *arg)
 			*c->pThread_S_Status = 0;	/* number of connected S processes is 0 */
 			*c->pThread_R_Status = 0;	/* number of connected R processes is 0 */
 /*
- * if all threads were occupied, ie *Data_Threads->data_threads_availth_counter == *c->pcounter == 0
+ * if all threads were occupied, ie *Data_Threads->n_data_threads == *c->pcounter == 0
  * the server is waiting for signal before the continuing with data process identification. 
  * This is done in Server_Body before syncing with data threads
  * If this happens, signal Server_Body that at least one data_thread is avaiable 
