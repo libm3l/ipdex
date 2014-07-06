@@ -348,6 +348,11 @@ void *Data_Threads(void *arg)
  * Because there is already additional thread spawned by Add_Data_Thread, increase temporarily
  * the number of synced jobs - second 1 in pt_sync_mod
  */
+// 				Pthread_mutex_lock(c->plock);
+// 					(*c->prcounter)++;
+// 					*c->pretval = 1;
+// 				Pthread_mutex_unlock(c->plock);
+				
 				pt_sync_mod(c->psync, 1, 1);
 			}
 			else if(*c->pcheckdata == 200){
@@ -361,7 +366,6 @@ void *Data_Threads(void *arg)
 /*
  * this thread is to be removed
  */
-// 						n_avail_loc_theads = 0;
 						*c->pData_Str->status_run=0;
 						(*c->prcounter)--;
 						*c->pretval = 1;
@@ -438,7 +442,6 @@ END:
 	free(SR_Threads->ATDT_mode);
 	free(SR_Threads->KA_mode);
 	free(SR_Threads->mode);
-	free(SR_Threads->EOFC_END);
 	free(SR_Threads->thr_cntr);
 	free(SR_Threads->sockfd);
 	free(SR_Threads->buffer);
