@@ -495,42 +495,7 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 			if( close(sockfd) == -1)
 				Perror("close");
 		break;
-		
-		case 3:
-/*
- * receive End sequence (if client requires end of connection)
- */
-			if( (retval = R_EOFC(sockfd)) == -1){
-				Error(" R_EOFC error ");
-				return -1;
-			}
-			
-			
-			Pthread_mutex_lock(c->plock);
-				*c->pEOFC_ENDt = retval;
-			Pthread_mutex_unlock(c->plock);
 
-		break;
-		
-		case 4:
-/*
- * receive End sequence (if client requires end of connection)
- */
-			if( (retval = R_EOFC(sockfd)) == -1){
-				Error(" R_EOFC error ");
-				return -1;
-			}
-			
-			opts.opt_EOBseq = 'E'; // send EOFbuff sequence only	
-			if( m3l_send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, Popts) < 0){
-				Error("SR_Data_Threads: Error when sending  SEOB\n");
-				return -1;
-			}
-			
-			Pthread_mutex_lock(c->plock);
-				*c->pEOFC_ENDt = retval;
-			Pthread_mutex_unlock(c->plock);
-		break;
 			
 		case 5:
 /*
@@ -654,51 +619,6 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
  */
 			if( close(sockfd) == -1)
 				Perror("close");
-		break;
-			
-		case 3:
-			opts.opt_EOBseq = 'E'; // send EOFbuff sequence only	
-			if( m3l_send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, Popts) < 0){
-				Error("SR_Data_Threads: Error when sending  SEOB\n");
-				return -1;
-			}
-/*
- * receive End sequence (if client requires end of connection)
- */
-			if( (retval = R_EOFC(sockfd)) == -1){
-				Error(" R_EOFC error ");
-				return -1;
-			}
-
-			opts.opt_EOBseq = 'E'; // send EOFbuff sequence only	
-			if( m3l_send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, Popts) < 0){
-				Error("SR_Data_Threads: Error when sending  SEOB\n");
-				return -1;
-			}
-			
-			Pthread_mutex_lock(c->plock);
-				*c->pEOFC_ENDt = retval;
-			Pthread_mutex_unlock(c->plock);
-		break;
-		
-		case 4:
-			opts.opt_EOBseq = 'E'; // send EOFbuff sequence only	
-			if( m3l_send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, Popts) < 0){
-				Error("SR_Data_Threads: Error when sending  SEOB\n");
-				return -1;
-			}
-/*
- * receive End sequence (if client requires end of connection)
- */
-			if( (retval = R_EOFC(sockfd)) == -1){
-				Error(" R_EOFC error ");
-				return -1;
-			}
-
-			Pthread_mutex_lock(c->plock);
-				*c->pEOFC_ENDt = retval;
-			Pthread_mutex_unlock(c->plock);
-
 		break;
 
 		case 5:  

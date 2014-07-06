@@ -54,7 +54,8 @@
 
 #include "SR_hub.h"
 
-static lmint_t valueOfSharedVariable(SR_hub_thread_str_t *);
+static void terminal_loop_sequence(SR_hub_thread_str_t *c);
+
 
 //      mode 1: ATDTMode == 'D' && KeepAlive_Mode == 'N'  /* Direct transfer, close socket */
 //      mode 2: ATDTMode == 'A' && KeepAlive_Mode == 'N'  /* Alternate transfer, close socket */
@@ -75,9 +76,9 @@ void *SR_hub(void *arg)
 	lmchar_t *ATDTMode, *KeepAlive_Mode;
 	
 	opts_t *Popts, opts;
-	opts.opt_i = '\0'; opts.opt_d = '\0'; opts.opt_f = '\0'; opts.opt_r = 'r'; opts.opt_I = '\0'; opts.opt_L = '\0'; opts.opt_l = '\0';
 
 	Popts = &opts;
+	m3l_set_Find(&Popts);
 /*
  * NOTE in previuous version, this function was run after the while(n_avail_loc_theads != 0);  // all connecting thread arrivied, ie. one Sender and n_rec_proc Receivers 
  * in Data_Thread ended. It did not work when more then one data set arrived and pt_sync in Data_Thread in do loop was not behaving properly
@@ -171,31 +172,36 @@ void *SR_hub(void *arg)
 /*
  * start loop for transfer
  */
-	while(1){
+	switch(*c->pSRh_mode){
+		case 1:
+			while(1){
 /*
  * wait for semaphore from Data_Thread that 
  * all requests arrived
  */
-		Sem_wait(c->psem);
-			
-			switch(*c->pSRh_mode){
-				case 1:
+				Sem_wait(c->psem);
 /*
  * wait until all SR_threads reach pt_sync, then start actual transfer of the data from S to R(s)
  * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
  * synced too
  */
-					pt_sync_mod(c->psync_loc, 0, 1);
+				pt_sync_mod(c->psync_loc, 0, 1);
 /*
  * once the data transfer is finished wait until all data is tranferred and S and R threads close their socket
 */
-					Sem_wait(c->psem_g);
+				Sem_wait(c->psem_g);
+				terminal_loop_sequence(c);
+			}
+		break;
 
-				break;
-				
-				case 2:
-					
-					IT = 2;
+		case 2:
+			while(1){
+/*
+ * wait for semaphore from Data_Thread that 
+ * all requests arrived
+ */
+				Sem_wait(c->psem);
+				IT = 2;
 /*
  * wait until all SR_threads reach syn, then start actual transfer of the data from S to R(s)
  */
@@ -204,95 +210,34 @@ void *SR_hub(void *arg)
  * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
  * synced too
  */
-					pt_sync_mod(c->psync_loc, 0, 1);
-					while(--IT != 0);
+				pt_sync_mod(c->psync_loc, 0, 1);
+				while(--IT != 0);
 /*
  * once the data transfer is finished wait until all data is tranferred and S and R threads close their socket
  */
-					Sem_wait(c->psem_g);
-				break;
-			
-				case 3:
-					do{
-/*
- * wait until all SR_threads reach pt_sync, then start actual transfer of the data from S to R(s)
- * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
- * synced too
- */
-// 						pt_sync_mod(c->psync_loc, 0, 1);
-						Sem_wait(c->psem_g);   
-// 					}while(*c->pEOFC_ENDh == 1);  /* this value is not protected by mutex
-// 							at this point should be accessed only by this process */
-					}while(valueOfSharedVariable(c) == 1);
-
-				case 4:
-					do{
-						IT = 2;
-						do{
-/*
- * wait until all SR_threads reach pt_sync, then start actual transfer of the data from S to R(s)
- * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
- * synced too
- */
-// 							pt_sync_mod(c->psync_loc, 0, 1);
-							Sem_wait(c->psem_g);  
-						}while(--IT == 0);
-// 					}while(*c->pEOFC_ENDh == 1);  /* this value is not protected by mtex
-// 							at this point should be accessed only by this process */
-					}while(valueOfSharedVariable(c) == 1);
-				break;
-			
-				case 5:
-				case 6:
-/*
- * connection is kept allive, do while(1) loop
- *
- * wait until all SR_threads reach sync, then start actual transfer of the data from S to R(s)
- * the sync is done in SR_Data_Threads
- */
-/*
- * wait until all SR_threads reach pt_sync, then start actual transfer of the data from S to R(s)
- * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
- * synced too
- */
-					pt_sync_mod(c->psync_loc, 0, 1);
-					
-// 					while(1);
-/*
- * once the data transfer is finished wait until all data is tranferred and S and R threads close their socket
-*/
-// 						Sem_wait(c->psem_g);
-				break;
+				Sem_wait(c->psem_g);
+				terminal_loop_sequence(c);
 			}
+		break;
+			
+		case 5:
+		case 6:
+			while(1){
+/*
+ * wait for semaphore from Data_Thread that 
+ * all requests arrived
+ */
+				Sem_wait(c->psem);
 
-		Pthread_mutex_lock(c->plock);
 /*
- * set the number of available threads for SR transfer to S + R(s) number of threads
- * counter used in Data_Thread function to determine if all threads arrived
- * the pn_avail_loc_theads is decremented in Data_Thread every time the Data_Thread identifies 
- * arriving data set
+ * wait until all SR_threads reach pt_sync, then start actual transfer of the data from S to R(s)
+ * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
+ * synced too
  */
-			*c->pn_avail_loc_theads = *c->pn_rec_proc + 1;
-/*
- * increase ncount of available Data_Threads
- */
-			(*c->prcounter)++;
-/*
- * release thread, ie. set Thread_Status = 0, S_Status and R_Status
- */
-			*c->pThread_Status   = 0;	/* thread can be used again */
-			*c->pThread_S_Status = 0;	/* number of connected S processes is 0 */
-			*c->pThread_R_Status = 0;	/* number of connected R processes is 0 */
-/*
- * if all threads were occupied, ie *Data_Threads->n_data_threads == *c->pcounter == 0
- * the server is waiting for signal before the continuing with data process identification. 
- * This is done in Server_Body before syncing with data threads
- * If this happens, signal Server_Body that at least one data_thread is avaiable 
- */
-			if(*c->pcounter == 1)
-				Pthread_cond_signal(c->pcond);
-		
-		Pthread_mutex_unlock(c->plock);
+				pt_sync_mod(c->psync_loc, 0, 1);
+				terminal_loop_sequence(c);
+			}
+		break;
 	}
 /*
  * release borrowed memory, malloced before starting thread in Data_Thread()->Start_SR_HubThread()
@@ -302,15 +247,35 @@ void *SR_hub(void *arg)
 
 }
 
-
-lmint_t valueOfSharedVariable(SR_hub_thread_str_t *c)
-{
-	lmint_t result;
-
+void terminal_loop_sequence(SR_hub_thread_str_t *c){
+	
 	Pthread_mutex_lock(c->plock);
-	result = *c->pEOFC_ENDh;
-
-	Pthread_mutex_unlock(c->plock);
-	return result;
-
+/*
+ * set the number of available threads for SR transfer to S + R(s) number of threads
+ * counter used in Data_Thread function to determine if all threads arrived
+ * the pn_avail_loc_theads is decremented in Data_Thread every time the Data_Thread identifies 
+ * arriving data set
+ */
+		*c->pn_avail_loc_theads = *c->pn_rec_proc + 1;
+/*
+ * increase ncount of available Data_Threads
+ */
+		(*c->prcounter)++;
+/*
+ * release thread, ie. set Thread_Status = 0, S_Status and R_Status
+ */
+		*c->pThread_Status   = 0;	/* thread can be used again */
+		*c->pThread_S_Status = 0;	/* number of connected S processes is 0 */
+		*c->pThread_R_Status = 0;	/* number of connected R processes is 0 */
+/*
+ * if all threads were occupied, ie *Data_Threads->n_data_threads == *c->pcounter == 0
+ * the server is waiting for signal before the continuing with data process identification. 
+ * This is done in Server_Body before syncing with data threads
+ * If this happens, signal Server_Body that at least one data_thread is avaiable 
+ */
+		if(*c->pcounter == 1)
+			Pthread_cond_signal(c->pcond);
+		
+	Pthread_mutex_unlock(c->plock);	
 }
+
