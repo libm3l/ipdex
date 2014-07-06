@@ -1,0 +1,47 @@
+COMM_DEF  DIR 2
+	Process_Specifications DIR 1
+		Name_of_Case  C 1 10 
+			`Test Case`
+	Channels  DIR 3
+		Channel  DIR 4
+			Name_of_Channel C 1 9
+				`Pressure`
+			Sending_Process I 1 1
+				1
+			Receiving_Processes ST 1 1
+				2
+			CONNECTION DIR 2
+				ATDT_Mode C 1 2
+				`D`
+				KEEP_CONN_ALIVE_Mode C 1 2
+				`N`		
+		Channel  DIR 4
+			Name_of_Channel C 1 8
+				`Density`
+			Sending_Process I 1 1
+				1
+			Receiving_Processes ST 1 1
+				3
+			CONNECTION DIR 2
+				ATDT_Mode C 1 2
+				`D`
+				KEEP_CONN_ALIVE_Mode C 1 2
+				`N`		
+		Channel  DIR 4
+			Name_of_Channel C 1 12
+				`Temperature`
+			Sending_Process I 1 1
+				1
+			Receiving_Processes ST 1 1
+				2
+			CONNECTION DIR 2
+				ATDT_Mode C 1 2
+				`D`
+				KEEP_CONN_ALIVE_Mode C 1 2
+				`N`		
+-EOMF-
+
+
+
+
+
