@@ -105,14 +105,14 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 /*
  * set the counter to number of available threads
  */
-	*Data_Threads->data_threads_availth_counter  =  Data_Threads->n_data_threads;
+// 	*Data_Threads->n_data_threads  =  Data_Threads->n_data_threads;
 /*
  * at the beginning the coutner of remainign threads is equal to 
  * number of available threads
  * this coutner is used to synchronize all threads at the end when they went on each other
  * it is reset every iterational step
  */
-	*Data_Threads->data_threads_remainth_counter  = *Data_Threads->data_threads_availth_counter;
+	*Data_Threads->data_threads_remainth_counter  = *Data_Threads->n_data_threads;
 /*
  * set return value to 0
  */
@@ -142,8 +142,8 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
  * this condition is signaled by SR_hub
  */
 		if( Popts_SB->opt_f == 'f'){
-			if(*Data_Threads->data_threads_availth_counter == 0){
-				while(*Data_Threads->data_threads_availth_counter == 0)
+			if(*Data_Threads->n_data_threads == 0){
+				while(*Data_Threads->n_data_threads == 0)
 					Pthread_cond_wait(&Data_Threads->cond, &Data_Threads->lock);
 			}
 		}
@@ -189,9 +189,9 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
  * 
  * Data_Thread thread spawns n SR threads (1 Sending thread and n-1 Reading threads) which take care of data transfer,
  * so once the data_thread is identified n-times, the thread is taken away from 
- * pool of available data threads (ie. decrement  (*Data_Threads->data_threads_availth_counter)--)
+ * pool of available data threads (ie. decrement  (*Data_Threads->n_data_threads)--)
  * Once the data transfer is finished, add the data thread to the pool of available data threads
- * (ie. increment  (*Data_Threads->data_threads_availth_counter)++)
+ * (ie. increment  (*Data_Threads->n_data_threads)++)
  */
 		tmpval = Ident_Sys_Comm_Channel(RecNode, &DataBuffer, Data_Threads, 
 				name_of_required_data_set, &SR_mode);
@@ -233,7 +233,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
  * - set data_set name, SR_Mode and socket number so that data_thread processes can start identification
  * - set the return value to 0, once the thread is identified, the value is set to 1
  */
-				*Data_Threads->data_threads_remainth_counter 	= *Data_Threads->data_threads_availth_counter;
+				*Data_Threads->data_threads_remainth_counter 	= *Data_Threads->n_data_threads;
 				*Data_Threads->retval = 0;
 				
 				if( snprintf(Data_Threads->name_of_data_set, MAX_NAME_LENGTH,"%s",name_of_required_data_set) < 0)
@@ -369,7 +369,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
  * all avialable threads
  */
 						Pthread_mutex_lock(&Data_Threads->lock);
-							(*Data_Threads->data_threads_availth_counter)++;
+							(*Data_Threads->n_data_threads)++;
 						Pthread_mutex_unlock(&Data_Threads->lock);
 					}
 					else{
@@ -530,7 +530,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 
 	free(Data_Threads->name_of_data_set);
 	free(Data_Threads->SR_mode);
-	free(Data_Threads->data_threads_availth_counter);
+	free(Data_Threads->n_data_threads);
 	free(Data_Threads->data_threads_remainth_counter);
 	free(Data_Threads->socket);
 	free(Data_Threads->retval);

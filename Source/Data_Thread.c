@@ -67,7 +67,7 @@ void *Data_Threads(void *arg)
  * thread notifies SR_Hub which synchronizes the S_R transfer (SR_Data_Threads)
  *
  * Number of all active Data_Thread == number of transferred data sets + 1. The values is set in 
- * Data_Thread (*Data_Thread->sync->nthreads = Data_Thread->n_data_threads + 1;
+ * Data_Thread (*Data_Thread->sync->nthreads = *Data_Thread->n_data_threads + 1;
  */
 	data_thread_args_t *c = (data_thread_args_t *)arg;
 	lmint_t local_cntr;

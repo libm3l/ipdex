@@ -71,7 +71,7 @@ data_thread_args_t *Associate_Data_Thread(node_t *List, data_thread_str_t *Data_
 		DataArgs->pcond 		= &Data_Thread->cond;	
 		DataArgs->psocket    		=  Data_Thread->socket;	
 		DataArgs->pretval    		=  Data_Thread->retval;	
-		DataArgs->pcounter    		=  Data_Thread->data_threads_availth_counter;
+		DataArgs->pcounter    		=  Data_Thread->n_data_threads;
 		DataArgs->prcounter    		=  Data_Thread->data_threads_remainth_counter;
 		DataArgs->pname_of_data_set   	=  Data_Thread->name_of_data_set;
 		DataArgs->pSR_mode	    	=  Data_Thread->SR_mode;

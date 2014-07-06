@@ -79,12 +79,12 @@ lmsize_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
 		return -1;
 	}
 /*
- * Data_Thread->n_data_threads shows number of Data_Threads
+ * *Data_Thread->n_data_threads shows number of Data_Threads
  * Data_Thread->nall_data_threads shows number of size of array Data_Threads->Data_Str
  * when Data_Thread is removed, the numbers are different because the Data_Threads->Data_Str
  * is not reallocated
  */
-	Data_Thread->n_data_threads = 0;
+	*Data_Thread->n_data_threads = 0;
 	Data_Thread->nall_data_threads = 0;
 	retval = 0;
 /*
@@ -92,11 +92,11 @@ lmsize_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
  */
 	if( (SFounds = m3l_Locate(Gnode, "/Buffer/Channel", "/*/*", (lmchar_t *)NULL)) != NULL){
 		
-		Data_Thread->n_data_threads = m3l_get_Found_number(SFounds);
-		retval = Data_Thread->n_data_threads;
-		Data_Thread->nall_data_threads = Data_Thread->n_data_threads;
+		*Data_Thread->n_data_threads = m3l_get_Found_number(SFounds);
+		retval = *Data_Thread->n_data_threads;
+		Data_Thread->nall_data_threads = *Data_Thread->n_data_threads;
 		
-		if(Data_Thread->n_data_threads == 0){
+		if(*Data_Thread->n_data_threads == 0){
 			Error("Server: did not find any /Buffer/Channel");
 			m3l_DestroyFound(&SFounds);
 		}
@@ -107,8 +107,8 @@ lmsize_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
  */
 
 	if(Data_Thread->Data_Str == NULL){
-		if(Data_Thread->n_data_threads > 0){
-			if( (Data_Thread->Data_Str = (data_thread_int_str_t **)malloc(sizeof(data_thread_int_str_t *) * Data_Thread->n_data_threads)) == NULL)
+		if(*Data_Thread->n_data_threads > 0){
+			if( (Data_Thread->Data_Str = (data_thread_int_str_t **)malloc(sizeof(data_thread_int_str_t *) * *Data_Thread->n_data_threads)) == NULL)
 			Perror("Start_Data_Thread: Data_Thread->Data_Str malloc");
 		}			
 	}
@@ -118,7 +118,7 @@ lmsize_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
 /*
  * allocate Data_Str
  */
-	for(i=0; i < Data_Thread->n_data_threads; i++){
+	for(i=0; i < *Data_Thread->n_data_threads; i++){
 		
 		if( (Data_Thread->Data_Str[i] = (data_thread_int_str_t *)malloc(sizeof(data_thread_int_str_t))) == NULL)
 			Perror("Start_Data_Thread: Data_Thread->Data_Str[] malloc");
@@ -145,11 +145,11 @@ lmsize_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
  * set the value of for syncing thread to number of data sets + 2 (it. sync all Data_Thread (n_data_threads) + 
  * 1 for Server_Body
  */
-	*Data_Thread->sync->nthreads = Data_Thread->n_data_threads + 1;
+	*Data_Thread->sync->nthreads = *Data_Thread->n_data_threads + 1;
 /*
  * spawn threads
  */	
-	for(i=0; i < Data_Thread->n_data_threads; i++){
+	for(i=0; i < *Data_Thread->n_data_threads; i++){
 /*
  * set Node pointer to i-th data set in /Buffer/Channel
  * this determines that i-th thread will take care of channel with 
