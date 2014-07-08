@@ -168,7 +168,15 @@ void *SR_hub(void *arg)
 		return NULL;
 	}
 	Pthread_mutex_unlock(c->plock);
-	
+/*
+ * sync all SR_Threads and SR_hub so that Data_Thread goes further once they 
+ * are all spawned. Without that there were problems with case 200 where Data_Thread 
+ * sometimes deleted List before SR_Hub started, upon start SR_hub needs to identify 
+ * some values from the list.
+ * 
+ * The value of processes which are synced on this pt_sync_mod is increased by 2, ie.
+ * number of SR_Data_Threads + SR_Hub + Data_Thread
+ */
 	pt_sync_mod(c->psync_loc, 0, 2);
 
 /*
@@ -278,6 +286,6 @@ void terminal_loop_sequence(SR_hub_thread_str_t *c){
 		if(*c->pcounter == 1)
 			Pthread_cond_signal(c->pcond);
 		
-	Pthread_mutex_unlock(c->plock);	
+	Pthread_mutex_unlock(c->plock);
 }
 
