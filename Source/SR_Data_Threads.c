@@ -76,6 +76,16 @@ void *SR_Data_Threads(void *arg)
 
 	lmchar_t SR_mode;
 	lmint_t sockfd, retval, retvaln;
+/*
+ * sync all SR_Threads and SR_hub so that Data_Thread goes further once they 
+ * are all spawned. Without that there were problems with case 200 where Data_Thread 
+ * sometimes deleted List before SR_Hub started, upon start SR_hub needs to identify 
+ * some values from the list.
+ * 
+ * The value of processes which are synced on this pt_sync_mod is increased by 2, ie.
+ * number of SR_Data_Threads + SR_Hub + Data_Thread
+ */	
+	pt_sync_mod(c->psync_loc, 0, 2);
 /* 
  * get SR_mode and socket number, unlock so that other SR_threads can get ther
   * increase counter so that next job can grab it.
