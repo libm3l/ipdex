@@ -210,11 +210,6 @@ void *Data_Threads(void *arg)
  */
 	if(  (SR_Threads = Start_SR_Threads(n_avail_loc_theads)) == NULL)
 		Perror("Data_Thread: Start_SR_Threads error");
-/*
- * all ST_threads were spawend
- */
-	Sem_wait(&SR_Threads->sem_g);
-	Sem_destroy(&SR_Threads->sem_g);
 
 	*SR_Threads->R_availth_counter = n_rec_proc+1;
 /*
@@ -236,6 +231,16 @@ void *Data_Threads(void *arg)
 	if(*c->pcheckdata < 0)round = 1;
 
 	Pthread_mutex_unlock(c->plock);
+/*
+ * sync all SR_Threads and SR_hub so that Data_Thread goes further once they 
+ * are all spawned. Without that there were problems with case 200 where Data_Thread 
+ * sometimes deleted List before SR_Hub started, upon start SR_hub needs to identify 
+ * some values from the list.
+ * 
+ * The value of processes which are synced on this pt_sync_mod is increased by 2, ie.
+ * number of SR_Data_Threads + SR_Hub + Data_Thread
+ */
+	pt_sync_mod(SR_Threads->sync_loc, 0, 2);
 /*
  * initialization phase is over, at initialization the value of c->pData_Str->status_run == 1 
  * as soon as c->pData_Str->status_run  is set to 0, terminate the thread

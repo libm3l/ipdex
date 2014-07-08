@@ -150,8 +150,6 @@ void *SR_hub(void *arg)
 			free(c);
 			return NULL;
 		}
-
-	Pthread_mutex_unlock(c->plock);
 /*
  * if ATDT == A(lternate) the communication includes one S(ender) and once R(eceiver)
  * if more R(eceivers) are included, give error message and quit
@@ -169,6 +167,10 @@ void *SR_hub(void *arg)
 		free(c);
 		return NULL;
 	}
+	Pthread_mutex_unlock(c->plock);
+	
+	pt_sync_mod(c->psync_loc, 0, 2);
+
 /*
  * start loop for transfer
  */

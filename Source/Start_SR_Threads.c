@@ -160,10 +160,6 @@ SR_thread_str_t *Start_SR_Threads(lmint_t n_threads){
 		if(pth_err != 0)
 			Perror("pthread_create()"); 
 	}
-/*
- * when all threads are spawned, signal Data_Thread functions about it
- */
-	Sem_post(&SR_Data_Thread->sem_g);
-	
+
 	return SR_Data_Thread;
 }
