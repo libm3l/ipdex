@@ -117,10 +117,7 @@ void *SR_Data_Threads(void *arg)
 			SR_mode =  c->pSR_mode[*c->pthr_cntr];
 			sockfd  =  c->psockfd[*c->pthr_cntr];
 			(*c->pthr_cntr)++; 
-			
-			
-// 			printf(" Connection arrived, socket is %d, SR mode is %c\n",  sockfd, SR_mode);
-	
+
 		Pthread_mutex_unlock(c->plock);
 /*
  * decide which mode is used; depends on KeepAlive and ATDT option
@@ -132,20 +129,24 @@ void *SR_Data_Threads(void *arg)
 /*
  * do not keep socket allive, ie. open and close secket every time the data transfer occurs
  */
-			if(SR_mode == 'R'){
+			switch(SR_mode){
+				case 'R':
 /*
  * R(eceivers)
  */
-				if( R_KAN(c, sockfd, 1) == -1) return NULL;
-			}
-			else if(SR_mode == 'S'){
+					if( R_KAN(c, sockfd, 1) == -1) return NULL;
+				break;
+
+				case 'S':
 /*
  * S(ender)
  */
-				if( S_KAN(c, sockfd, 1) == -1) return NULL;
-			}
-			else{
-				Error("SR_Data_Threads: Wrong SR_mode");
+					if( S_KAN(c, sockfd, 1) == -1) return NULL;
+				break;
+
+				default:
+					Error("SR_Data_Threads: Wrong SR_mode");
+				break;
 			}
 		break;
 /*  -------------------------------------------------------------- */
@@ -156,13 +157,14 @@ void *SR_Data_Threads(void *arg)
  * works only for 1 R process
  * valid only of one Receiver, do not need to sync or barrier betwen swithich flod direciton
  */
-			if(SR_mode == 'R'){
+			switch(SR_mode){
+				case 'R':
 /*
  * R(eceivers)
  * when finishing with R, do not signal SR_hub to go to another loop, 
  * the Receiver process will now send the data 
  */
-				if( R_KAN(c, sockfd, 0) == -1) return NULL;
+					if( R_KAN(c, sockfd, 0) == -1) return NULL;
 /*
  * last Pthread_barrier_wait is done in SR_hub.c
  *
@@ -170,16 +172,16 @@ void *SR_Data_Threads(void *arg)
  * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
  * synced too
  */
-// 				pt_sync_mod(c->psync_loc, 0, 1);
-				if( S_KAN(c, sockfd, 2) == -1) return NULL;
-			}
-			else if(SR_mode == 'S'){
+					if( S_KAN(c, sockfd, 2) == -1) return NULL;
+				break;
+
+				case 'S':
 /*
  * S(ender), after finishing sending, receive the data
  * after that signal SR_hub that SR operation is finished and it can do 
  * another loop
  */
-				if( S_KAN(c, sockfd, 0) == -1) return NULL;
+					if( S_KAN(c, sockfd, 0) == -1) return NULL;
 /*
  * last Pthread_barrier_wait is done in SR_hub.c
  *
@@ -187,11 +189,12 @@ void *SR_Data_Threads(void *arg)
  * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
  * synced too
  */
-// 				pt_sync_mod(c->psync_loc, 0, 1);
-				if( R_KAN(c, sockfd, 2) == -1) return NULL;
-			}
-			else{
-				Error("SR_Data_Threads: Wrong SR_mode");
+					if( R_KAN(c, sockfd, 2) == -1) return NULL;
+				break;
+
+				default:
+					Error("SR_Data_Threads: Wrong SR_mode");
+				break;
 			}
 		break;
 /*  -------------------------------------------------------------- */
@@ -257,28 +260,30 @@ void *SR_Data_Threads(void *arg)
 /*
  * keep socket alive forever
  */
-			if(SR_mode == 'R'){
+			switch(SR_mode){
+				case 'R':
 /*
  * R(eceivers)
  */
-				while(1){
-					if(R_KAN(c, sockfd, 5) != 1) return NULL;
-				}
+					while(1){
+						if(R_KAN(c, sockfd, 5) != 1) return NULL;
+					}
 
-// 				return NULL;
-			}
-			else if(SR_mode == 'S'){
+				break;
+
+				case 'S':
 /*
  * S(ender)
  */
-				while(1){
-					if( S_KAN(c, sockfd, 5) != 1) return NULL;
-				}
+					while(1){
+						if( S_KAN(c, sockfd, 5) != 1) return NULL;
+					}
 
-// 				return NULL;
-			}
-			else{
-				Error("SR_Data_Threads: Wrong SR_mode");
+				break;
+
+				default:
+					Error("SR_Data_Threads: Wrong SR_mode");
+				break;
 			}
 		break;
 /*  -------------------------------------------------------------- */
@@ -288,14 +293,15 @@ void *SR_Data_Threads(void *arg)
  * back to Sender, Sender will first send the data and then receive from Receiver
  * works only for 1 R process
  */
-			if(SR_mode == 'R'){
+			switch(SR_mode){
+				case 'R':
 /*
  * R(eceivers)
  * when finishing with R, do not signal SR_hub to go to another loop, 
  * the Receiver process will now send the data 
  */
-				while(1){
-					if( R_KAN(c, sockfd, 0) == -1) return NULL;
+					while(1){
+						if( R_KAN(c, sockfd, 0) == -1) return NULL;
 /*
  * last Pthread_barrier_wait is done in SR_hub.c
  *
@@ -303,18 +309,18 @@ void *SR_Data_Threads(void *arg)
  * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
  * synced too
  */
-// 					pt_sync_mod(c->psync_loc, 0, 1);
-					if( S_KAN(c, sockfd, 0) == -1) return NULL;
-				}
-			}
-			else if(SR_mode == 'S'){
+						if( S_KAN(c, sockfd, 0) == -1) return NULL;
+					}
+				break;
+
+				case 'S':
 /*
  * S(ender), after finishing sending, receive the data
  * after that signal SR_hhub that SR operation is finished and it can do 
  * another loop
  */
-				while(1){
-					if( S_KAN(c, sockfd, 0) == -1) return NULL;
+					while(1){
+						if( S_KAN(c, sockfd, 0) == -1) return NULL;
 /*
  * last Pthread_barrier_wait is done in SR_hub.c
  *
@@ -322,12 +328,13 @@ void *SR_Data_Threads(void *arg)
  * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
  * synced too
  */
-// 					pt_sync_mod(c->psync_loc, 0, 1);
-					if( R_KAN(c, sockfd, 0) == -1) return NULL;
-				}
-			}
-			else{
-				Error("SR_Data_Threads: Wrong SR_mode");
+						if( R_KAN(c, sockfd, 0) == -1) return NULL;
+					}
+				break;
+
+				default:
+					Error("SR_Data_Threads: Wrong SR_mode");
+				break;
 			}
 		break;
 		
