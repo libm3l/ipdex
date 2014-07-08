@@ -144,7 +144,7 @@ lmsize_t Add_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread, node_t *
  * number of synced threads (*Data_Thread->sync->nthreads) will be increased
  * in pt_sync_mod() in either Data_Thread or Sever_Body
  */
-	*Data_Thread->n_data_threads     =  Data_Thread->n_data_threads + 1;
+	*Data_Thread->n_data_threads     =  *Data_Thread->n_data_threads + 1;
 	Data_Thread->nall_data_threads  =  Data_Thread->nall_data_threads + 1;
 /*
  * set Node pointer to data set in /_sys_comm_/Channel
