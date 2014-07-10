@@ -62,6 +62,7 @@ static lmint_t R_KAN(SR_thread_args_t *, lmint_t, lmint_t);
 static lmint_t S_KAN(SR_thread_args_t *, lmint_t, lmint_t);
 
 static lmint_t R_EOFC(lmint_t);
+static lmssize_t S_EOFC(lmint_t, lmint_t);
 
 //      mode 1: ATDTMode == 'D' && KeepAlive_Mode == 'N'  /* Direct transfer, close socket */
 //      mode 2: ATDTMode == 'A' && KeepAlive_Mode == 'N'  /* Alternate transfer, close socket */
