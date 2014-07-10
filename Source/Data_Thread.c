@@ -410,7 +410,6 @@ void *Data_Threads(void *arg)
 /*
  * SR_hub sem_wait(c->psem) for this semaphore 
  */
-// 		if(*c->pcheckdata != 200)
 			Sem_post(&loc_sem);
 /*
  * now this thread signalled its own SR_hub that all connections arrived and SR_hub start synchronizing all 
