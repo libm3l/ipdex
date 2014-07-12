@@ -109,6 +109,10 @@ void *SR_Data_Threads(void *arg)
  * synced too
  */
 		pt_sync_mod(c->psync_loc, 0, 1);
+/* 
+ * if connection required to be closed, terminate while loop
+ */
+		if(*c->pstatus_run != 1) break;
 /*
  * get SR_mode and socket number of each connected processes
  * protext by mutex

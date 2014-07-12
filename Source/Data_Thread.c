@@ -46,8 +46,6 @@
  */
 
 
-
-
 #include "libm3l.h"
 #include "lsipdx_header.h"
 #include "Server_Functions_Prt.h"
@@ -242,11 +240,11 @@ void *Data_Threads(void *arg)
  */
 	pt_sync_mod(SR_Threads->sync_loc, 0, 2);
 /*
- * initialization phase is over, at initialization the value of c->pData_Str->status_run == 1 
- * as soon as c->pData_Str->status_run  is set to 0, terminate the thread
- * this means a client requested closing this connection
+ * initialization phase is over, now there is a while(1) loop in whith the threads are identified
+ * according to their name. The while loop is terminated in case 200, ie. when requested to be terminated
  */
-	while(*c->pData_Str->status_run==1){
+// 	while(*c->pData_Str->status_run==1){
+	while(1){
 		
 		local_cntr = 0;
 /*
@@ -371,9 +369,14 @@ void *Data_Threads(void *arg)
 /*
  * this thread is to be removed
  */
-						*c->pData_Str->status_run=0;
+// 						*c->pData_Str->status_run=0;
 						(*c->prcounter)--;
 						*c->pretval = 1;
+/*
+ * set status run for SR_Hub and SR_Data_Thread to 0, ie. terminatw
+ * while loops
+ */
+						*SR_Threads->status_run = 0;
 /*
  * delete this node, it will remove the item from buffer
  */
@@ -431,12 +434,20 @@ END:
 	
 	printf(" -----------  ENDING ---    %ld  %s\n", pthread_self(), local_set_name);
 /*
+ * SR_hub sem_wait(c->psem) for this semaphore 
+ * post it for the last time. After that SR_hub terminates and waits until all
+ * SR_Data_Threads are finished
+ */
+	Sem_post(&loc_sem);
+/*
  * join SR_Threads and release memory
  */
-	for(i=0; i< n_avail_loc_theads; i++)
+	for(i=0; i< n_avail_loc_theads; i++){
+
 		if( pthread_join(SR_Threads->data_threads[i], NULL) != 0)
 			Error(" Joining thread failed");
-				
+	}
+	
 	Pthread_mutex_destroy(&SR_Threads->lock);
 	Pthread_cond_destroy(&SR_Threads->dcond);
 	Sem_destroy(&SR_Threads->sem);
@@ -467,19 +478,19 @@ END:
 /*
  * free local semaphore
  */
- 	Sem_destroy(&loc_sem);
+	Sem_destroy(&loc_sem);
 /*
  * join SR_hub and release memory
  */
 	if( pthread_join(SR_Hub_Thread->data_thread[0], NULL) != 0)
 		Error(" Joining thread failed");
+	
+	free(SR_Hub_Thread->data_thread);
 /*
  * release borrowed memory, malloced before starting thread in Data_Thread()
  */
-printf(" FREEING \n");
 	free(c->pData_Str);
 	free(c);
-printf(" AFTER FREEING \n");
 
 	return NULL;
 }

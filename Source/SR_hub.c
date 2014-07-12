@@ -86,9 +86,6 @@ void *SR_hub(void *arg)
  * with Data_Thread
  */
 	SR_hub_thread_str_t *c = (SR_hub_thread_str_t *)arg;
-
-// 		if(m3l_Cat(c->pList, "--all", "-L", "-P", "*",   (lmchar_t *)NULL) != 0)
-// 			Warning("CatData");
 /*
  * find AT-DT mode
  * find KEEP_CONN_ALIVE_Mode
@@ -196,6 +193,10 @@ void *SR_hub(void *arg)
  * synced too
  */
 				pt_sync_mod(c->psync_loc, 0, 1);
+/* 
+ * if connection required to be closed, terminate while loop
+ */
+				if(*c->pstatus_run_h != 1) break;
 /*
  * once the data transfer is finished wait until all data is tranferred and S and R threads close their socket
 */
@@ -221,6 +222,13 @@ void *SR_hub(void *arg)
  * synced too
  */
 				pt_sync_mod(c->psync_loc, 0, 1);
+/* 
+ * if connection required to be closed, terminate while loop
+ */
+				if(*c->pstatus_run_h != 1) break;
+/*
+ * do 2 loops (ie. Sender-to-receiver   and   Recevier-to-Sender) and then continue
+ */
 				while(--IT != 0);
 /*
  * once the data transfer is finished wait until all data is tranferred and S and R threads close their socket
@@ -245,16 +253,17 @@ void *SR_hub(void *arg)
  * synced too
  */
 				pt_sync_mod(c->psync_loc, 0, 1);
+				if(*c->pstatus_run_h != 1) break;
+
 				terminal_loop_sequence(c);
 			}
 		break;
 	}
 /*
- * release borrowed memory, malloced before starting thread in Data_Thread()->Start_SR_HubThread()
+ * free borrowed memory malloced before starting thread in Data_Thread()->Start_SR_HubThread(); this is done in Data_Thread
+ * after joining the thread
  */
-	free(c);
 	return NULL;
-
 }
 
 void terminal_loop_sequence(SR_hub_thread_str_t *c){

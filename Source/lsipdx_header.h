@@ -81,7 +81,7 @@ typedef struct data_thread_int_str{
 	pthread_t 		*data_threadPID;	/* thread ID of all threads in group data_threads */
 	lmchar_t 		*name_of_channel;	/* each spawn thread corresponds to required channel (data link)
 								store the name in this variable */
-	lmint_t			*status_run;		/* if 1, thread is active, if 0, thread should be terminated */
+// 	lmint_t			*status_run;		/* if 1, thread is active, if 0, thread should be terminated */
 }data_thread_int_str_t;
 
 typedef struct data_thread_args{
@@ -133,6 +133,9 @@ typedef struct SR_thread_args{
 	lmsize_t 		*pcounter, *prcounter, *pngotten;    /* number of available R_threads, number of remaining 
 									threads = *pcounter - taken threads 
 									length of buffer from TCP/IP */
+	lmint_t			*pstatus_run;			/* status of the job, set to 1 upon initialization
+	                                                           once the connection requested to be be closed
+	                                                           set to 0 */
 	pt_sync_t		*psync_loc;
 }SR_thread_args_t;
 
@@ -153,6 +156,9 @@ typedef struct SR_thread_str{
 											buffer from TCP/IP   */
 	pt_sync_t		*sync_loc;
 	lmint_t			*mode;
+	lmint_t			*status_run;			/* status of the job, set to 1 upon initialization
+	                                                           once the connection requested to be be closed
+	                                                           set to 0 */
 }SR_thread_str_t;
 
 
@@ -175,6 +181,9 @@ typedef struct SR_hub_thread_str{
 	lmchar_t		*pATDT_mode, *pKA_mode;	
 	lmint_t 		*pSRh_mode;
 	pt_sync_t		*psync_loc;
+	lmint_t			*pstatus_run_h;			/* status of the job, set to 1 upon initialization
+	                                                           once the connection requested to be be closed
+	                                                           set to 0 */
 
 }SR_hub_thread_str_t;
 

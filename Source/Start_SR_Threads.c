@@ -96,7 +96,8 @@ SR_thread_str_t *Start_SR_Threads(lmint_t n_threads){
 		Perror("Start_SR_Threads: SR_Data_Thread->KA_mode malloc");
 	if( (SR_Data_Thread->mode = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
 		Perror("Start_SR_Threads: SR_Data_Thread->mode malloc");
-/*
+	if( (SR_Data_Thread->status_run = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
+		Perror("Start_SR_Threads: SR_Data_Thread->status_run malloc");/*
  * initialize mutex and condition variable
  */
 	Pthread_mutex_init(&SR_Data_Thread->lock);
@@ -107,6 +108,8 @@ SR_thread_str_t *Start_SR_Threads(lmint_t n_threads){
 
 	*SR_Data_Thread->R_remainth_counter = 0;
 	*SR_Data_Thread->R_availth_counter = 0;
+	
+	*SR_Data_Thread->status_run = 1;
 /*
  * initialize sync data structure
  */
@@ -144,6 +147,9 @@ SR_thread_str_t *Start_SR_Threads(lmint_t n_threads){
 		SR_DataArgs->pbuffer		= SR_Data_Thread->buffer;
 		SR_DataArgs->pngotten		= SR_Data_Thread->ngotten;
 		SR_DataArgs->pEofBuff		= SR_Data_Thread->EofBuff;
+		
+		SR_DataArgs->pstatus_run	= SR_Data_Thread->status_run;
+		
 		SR_DataArgs->psync		= SR_Data_Thread->sync;
 		
 		SR_DataArgs->psync_loc 		= SR_Data_Thread->sync_loc;
