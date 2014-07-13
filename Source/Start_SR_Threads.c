@@ -97,7 +97,11 @@ SR_thread_str_t *Start_SR_Threads(lmint_t n_threads){
 	if( (SR_Data_Thread->mode = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
 		Perror("Start_SR_Threads: SR_Data_Thread->mode malloc");
 	if( (SR_Data_Thread->status_run = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
-		Perror("Start_SR_Threads: SR_Data_Thread->status_run malloc");/*
+		Perror("Start_SR_Threads: SR_Data_Thread->status_run malloc");
+	
+	for(i=0; i<n_threads;i++)
+		SR_Data_Thread->sockfd[i] = 0;
+/*
  * initialize mutex and condition variable
  */
 	Pthread_mutex_init(&SR_Data_Thread->lock);
