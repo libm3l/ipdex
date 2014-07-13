@@ -81,7 +81,7 @@ typedef struct data_thread_int_str{
 	pthread_t 		*data_threadPID;	/* thread ID of all threads in group data_threads */
 	lmchar_t 		*name_of_channel;	/* each spawn thread corresponds to required channel (data link)
 								store the name in this variable */
-	lmint_t			*status_run;		/* if 1, thread is active, if 0, thread should be terminated */
+// 	lmint_t			*status_run;		/* if 1, thread is active, if 0, thread should be terminated */
 }data_thread_int_str_t;
 
 typedef struct data_thread_args{
@@ -104,9 +104,10 @@ typedef struct data_thread_str{
 	pthread_mutex_t   	lock;	 		/* mutex */
 	pthread_cond_t    	cond;   		/* condition variable */
 
-	lmsize_t 		n_data_threads;  	/* number of thread in group data_threads */
+	lmsize_t 		*n_data_threads;  	/* number of thread in group data_threads */
 	lmsize_t 		nall_data_threads;  	/* number of allocated Data_Thread str in group data_threads */
-	lmsize_t 		*data_threads_availth_counter, *data_threads_remainth_counter; 	/* number of available and free threads  */
+// 	lmsize_t 		*data_threads_availth_counter, *data_threads_remainth_counter; 	/* number of available and free threads  */
+	lmsize_t 		*data_threads_remainth_counter; 	/* number of available and free threads  */
 	lmchar_t 		*name_of_data_set, *SR_mode;	/* stores data_set name which is then compared in data_thread  and SR_moode*/
 	lmint_t  		*socket,  *retval, *checkdata;		/* socket ID passed to data_Thread, message upon receiving it, yes or not to check data*/
 	pt_sync_t		*sync;
@@ -127,11 +128,14 @@ typedef struct SR_thread_args{
 								signal */
 	lmchar_t 		*pSR_mode;			/* threads modes - Sender(S), Receiver(R) */
 	lmchar_t		*pATDT_mode, *pKA_mode;      			
-	lmint_t 		*pSRt_mode, *pEOFC_ENDt;	/* SR mode, Return value from SR_Data_Threads */
+	lmint_t 		*pSRt_mode;	/* SR mode*/
 	lmsize_t  		*pthr_cntr;    			/* thread counter */
 	lmsize_t 		*pcounter, *prcounter, *pngotten;    /* number of available R_threads, number of remaining 
 									threads = *pcounter - taken threads 
 									length of buffer from TCP/IP */
+	lmint_t			*pstatus_run;			/* status of the job, set to 1 upon initialization
+	                                                           once the connection requested to be be closed
+	                                                           set to 0 */
 	pt_sync_t		*psync_loc;
 }SR_thread_args_t;
 
@@ -151,7 +155,10 @@ typedef struct SR_thread_str{
 	lmsize_t 		*R_availth_counter, *R_remainth_counter, *ngotten; 	/* number of available and free threads, length of
 											buffer from TCP/IP   */
 	pt_sync_t		*sync_loc;
-	lmint_t			*mode, *EOFC_END;
+	lmint_t			*mode;
+	lmint_t			*status_run;			/* status of the job, set to 1 upon initialization
+	                                                           once the connection requested to be be closed
+	                                                           set to 0 */
 }SR_thread_str_t;
 
 
@@ -172,10 +179,11 @@ typedef struct SR_hub_thread_str{
 	lmint_t 		*psockfd;					/* pointer to array of opened sockets */
 	node_t 			*pList;
 	lmchar_t		*pATDT_mode, *pKA_mode;	
-	lmint_t 		*pSRh_mode, *pEOFC_ENDh;
+	lmint_t 		*pSRh_mode;
 	pt_sync_t		*psync_loc;
-		
-	lmint_t			*pWRDIAGh;
+	lmint_t			*pstatus_run_h;			/* status of the job, set to 1 upon initialization
+	                                                           once the connection requested to be be closed
+	                                                           set to 0 */
 
 }SR_hub_thread_str_t;
 

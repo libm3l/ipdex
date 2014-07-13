@@ -71,13 +71,13 @@ data_thread_str_t *Allocate_Data_Thread_DataSet(void){
  * the Data_Thread->data_threads containing PID of each spawn thread will be 
  * allocated in Start_Data_Thread, now we do not know how many data threads will be used
  */
-/*	if( (Data_Thread->data_threads = (pthread_t *)malloc(sizeof(pthread_t) * Data_Thread->n_data_threads)) == NULL)
+/*	if( (Data_Thread->data_threads = (pthread_t *)malloc(sizeof(pthread_t) * *Data_Thread->n_data_threads)) == NULL)
 *		Perror("Data_Thread: Data_Thread->data_threads malloc");
 */	
 	Data_Thread->Data_Str = NULL;
 	
-	if( (Data_Thread->data_threads_availth_counter = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
-		Perror("Data_Thread: Data_Thread->data_threads_availth_counter");
+	if( (Data_Thread->n_data_threads = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
+		Perror("Data_Thread: Data_Thread->n_data_threads");
 	if( (Data_Thread->data_threads_remainth_counter = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
 		Perror("Data_Thread: Data_Thread->data_threads_remainth_counter");
 	if( (Data_Thread->socket = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
@@ -112,7 +112,7 @@ data_thread_str_t *Allocate_Data_Thread_DataSet(void){
  * *Data_Thread->sync->nthreads will always be set to number of jobs the 
  * syncing points is required to sync
  */
-	*Data_Thread->data_threads_availth_counter  = 0;
+	*Data_Thread->n_data_threads  = 0;
 	*Data_Thread->data_threads_remainth_counter = 0;
 	*Data_Thread->sync->nsync    = 0;
 /*
@@ -121,8 +121,8 @@ data_thread_str_t *Allocate_Data_Thread_DataSet(void){
  * 1 for Server_Body . This is done in Start_Data_Thread, at the moment we do not know 
  * how many threads will be used so the value will be 2 (one for Server_Body)
  */
-	Data_Thread->n_data_threads = 0;
-	*Data_Thread->sync->nthreads = Data_Thread->n_data_threads + 1;
+	*Data_Thread->n_data_threads = 0;
+	*Data_Thread->sync->nthreads = *Data_Thread->n_data_threads + 1;
 	*Data_Thread->sync->incrm = 0; /* this is used to if number of syncs threads is different then number defined in n_data_threads */
 /*
  * initialize mutex, barrier and condition variable

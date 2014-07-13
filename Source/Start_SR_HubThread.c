@@ -93,9 +93,8 @@ SR_hub_thread_str_t *Start_SR_HubThread(SR_thread_str_t *SR_Threads, data_thread
 	SR_Hub_Thread->pList		= c->Node;
 	SR_Hub_Thread->pATDT_mode	= SR_Threads->ATDT_mode;  /* associate pointer, the values will be filled in SR_hub */
 	SR_Hub_Thread->pKA_mode		= SR_Threads->KA_mode;    /* associate pointer, the values will be filled in SR_hub */
-	SR_Hub_Thread->pSRh_mode	= SR_Threads->mode;    /* associate pointer, the values will be filled in SR_hub */
-	SR_Hub_Thread->pEOFC_ENDh	= SR_Threads->EOFC_END;    /* if KeepAlive == C, use this value to signal the 
-								socket is closed */
+	SR_Hub_Thread->pSRh_mode	= SR_Threads->mode;       /* associate pointer, the values will be filled in SR_hub */
+	SR_Hub_Thread->pstatus_run_h	= SR_Threads->status_run;
 								
 	SR_Hub_Thread->psync_loc 		= SR_Threads->sync_loc;
 	SR_Hub_Thread->psync_loc->pnsync 	= SR_Threads->sync_loc->nsync;

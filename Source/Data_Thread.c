@@ -46,8 +46,6 @@
  */
 
 
-
-
 #include "libm3l.h"
 #include "lsipdx_header.h"
 #include "Server_Functions_Prt.h"
@@ -67,7 +65,7 @@ void *Data_Threads(void *arg)
  * thread notifies SR_Hub which synchronizes the S_R transfer (SR_Data_Threads)
  *
  * Number of all active Data_Thread == number of transferred data sets + 1. The values is set in 
- * Data_Thread (*Data_Thread->sync->nthreads = Data_Thread->n_data_threads + 1;
+ * Data_Thread (*Data_Thread->sync->nthreads = *Data_Thread->n_data_threads + 1;
  */
 	data_thread_args_t *c = (data_thread_args_t *)arg;
 	lmint_t local_cntr;
@@ -210,11 +208,6 @@ void *Data_Threads(void *arg)
  */
 	if(  (SR_Threads = Start_SR_Threads(n_avail_loc_theads)) == NULL)
 		Perror("Data_Thread: Start_SR_Threads error");
-/*
- * all ST_threads were spawend
- */
-	Sem_wait(&SR_Threads->sem_g);
-	Sem_destroy(&SR_Threads->sem_g);
 
 	*SR_Threads->R_availth_counter = n_rec_proc+1;
 /*
@@ -237,11 +230,21 @@ void *Data_Threads(void *arg)
 
 	Pthread_mutex_unlock(c->plock);
 /*
- * initialization phase is over, at initialization the value of c->pData_Str->status_run == 1 
- * as soon as c->pData_Str->status_run  is set to 0, terminate the thread
- * this means a client requested closing this connection
+ * sync all SR_Threads and SR_hub so that Data_Thread goes further once they 
+ * are all spawned. Without that there were problems with case 200 where Data_Thread 
+ * sometimes deleted List before SR_Hub started, upon start SR_hub needs to identify 
+ * some values from the list.
+ * 
+ * The value of processes which are synced on this pt_sync_mod is increased by 2, ie.
+ * number of SR_Data_Threads + SR_Hub + Data_Thread
  */
-	while(*c->pData_Str->status_run==1){
+	pt_sync_mod(SR_Threads->sync_loc, 0, 2);
+/*
+ * initialization phase is over, now there is a while(1) loop in whith the threads are identified
+ * according to their name. The while loop is terminated in case 200, ie. when requested to be terminated
+ */
+// 	while(*c->pData_Str->status_run==1){
+	while(1){
 		
 		local_cntr = 0;
 /*
@@ -348,6 +351,11 @@ void *Data_Threads(void *arg)
  * Because there is already additional thread spawned by Add_Data_Thread, increase temporarily
  * the number of synced jobs - second 1 in pt_sync_mod
  */
+// 				Pthread_mutex_lock(c->plock);
+// 					(*c->prcounter)++;
+// 					*c->pretval = 1;
+// 				Pthread_mutex_unlock(c->plock);
+				
 				pt_sync_mod(c->psync, 1, 1);
 			}
 			else if(*c->pcheckdata == 200){
@@ -361,10 +369,14 @@ void *Data_Threads(void *arg)
 /*
  * this thread is to be removed
  */
-// 						n_avail_loc_theads = 0;
-						*c->pData_Str->status_run=0;
+// 						*c->pData_Str->status_run=0;
 						(*c->prcounter)--;
 						*c->pretval = 1;
+/*
+ * set status run for SR_Hub and SR_Data_Thread to 0, ie. terminatw
+ * while loops
+ */
+						*SR_Threads->status_run = 0;
 /*
  * delete this node, it will remove the item from buffer
  */
@@ -401,7 +413,6 @@ void *Data_Threads(void *arg)
 /*
  * SR_hub sem_wait(c->psem) for this semaphore 
  */
-// 		if(*c->pcheckdata != 200)
 			Sem_post(&loc_sem);
 /*
  * now this thread signalled its own SR_hub that all connections arrived and SR_hub start synchronizing all 
@@ -423,12 +434,20 @@ END:
 	
 	printf(" -----------  ENDING ---    %ld  %s\n", pthread_self(), local_set_name);
 /*
+ * SR_hub sem_wait(c->psem) for this semaphore 
+ * post it for the last time. After that SR_hub terminates and waits until all
+ * SR_Data_Threads are finished
+ */
+	Sem_post(&loc_sem);
+/*
  * join SR_Threads and release memory
  */
-	for(i=0; i< n_avail_loc_theads; i++)
+	for(i=0; i< n_avail_loc_theads; i++){
+
 		if( pthread_join(SR_Threads->data_threads[i], NULL) != 0)
 			Error(" Joining thread failed");
-				
+	}
+	
 	Pthread_mutex_destroy(&SR_Threads->lock);
 	Pthread_cond_destroy(&SR_Threads->dcond);
 	Sem_destroy(&SR_Threads->sem);
@@ -438,7 +457,6 @@ END:
 	free(SR_Threads->ATDT_mode);
 	free(SR_Threads->KA_mode);
 	free(SR_Threads->mode);
-	free(SR_Threads->EOFC_END);
 	free(SR_Threads->thr_cntr);
 	free(SR_Threads->sockfd);
 	free(SR_Threads->buffer);
@@ -460,19 +478,19 @@ END:
 /*
  * free local semaphore
  */
- 	Sem_destroy(&loc_sem);
+	Sem_destroy(&loc_sem);
 /*
  * join SR_hub and release memory
  */
 	if( pthread_join(SR_Hub_Thread->data_thread[0], NULL) != 0)
 		Error(" Joining thread failed");
+	
+	free(SR_Hub_Thread->data_thread);
 /*
  * release borrowed memory, malloced before starting thread in Data_Thread()
  */
-printf(" FREEING \n");
 	free(c->pData_Str);
 	free(c);
-printf(" AFTER FREEING \n");
 
 	return NULL;
 }

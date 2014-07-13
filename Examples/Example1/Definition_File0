@@ -1,0 +1,11 @@
+COMM_DEF  DIR 2
+	Process_Specifications DIR 1
+		Name_of_Case  C 1 10 
+			`Test Case`
+	Channels  DIR 0
+-EOMF-
+
+
+
+
+

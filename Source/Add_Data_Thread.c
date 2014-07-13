@@ -136,15 +136,15 @@ lmsize_t Add_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread, node_t *
 /*
  * malloc status_run variable and set it to 1; if 0 thread will be terminated
  */
-	if( (Data_Thread->Data_Str[newnum]->status_run = (lmint_t *)malloc(MAX_NAME_LENGTH* sizeof(lmint_t))) == NULL)
-		Perror("Add_Data_Thread: Data_Thread->Data_Str->lmint_t malloc");
-	*Data_Thread->Data_Str[newnum]->status_run = 1;
+// 	if( (Data_Thread->Data_Str[newnum]->status_run = (lmint_t *)malloc(MAX_NAME_LENGTH* sizeof(lmint_t))) == NULL)
+// 		Perror("Add_Data_Thread: Data_Thread->Data_Str->lmint_t malloc");
+// 	*Data_Thread->Data_Str[newnum]->status_run = 1;
 /*
  * increase number of threads by 1
  * number of synced threads (*Data_Thread->sync->nthreads) will be increased
  * in pt_sync_mod() in either Data_Thread or Sever_Body
  */
-	Data_Thread->n_data_threads     =  Data_Thread->n_data_threads + 1;
+	*Data_Thread->n_data_threads     =  *Data_Thread->n_data_threads + 1;
 	Data_Thread->nall_data_threads  =  Data_Thread->nall_data_threads + 1;
 /*
  * set Node pointer to data set in /_sys_comm_/Channel
