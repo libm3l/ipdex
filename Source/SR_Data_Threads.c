@@ -284,7 +284,7 @@ void *SR_Data_Threads(void *arg)
 /* 
  * if connection required to be closed, terminate while loop
  */
-			if(*c->pstatus_run != 1) goto END;
+			if(*c->pstatus_run != 1) goto END1;
 			
 			switch(SR_mode){
 				case 'R':
@@ -296,7 +296,7 @@ void *SR_Data_Threads(void *arg)
 /* 
  * if connection required to be closed, terminate while loop
  */
-						if(*c->pstatus_run != 1) goto END;
+						if(*c->pstatus_run != 1) goto END1;
 						if(R_KAN(c, sockfd, 5) != 1) return NULL;
 					}
 
@@ -310,7 +310,7 @@ void *SR_Data_Threads(void *arg)
 /* 
  * if connection required to be closed, terminate while loop
  */
-						if(*c->pstatus_run != 1) goto END;
+						if(*c->pstatus_run != 1) goto END1;
 						
 						if( S_KAN(c, sockfd, 5) != 1) return NULL;
 					}
@@ -333,7 +333,7 @@ void *SR_Data_Threads(void *arg)
 /* 
  * if connection required to be closed, terminate while loop
  */
-			if(*c->pstatus_run != 1) goto END;
+			if(*c->pstatus_run != 1) goto END1;
 
 			switch(SR_mode){
 				case 'R':
@@ -346,7 +346,7 @@ void *SR_Data_Threads(void *arg)
 /* 
  * if connection required to be closed, terminate while loop
  */
-						if(*c->pstatus_run != 1) goto END;
+						if(*c->pstatus_run != 1) goto END1;
 						
 						if( R_KAN(c, sockfd, 0) == -1) return NULL;
 /*
@@ -370,7 +370,7 @@ void *SR_Data_Threads(void *arg)
 /* 
  * if connection required to be closed, terminate while loop
  */
-						if(*c->pstatus_run != 1) goto END;
+						if(*c->pstatus_run != 1) goto END1;
 						
 						if( S_KAN(c, sockfd, 0) == -1) return NULL;
 /*
@@ -396,7 +396,7 @@ void *SR_Data_Threads(void *arg)
 		}
 	}
 	
-END:
+END1:
 /*
  * close sockets
  * to check if the socket is opened, check its value. 
@@ -407,7 +407,8 @@ END:
 			if( close(c->psockfd[i]) == -1)
 				Perror("close");
 		}
-
+		
+END:
 	free(c);
 	return NULL;
 }
