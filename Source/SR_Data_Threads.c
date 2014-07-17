@@ -77,6 +77,7 @@ void *SR_Data_Threads(void *arg)
 
 	lmchar_t SR_mode;
 	lmint_t sockfd, retval, retvaln;
+	lmsize_t i;
 /*
  * sync all SR_Threads and SR_hub so that Data_Thread goes further once they 
  * are all spawned. Without that there were problems with case 200 where Data_Thread 
@@ -109,21 +110,23 @@ void *SR_Data_Threads(void *arg)
  * synced too
  */
 		pt_sync_mod(c->psync_loc, 0, 1);
-/* 
- * if connection required to be closed, terminate while loop
- */
-		if(*c->pstatus_run != 1) break;
+// /* 
+//  * if connection required to be closed, terminate while loop
+//  */
+// 		if(*c->pstatus_run != 1) break;
 /*
  * get SR_mode and socket number of each connected processes
  * protext by mutex
  */
-		Pthread_mutex_lock(c->plock);
+		if(*c->pstatus_run == 1){
+			Pthread_mutex_lock(c->plock);
 
-			SR_mode =  c->pSR_mode[*c->pthr_cntr];
-			sockfd  =  c->psockfd[*c->pthr_cntr];
-			(*c->pthr_cntr)++; 
+				SR_mode =  c->pSR_mode[*c->pthr_cntr];
+				sockfd  =  c->psockfd[*c->pthr_cntr];
+				(*c->pthr_cntr)++; 
 
-		Pthread_mutex_unlock(c->plock);
+			Pthread_mutex_unlock(c->plock);
+		}
 /*
  * decide which mode is used; depends on KeepAlive and ATDT option
  * the value of mode set in SR_hub.c
@@ -134,6 +137,12 @@ void *SR_Data_Threads(void *arg)
 /*
  * do not keep socket allive, ie. open and close secket every time the data transfer occurs
  */
+
+/* 
+ * if connection required to be closed, terminate while loop
+ */
+			if(*c->pstatus_run != 1) goto END;
+		
 			switch(SR_mode){
 				case 'R':
 /*
@@ -162,6 +171,12 @@ void *SR_Data_Threads(void *arg)
  * works only for 1 R process
  * valid only of one Receiver, do not need to sync or barrier betwen swithich flod direciton
  */
+
+/* 
+ * if connection required to be closed, terminate while loop
+ */
+			if(*c->pstatus_run != 1) goto END;
+			
 			switch(SR_mode){
 				case 'R':
 /*
@@ -203,74 +218,85 @@ void *SR_Data_Threads(void *arg)
 			}
 		break;
 /*  -------------------------------------------------------------- */
-		case 3:
-/*
- * keep socket allive until clients request closing it
- */
-			Error("SR_Data_Threads: KA_mode == C not implemented yet");
-			exit(0);
-
-			if(SR_mode == 'R'){
-/*
- * R(eceivers)
- */
-				do{
-					if( (retval = R_KAN(c, sockfd, 3)) == -1) return NULL;
-				}while(retval != 0);
-			}
-			else if(SR_mode == 'S'){
-/*
- * S(ender)
- */
-				do{
-					if( (retval = S_KAN(c, sockfd, 3)) == -1) return NULL;
-				}while(retval != 0);
-			}
-			else{
-				Error("SR_Data_Threads: Wrong SR_mode");
-			}
-		break;
-/*  -------------------------------------------------------------- */
-		case 4:
-			if(SR_mode == 'R'){
-/*
- * R(eceivers)
- * when finishing with R, do not signal SR_hub to go to another loop, 
- * the Receiver process will now send the data 
- */
-				do{
-					if( (retval = R_KAN(c, sockfd, 4)) == -1) return NULL;
-					if( (retvaln = S_KAN(c, sockfd, 4)) == -1) return NULL;
-					retval = INTEGMIN(retval, retvaln);
-				}while(retval != 0);
-			}
-			else if(SR_mode == 'S'){
-/*
- * S(ender), after finishing sending, receive the data
- * after that signal SR_hhub that SR operation is finished and it can do 
- * another loop
- */
-				do{
-					if( (retval = S_KAN(c, sockfd, 4)) == -1) return NULL;
-					if( (retval = R_KAN(c, sockfd, 4)) == -1) return NULL;
-					retval = INTEGMIN(retval, retvaln);
-				}while(retval != 0);
-			}
-			else{
-				Error("SR_Data_Threads: Wrong SR_mode");
-			}
-		break;
+// 		case 3:
+// /*
+//  * keep socket allive until clients request closing it
+//  */
+// 			Error("SR_Data_Threads: KA_mode == C not implemented yet");
+// 			exit(0);
+// 
+// 			if(SR_mode == 'R'){
+// /*
+//  * R(eceivers)
+//  */
+// 				do{
+// 					if( (retval = R_KAN(c, sockfd, 3)) == -1) return NULL;
+// 				}while(retval != 0);
+// 			}
+// 			else if(SR_mode == 'S'){
+// /*
+//  * S(ender)
+//  */
+// 				do{
+// 					if( (retval = S_KAN(c, sockfd, 3)) == -1) return NULL;
+// 				}while(retval != 0);
+// 			}
+// 			else{
+// 				Error("SR_Data_Threads: Wrong SR_mode");
+// 			}
+// 		break;
+// /*  -------------------------------------------------------------- */
+// 		case 4:
+// 			if(SR_mode == 'R'){
+// /*
+//  * R(eceivers)
+//  * when finishing with R, do not signal SR_hub to go to another loop, 
+//  * the Receiver process will now send the data 
+//  */
+// 				do{
+// 					if( (retval = R_KAN(c, sockfd, 4)) == -1) return NULL;
+// 					if( (retvaln = S_KAN(c, sockfd, 4)) == -1) return NULL;
+// 					retval = INTEGMIN(retval, retvaln);
+// 				}while(retval != 0);
+// 			}
+// 			else if(SR_mode == 'S'){
+// /*
+//  * S(ender), after finishing sending, receive the data
+//  * after that signal SR_hhub that SR operation is finished and it can do 
+//  * another loop
+//  */
+// 				do{
+// 					if( (retval = S_KAN(c, sockfd, 4)) == -1) return NULL;
+// 					if( (retval = R_KAN(c, sockfd, 4)) == -1) return NULL;
+// 					retval = INTEGMIN(retval, retvaln);
+// 				}while(retval != 0);
+// 			}
+// 			else{
+// 				Error("SR_Data_Threads: Wrong SR_mode");
+// 			}
+// 		break;
 /*  -------------------------------------------------------------- */
 		case 5:  /* same as mode 1, do not close socket and do not signal SR_hub */
 /*
  * keep socket alive forever
  */
+
+/* 
+ * if connection required to be closed, terminate while loop
+ */
+			if(*c->pstatus_run != 1) goto END1;
+			
 			switch(SR_mode){
 				case 'R':
 /*
  * R(eceivers)
  */
 					while(1){
+						
+/* 
+ * if connection required to be closed, terminate while loop
+ */
+						if(*c->pstatus_run != 1) goto END1;
 						if(R_KAN(c, sockfd, 5) != 1) return NULL;
 					}
 
@@ -281,6 +307,11 @@ void *SR_Data_Threads(void *arg)
  * S(ender)
  */
 					while(1){
+/* 
+ * if connection required to be closed, terminate while loop
+ */
+						if(*c->pstatus_run != 1) goto END1;
+						
 						if( S_KAN(c, sockfd, 5) != 1) return NULL;
 					}
 
@@ -298,6 +329,12 @@ void *SR_Data_Threads(void *arg)
  * back to Sender, Sender will first send the data and then receive from Receiver
  * works only for 1 R process
  */
+
+/* 
+ * if connection required to be closed, terminate while loop
+ */
+			if(*c->pstatus_run != 1) goto END1;
+
 			switch(SR_mode){
 				case 'R':
 /*
@@ -306,6 +343,11 @@ void *SR_Data_Threads(void *arg)
  * the Receiver process will now send the data 
  */
 					while(1){
+/* 
+ * if connection required to be closed, terminate while loop
+ */
+						if(*c->pstatus_run != 1) goto END1;
+						
 						if( R_KAN(c, sockfd, 0) == -1) return NULL;
 /*
  * last Pthread_barrier_wait is done in SR_hub.c
@@ -325,6 +367,11 @@ void *SR_Data_Threads(void *arg)
  * another loop
  */
 					while(1){
+/* 
+ * if connection required to be closed, terminate while loop
+ */
+						if(*c->pstatus_run != 1) goto END1;
+						
 						if( S_KAN(c, sockfd, 0) == -1) return NULL;
 /*
  * last Pthread_barrier_wait is done in SR_hub.c
@@ -348,6 +395,20 @@ void *SR_Data_Threads(void *arg)
 		break;
 		}
 	}
+	
+END1:
+/*
+ * close sockets
+ * to check if the socket is opened, check its value. 
+ * if 0, it was already closed
+ */
+	for(i=0; i<*c->psync_loc->nthreads; i++)
+		if(c->psockfd[i] > 0){
+			if( close(c->psockfd[i]) == -1)
+				Perror("close");
+		}
+		
+END:
 	free(c);
 	return NULL;
 }

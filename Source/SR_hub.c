@@ -268,6 +268,8 @@ void *SR_hub(void *arg)
 
 void terminal_loop_sequence(SR_hub_thread_str_t *c){
 	
+	lmsize_t i;
+	
 	Pthread_mutex_lock(c->plock);
 /*
  * set the number of available threads for SR transfer to S + R(s) number of threads
@@ -296,5 +298,15 @@ void terminal_loop_sequence(SR_hub_thread_str_t *c){
 			Pthread_cond_signal(c->pcond);
 		
 	Pthread_mutex_unlock(c->plock);
+/*
+ * set socket to 0, 
+ * number of connections is specified by using number of 
+ * synced SR_threads from psync_loc->ntreads variable
+ * 
+ * the reason why to set socket number to 0 is to 
+ * avoid possible conflicts when closing them while other Data_Thread may use it.
+ */
+	for(i=0; i<*c->psync_loc->nthreads; i++)
+		c->psockfd[i] = 0;
 }
 
