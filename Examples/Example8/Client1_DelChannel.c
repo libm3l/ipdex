@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
 		m3l_set_Send_receive_tcpipsocket(&Popts_1);
 	
 // 		if( (sockfd = open_connection_to_server(argv[1], portno, PInpPar, Popts_1)) < 1)
-		sockfd = del_connection(argv[1], portno, Popts_1);
+		sockfd = del_connection(argv[1], portno, "HEAT", Popts_1);
 		if( sockfd  == -1)
 			Error("client_sender: Error when opening socket");
 		else if(sockfd == 101)
