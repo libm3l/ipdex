@@ -1,0 +1,18 @@
+ in separate terminals
+
+ 1. start server
+ 	../../Source/Server_Main.out --port 31000 --input_file Definition_File_PDT_Modes  --show
+
+ 2. start all clients, does not depend on order of their execution
+
+ a) 1 pressure sender  2 pressure receivers
+
+./Client1_HEAT_Sender.out localhost 31000
+
+./Client1_HEAT.out localhost 31000
+./Client1_HEAT.out localhost 31000
+
+
+test with valgrind:
+
+valgrind --tool=memcheck  --trace-children=yes --vex-iropt-register-updates=allregs-at-mem-access --leak-check=full --leak-resolution=high --show-reachable=yes  --track-origins=yes ../../Source/Server_Main.out --port 31000 --input_file Definition_File_PDT_Modes  --show 

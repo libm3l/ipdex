@@ -325,7 +325,7 @@ void *Data_Threads(void *arg)
 					}
 				}
 /*
- * synchronized all threads at the end, the last thread will broadcast
+ * synchronized all threads at the end
  */	
 				Pthread_mutex_unlock(c->plock);
 
@@ -341,7 +341,7 @@ void *Data_Threads(void *arg)
  * the pt_sync. For case of adding thread, the Server body has just one pt_sync instead of two.
  * The first missing pt_sync is then provided by newly spawned Data_Thread. 
  * This semaphore makes sure that the pt_sync in this thread is executed before pt_sync
- * in Server_Body so that the Server_Body pt_sync_mod is used in conunction with 
+ * in Server_Body so that the Server_Body pt_sync_mod is used in connenction with 
  * second pt_sync in Data_Threads
  */
 				if(round == 0){
@@ -373,8 +373,7 @@ void *Data_Threads(void *arg)
 						(*c->prcounter)--;
 						*c->pretval = 1;
 /*
- * set status run for SR_Hub and SR_Data_Thread to 0, ie. terminatw
- * while loops
+ * set status run for SR_Hub and SR_Data_Thread to 0, ie. terminate while loops
  */
 						*SR_Threads->status_run = 0;
 /*
@@ -448,7 +447,12 @@ END:
 			Error(" Joining thread failed");
 	}
 	
+	printf(" All threads joined \n");
+	
 	Pthread_mutex_destroy(&SR_Threads->lock);
+	
+	printf(" Pthread_mutex_destroy lock\n");
+	
 	Pthread_cond_destroy(&SR_Threads->dcond);
 	Sem_destroy(&SR_Threads->sem);
 
@@ -469,7 +473,11 @@ END:
 	free(SR_Threads->sync_loc->nsync);
 	free(SR_Threads->sync_loc->nthreads);
 	Pthread_mutex_destroy(&SR_Threads->sync_loc->mutex);
+	printf(" Pthread_mutex_destroy sync_lock->mutex\n");
+
 	Pthread_mutex_destroy(&SR_Threads->sync_loc->block);
+	printf(" Pthread_mutex_destroy sync_lock->block\n");
+
 	Pthread_cond_destroy(&SR_Threads->sync_loc->condvar);
 	Pthread_cond_destroy(&SR_Threads->sync_loc->last);
 	free(SR_Threads->sync_loc);

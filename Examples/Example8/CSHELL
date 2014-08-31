@@ -6,7 +6,7 @@ while ($i <= 10)
 
 	echo $i
 	./Client1_AddHeatChannel.out localhost 31000 HEAT
-	./Client1_DelChannel.out localhost 31000
+	./Client1_DelChannel.out localhost 31000 HEAT
 	
 	@ i = $i + 1
 end
