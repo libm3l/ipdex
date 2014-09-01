@@ -223,8 +223,7 @@ void *Data_Threads(void *arg)
  * if the threads are opened at the startup of the 
  * server, ie. from the definition file, 
  * set round = 1 so that they do not post the semafore in *c->pcheckdata == 100
- * The semaphore is used only by threads 
- * which are dynamically added
+ * The semaphore is used only by threads which are dynamically added
  */
 	if(*c->pcheckdata < 0)round = 1;
 
@@ -336,7 +335,7 @@ void *Data_Threads(void *arg)
  * request was _sys_link_ request
  */
 /*
- * if the first round, ie. Data_Thread was added now,
+ * if the first round, ie. Data_Thread was added now (for this thread round == 0),
  * post semaphore. The semaphore signalizes Server_Body that it can enter
  * the pt_sync. For case of adding thread, the Server body has just one pt_sync instead of two.
  * The first missing pt_sync is then provided by newly spawned Data_Thread. 
@@ -438,6 +437,13 @@ END:
  * SR_Data_Threads are finished
  */
 	Sem_post(&loc_sem);
+
+	printf(" -----------  Posting ---    %ld  %s\n", pthread_self(), local_set_name);
+
+	Sem_wait(&loc_sem);
+
+	printf(" -----------  Waiting ---    %ld  %s\n", pthread_self(), local_set_name);
+
 /*
  * join SR_Threads and release memory
  */

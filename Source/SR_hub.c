@@ -259,6 +259,8 @@ void *SR_hub(void *arg)
 			}
 		break;
 	}
+	
+	Sem_post(c->psem);
 /*
  * free borrowed memory malloced before starting thread in Data_Thread()->Start_SR_HubThread(); this is done in Data_Thread
  * after joining the thread
