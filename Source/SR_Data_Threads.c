@@ -127,6 +127,8 @@ void *SR_Data_Threads(void *arg)
 
 			Pthread_mutex_unlock(c->plock);
 		}
+		else
+			break;
 /*
  * decide which mode is used; depends on KeepAlive and ATDT option
  * the value of mode set in SR_hub.c

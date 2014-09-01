@@ -111,8 +111,15 @@ void Pthread_mutex_init(pthread_mutex_t *lock){
 }
 
 void Pthread_mutex_destroy(pthread_mutex_t *lock){
-	if (pthread_mutex_destroy(lock) != 0)
+// 	int retval;
+// AGAIN:
+// 	if (  (retval = pthread_mutex_destroy(lock)) != 0){
+// 		if(retval == 16) goto AGAIN;
+// 		Perror("pthread_mutex_destroy()");
+// 	}
+ 	if ( pthread_mutex_destroy(lock) != 0){
 		Perror("pthread_mutex_destroy()");
+	}
 }
 
 void Pthread_mutex_lock(pthread_mutex_t *lock){
@@ -192,7 +199,7 @@ node_t *sender_identification(lmchar_t *Sender_data_set, lmchar_t RWmode)
  * this is a synchronizer programmed according to " POSIX Threads Tutorial  by Mark Hays, www. http://math.arizona.edu/~swig/documentation/pthreads/
  */
 
-void pt_sync(pt_sync_t *sync)
+lmint_t pt_sync(pt_sync_t *sync)
 {
 /*
  * function implemented according to : "POSIX Threads Tutorial by Mark Hays: http://math.arizona.edu/~swig/documentation/pthreads/"
@@ -318,13 +325,14 @@ void pt_sync(pt_sync_t *sync)
 * 
 * 
 */
-
+	lmint_t retval;
+	retval = 1;
 /*   
  *	*sync->pnthreads contains the values of number of threads which will be synchronized
  *	this value must be specified before this function is invoked
  */
 	if (*sync->pnthreads<2) {
-		return;};           /* trivial case            */
+		return 0;};           /* trivial case            */
 /*
  * lock the block and mutex
  */
@@ -344,7 +352,7 @@ void pt_sync(pt_sync_t *sync)
  * wait for condvar
  */
 		Pthread_cond_wait(sync->pcondvar, sync->pmutex);
-
+		retval = 0;
 	} 
 /*
  * last process
@@ -359,6 +367,7 @@ void pt_sync(pt_sync_t *sync)
  */
 		Pthread_cond_wait(sync->plast,sync->pmutex);
 		Pthread_mutex_unlock(sync->pblock);
+		retval = 0;
 	}
 /*
  * if next to last one out, wake up the last one
@@ -371,12 +380,13 @@ void pt_sync(pt_sync_t *sync)
  * release mutex
  */
 	Pthread_mutex_unlock(sync->pmutex);
+	return retval;
 }
 
 
 
 
-void pt_sync_mod(pt_sync_t *sync, lmsize_t addjob, lmsize_t incrm)
+lmint_t pt_sync_mod(pt_sync_t *sync, lmsize_t addjob, lmsize_t incrm)
 {
 /*   
  *	*sync->pnthreads contains the values of number of threads which will be synchronized
@@ -386,14 +396,15 @@ void pt_sync_mod(pt_sync_t *sync, lmsize_t addjob, lmsize_t incrm)
  * 	modification of *sync->pnthreads by incrm which is done when
  * 	the last therad leavs the synchronizer
  */
-	lmsize_t n_actual_sync_jobs;
+	lmsize_t n_actual_sync_jobs, retval;
+	retval = 1;
 /*
  * if number of synced jobs is larger then pnthreads by incrm add it
  */
 	n_actual_sync_jobs = *sync->pnthreads + incrm;
 	
 	if (n_actual_sync_jobs<2)
-		return;           /* trivial case    */
+		return 0;           /* trivial case    */
 /*
  * lock the block and mutex
  */
@@ -436,6 +447,7 @@ void pt_sync_mod(pt_sync_t *sync, lmsize_t addjob, lmsize_t incrm)
 		Pthread_cond_wait(sync->plast,sync->pmutex);
 	
 		Pthread_mutex_unlock(sync->pblock);
+		retval = 0;
 	}
 /*
  * if next to last one out, wake up the last one
@@ -448,6 +460,8 @@ void pt_sync_mod(pt_sync_t *sync, lmsize_t addjob, lmsize_t incrm)
  * release mutex
  */
 	Pthread_mutex_unlock(sync->pmutex);
+	
+	return retval;
 }
 
 

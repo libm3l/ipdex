@@ -94,8 +94,11 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 	if(  (Data_Threads = Allocate_Data_Thread_DataSet()) == NULL)
 		Perror("Server_Body: Allocate_Data_Thread_DataSet error");
 /*
- * spawn all threads
+ * spawn all threads, before that set *Data_Threads->checkdata to -1
+ * this value indicates in Data_Thread that the thread is started
+ * upon initialization
  */
+        *Data_Threads->checkdata = -1;
 	if(  Start_Data_Thread(DataBuffer, Data_Threads) == -1)
 		Perror("Server_Body: Data_Threads error");
 /*
@@ -397,7 +400,8 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
  * The first missing pt_sync is then provided by newly spawned Data_Thread. 
  * This semaphore makes sure that the pt_sync in the newly spawned Data_Thread is executed before pt_sync
  * in Server_Body so that the Server_Body pt_sync_mod is used in conunction with 
- * second pt_sync in Data_Threads
+ * second pt_sync in Data_Threads. The reason why to have this semaphore instead of pt_sync is that 
+ * this thread sets some values used in pt_sync which caused problems
  */				
 					Sem_wait(&Data_Threads->sem);
 /*

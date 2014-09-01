@@ -64,8 +64,8 @@ extern void Sem_destroy(sem_t *);
 extern lmint_t Sem_getvalue(sem_t *);
 
 extern node_t *sender_identification(lmchar_t *, lmchar_t );
-extern void pt_sync(pt_sync_t *sync);
-extern void pt_sync_mod(pt_sync_t *, lmsize_t, lmsize_t);
+extern lmint_t pt_sync(pt_sync_t *sync);
+extern lmint_t pt_sync_mod(pt_sync_t *, lmsize_t, lmsize_t);
 // extern void pt_sync_mod_sem(pt_sync_t *, lmsize_t, lmsize_t, sem_t *);
 
 extern lmint_t get_exchange_channel_mode(lmchar_t , lmchar_t);
