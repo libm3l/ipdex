@@ -143,7 +143,7 @@ void *SR_Data_Threads(void *arg)
 /* 
  * if connection required to be closed, terminate while loop
  */
-			if(*c->pstatus_run != 1) goto END;
+// 			if(*c->pstatus_run != 1) goto END;
 		
 			switch(SR_mode){
 				case 'R':
