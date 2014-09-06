@@ -311,7 +311,7 @@ void terminal_loop_sequence(SR_hub_thread_str_t *c){
  * when the socket was already closed by corresponding SR_Data_Thread and 
  * Data_Thread reopened it for another different request.
  */
-	for(i=0; i<*c->psync_loc->nthreads; i++)
-		c->psockfd[i] = 0;
+// 	for(i=0; i<*c->psync_loc->nthreads; i++)
+// 		c->psockfd[i] = 0;
 }
 
