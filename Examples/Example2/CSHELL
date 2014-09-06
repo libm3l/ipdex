@@ -9,6 +9,6 @@ konsole -e ./Client1_Pressure.out localhost 31000
 
 	
 
-konsole -e /home/jka/Cprograms/2D_Double_Allocation/Source/lsipdex/Examples/Example1/Client1_Temperature_Sender.out localhost 31000
-konsole -e /home/jka/Cprograms/2D_Double_Allocation/Source/lsipdex/Examples/Example1/Client1_Temperature.out localhost 31000
-konsole -e /home/jka/Cprograms/2D_Double_Allocation/Source/lsipdex/Examples/Example1/Client1_Temperature.out localhost 31000
+konsole -e /home/jka/Cprograms/Sources/lsipdx/Examples/Example1/Client1_Temperature_Sender.out localhost 31000
+konsole -e /home/jka/Cprograms/Sources/lsipdx/Examples/Example1/Client1_Temperature.out localhost 31000
+konsole -e /home/jka/Cprograms/Sources/lsipdx/Examples/Example1/Client1_Temperature.out localhost 31000
