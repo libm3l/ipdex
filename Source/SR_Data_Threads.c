@@ -127,6 +127,8 @@ void *SR_Data_Threads(void *arg)
 
 			Pthread_mutex_unlock(c->plock);
 		}
+		else
+			break;
 /*
  * decide which mode is used; depends on KeepAlive and ATDT option
  * the value of mode set in SR_hub.c
@@ -398,7 +400,10 @@ void *SR_Data_Threads(void *arg)
 	
 END1:
 /*
- * close sockets
+ * close sockets, used by case 5,6 which do not close socket
+ * themselves. Case 1,2 close their own socket, that's why they go directly
+ * to END 
+ * 
  * to check if the socket is opened, check its value. 
  * if 0, it was already closed
  */
@@ -409,6 +414,10 @@ END1:
 		}
 		
 END:
+/*
+ * case 1.2  ends here, case 1,2 close their opened sockets
+ * themeselves
+ */
 	free(c);
 	return NULL;
 }
