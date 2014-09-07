@@ -118,7 +118,7 @@ void *SR_Data_Threads(void *arg)
  * get SR_mode and socket number of each connected processes
  * protext by mutex
  */
-		if(*c->pstatus_run == 1){
+// 		if(*c->pstatus_run == 1){
 			Pthread_mutex_lock(c->plock);
 
 				SR_mode =  c->pSR_mode[*c->pthr_cntr];
@@ -126,9 +126,9 @@ void *SR_Data_Threads(void *arg)
 				(*c->pthr_cntr)++; 
 
 			Pthread_mutex_unlock(c->plock);
-		}
-		else
-			break;
+// 		}
+// 		else
+// 			break;
 /*
  * decide which mode is used; depends on KeepAlive and ATDT option
  * the value of mode set in SR_hub.c
@@ -143,7 +143,7 @@ void *SR_Data_Threads(void *arg)
 /* 
  * if connection required to be closed, terminate while loop
  */
-			if(*c->pstatus_run != 1) goto END;
+// 			if(*c->pstatus_run != 1) goto END;
 		
 			switch(SR_mode){
 				case 'R':
@@ -177,7 +177,7 @@ void *SR_Data_Threads(void *arg)
 /* 
  * if connection required to be closed, terminate while loop
  */
-			if(*c->pstatus_run != 1) goto END;
+// 			if(*c->pstatus_run != 1) goto END;
 			
 			switch(SR_mode){
 				case 'R':
@@ -286,7 +286,7 @@ void *SR_Data_Threads(void *arg)
 /* 
  * if connection required to be closed, terminate while loop
  */
-			if(*c->pstatus_run != 1) goto END1;
+// 			if(*c->pstatus_run != 1) goto END1;
 			
 			switch(SR_mode){
 				case 'R':
@@ -298,7 +298,7 @@ void *SR_Data_Threads(void *arg)
 /* 
  * if connection required to be closed, terminate while loop
  */
-						if(*c->pstatus_run != 1) goto END1;
+// 						if(*c->pstatus_run != 1) goto END1;
 						if(R_KAN(c, sockfd, 5) != 1) return NULL;
 					}
 
@@ -312,7 +312,7 @@ void *SR_Data_Threads(void *arg)
 /* 
  * if connection required to be closed, terminate while loop
  */
-						if(*c->pstatus_run != 1) goto END1;
+// 						if(*c->pstatus_run != 1) goto END1;
 						
 						if( S_KAN(c, sockfd, 5) != 1) return NULL;
 					}
@@ -335,7 +335,7 @@ void *SR_Data_Threads(void *arg)
 /* 
  * if connection required to be closed, terminate while loop
  */
-			if(*c->pstatus_run != 1) goto END1;
+// 			if(*c->pstatus_run != 1) goto END1;
 
 			switch(SR_mode){
 				case 'R':
@@ -348,7 +348,7 @@ void *SR_Data_Threads(void *arg)
 /* 
  * if connection required to be closed, terminate while loop
  */
-						if(*c->pstatus_run != 1) goto END1;
+// 						if(*c->pstatus_run != 1) goto END1;
 						
 						if( R_KAN(c, sockfd, 0) == -1) return NULL;
 /*
@@ -372,7 +372,7 @@ void *SR_Data_Threads(void *arg)
 /* 
  * if connection required to be closed, terminate while loop
  */
-						if(*c->pstatus_run != 1) goto END1;
+// 						if(*c->pstatus_run != 1) goto END1;
 						
 						if( S_KAN(c, sockfd, 0) == -1) return NULL;
 /*
