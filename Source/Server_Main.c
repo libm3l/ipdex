@@ -48,11 +48,10 @@
 
 
 #include "libm3l.h"
-// #include "lsipdx_header.h"
 #include "Server_Body.h"
 
 
-lmint_t main (int argc, char **argv){
+lmint_t main (lmint_t argc, lmchar_t **argv){
 /*
  * function is a main server function
  * it reads data in libm3l format defining
@@ -62,14 +61,10 @@ lmint_t main (int argc, char **argv){
 	lmint_t c, portnum, status, j;
 	lmint_t digit_optind = 0;
 	lmchar_t *Filename=NULL;
-	
-	node_t *Gnode = NULL;
-// 	lmchar_t opt_s='\0'; opt_f = '\0', 
-	
+	node_t *Gnode = NULL;	
 	opts_t opts, *Popts;
 	
 	Popts = &opts;
-	
 	opts.opt_s='\0'; opts.opt_f = '\0',
 /*
  * set initial value of port numbe to -1 

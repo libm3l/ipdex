@@ -98,9 +98,11 @@ SR_thread_str_t *Start_SR_Threads(lmint_t n_threads){
 		Perror("Start_SR_Threads: SR_Data_Thread->mode malloc");
 	if( (SR_Data_Thread->status_run = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
 		Perror("Start_SR_Threads: SR_Data_Thread->status_run malloc");
-	
-// 	for(i=0; i<n_threads;i++)
-// 		SR_Data_Thread->sockfd[i] = 0;
+/*
+ * set initial value of socket descriptor to 0
+ */
+	for(i=0; i<n_threads;i++)
+		SR_Data_Thread->sockfd[i] = 0;
 /*
  * initialize mutex and condition variable
  */
@@ -139,7 +141,7 @@ SR_thread_str_t *Start_SR_Threads(lmint_t n_threads){
 		if( (SR_DataArgs = (SR_thread_args_t *)malloc(sizeof(SR_thread_args_t))) == NULL)
 			Perror("Start_SR_Threads: SR_DataArgs malloc");	
 
-		SR_DataArgs->plock 		= &SR_Data_Thread->lock;	
+		SR_DataArgs->plock 		= &SR_Data_Thread->lock;
 		SR_DataArgs->psem 		= &SR_Data_Thread->sem;
 		SR_DataArgs->psem_g 		= &SR_Data_Thread->sem_g;
 		SR_DataArgs->pdcond 		= &SR_Data_Thread->dcond;

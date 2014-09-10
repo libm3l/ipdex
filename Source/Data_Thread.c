@@ -440,7 +440,7 @@ END:
 
 	printf(" -----------  Posting ---    %ld  %s\n", pthread_self(), local_set_name);
 
-// 	Sem_wait(&loc_sem);
+	Sem_wait(&loc_sem);
 
 	printf(" -----------  Waiting ---    %ld  %s\n", pthread_self(), local_set_name);
 
