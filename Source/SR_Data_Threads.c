@@ -485,18 +485,20 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
  * transfer of entire message is done (ie. Sender sends EOMB sequence
  * set R_done = 1
  */
-	R_done = 0;
+	R_done = 1;
 /*
  * thread reads the data from buffer and send over TCP/IP to client
  */
-	do{
+// 	do{
+	while(R_done == 1){
 /*
  * last thread will set last = 1 
  */
 		last = 0;
 /*
- * gate syncing all threads, syncing for Sender is done after reading from socket
- * after sycning, check that the Sender received EOFbuff, if yes, set R_done = 1
+ * gate syncing all threads, syncing for Sender is done after reading from socket;
+ * after sycning, check that the Sender received EOFbuff (ie the last sequence of the 
+ * entirte transmitted message), if yes, set R_done = 1
  */
 		pt_sync(c->psync_loc);
 				
@@ -557,7 +559,8 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 
 		Pthread_mutex_unlock(c->plock);
 
-	}while(R_done == 1);
+// 	}while(R_done == 1);
+	}
 /*
  * EOFbuff received, transmition is finished
  * 
@@ -653,7 +656,8 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
  * write them to buffer
  */	
 	eofbuffcond = 0;
-	do{
+// 	do{
+	while(eofbuffcond != 1){
 /*
  * set counter of Receiving threads to number of R_threads (used in synchronizaiton of R_Threads)
  */
@@ -671,6 +675,8 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 /*
  * The buffer has been red from socket, send broadcast signal to all R_threads to go on
  * then unlock mutex and wait for semaphore
+ * if end of entire transfer, set pEofBuff = 0, ie. sigal R_Threads that this is the 
+ * very last write to socket
  */
 		if(eofbuffcond == 1)
 			*c->pEofBuff = 0;
@@ -686,7 +692,8 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 /*
  * if end of buffer reached, leave do cycle
  */
-	}while(eofbuffcond != 1);
+// 	}while(eofbuffcond != 1);
+	}
 /*
  * sender sent payload, before closign socket send back acknowledgement --SEOB, Sender receives --REOB
  * do it only if ATDT mode == D
