@@ -58,8 +58,8 @@
 static inline lmssize_t Read(lmint_t, lmchar_t *, lmint_t, lmchar_t);
 static inline lmssize_t Write(lmint_t, lmchar_t *, lmsize_t);
 
-static lmint_t R_KAN(SR_thread_args_t *, lmint_t, lmint_t);
-static lmint_t S_KAN(SR_thread_args_t *, lmint_t, lmint_t);
+static lmint_t R_KAN(SR_thread_args_t *, lmint_t, lmint_t, lmint_t);
+static lmint_t S_KAN(SR_thread_args_t *, lmint_t, lmint_t, lmint_t);
 
 static lmint_t R_EOFC(lmint_t);
 static lmssize_t S_EOFC(lmint_t, lmint_t);
@@ -110,25 +110,17 @@ void *SR_Data_Threads(void *arg)
  * synced too
  */
 		pt_sync_mod(c->psync_loc, 0, 1);
-// /* 
-//  * if connection required to be closed, terminate while loop
-//  */
-// 		if(*c->pstatus_run != 1) break;
 /*
  * get SR_mode and socket number of each connected processes
  * protext by mutex
  */
-// 		if(*c->pstatus_run == 1){
-			Pthread_mutex_lock(c->plock);
+		Pthread_mutex_lock(c->plock);
 
-				SR_mode =  c->pSR_mode[*c->pthr_cntr];
-				sockfd  =  c->psockfd[*c->pthr_cntr];
-				(*c->pthr_cntr)++; 
+			SR_mode =  c->pSR_mode[*c->pthr_cntr];
+			sockfd  =  c->psockfd[*c->pthr_cntr];
+			(*c->pthr_cntr)++; 
 
-			Pthread_mutex_unlock(c->plock);
-// 		}
-// 		else
-// 			break;
+		Pthread_mutex_unlock(c->plock);
 /*
  * decide which mode is used; depends on KeepAlive and ATDT option
  * the value of mode set in SR_hub.c
@@ -139,25 +131,27 @@ void *SR_Data_Threads(void *arg)
 /*
  * do not keep socket allive, ie. open and close secket every time the data transfer occurs
  */
-
-/* 
- * if connection required to be closed, terminate while loop
- */
-// 			if(*c->pstatus_run != 1) goto END;
-		
 			switch(SR_mode){
 				case 'R':
 /*
  * R(eceivers)
  */
-					if( R_KAN(c, sockfd, 1) == -1) return NULL;
+					if( R_KAN(c, sockfd, 1, *c->pstatus_run) == -1) return NULL;
+/* 
+ * if connection required to be closed, terminate while loop
+ */
+					if(*c->pstatus_run != 1) goto END;
 				break;
 
 				case 'S':
 /*
  * S(ender)
  */
-					if( S_KAN(c, sockfd, 1) == -1) return NULL;
+					if( S_KAN(c, sockfd, 1, *c->pstatus_run) == -1) return NULL;
+/* 
+ * if connection required to be closed, terminate while loop
+ */
+					if(*c->pstatus_run != 1) goto END;
 				break;
 
 				default:
@@ -173,11 +167,6 @@ void *SR_Data_Threads(void *arg)
  * works only for 1 R process
  * valid only of one Receiver, do not need to sync or barrier betwen swithich flod direciton
  */
-
-/* 
- * if connection required to be closed, terminate while loop
- */
-// 			if(*c->pstatus_run != 1) goto END;
 			
 			switch(SR_mode){
 				case 'R':
@@ -186,7 +175,7 @@ void *SR_Data_Threads(void *arg)
  * when finishing with R, do not signal SR_hub to go to another loop, 
  * the Receiver process will now send the data 
  */
-					if( R_KAN(c, sockfd, 0) == -1) return NULL;
+					if( R_KAN(c, sockfd, 0, *c->pstatus_run) == -1) return NULL;
 /*
  * last Pthread_barrier_wait is done in SR_hub.c
  *
@@ -194,7 +183,11 @@ void *SR_Data_Threads(void *arg)
  * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
  * synced too
  */
-					if( S_KAN(c, sockfd, 2) == -1) return NULL;
+					if( S_KAN(c, sockfd, 2, *c->pstatus_run) == -1) return NULL;
+/* 
+ * if connection required to be closed, terminate while loop
+ */
+					if(*c->pstatus_run != 1) goto END;
 				break;
 
 				case 'S':
@@ -203,7 +196,7 @@ void *SR_Data_Threads(void *arg)
  * after that signal SR_hub that SR operation is finished and it can do 
  * another loop
  */
-					if( S_KAN(c, sockfd, 0) == -1) return NULL;
+					if( S_KAN(c, sockfd, 0, *c->pstatus_run) == -1) return NULL;
 /*
  * last Pthread_barrier_wait is done in SR_hub.c
  *
@@ -211,7 +204,11 @@ void *SR_Data_Threads(void *arg)
  * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
  * synced too
  */
-					if( R_KAN(c, sockfd, 2) == -1) return NULL;
+					if( R_KAN(c, sockfd, 2, *c->pstatus_run) == -1) return NULL;
+/* 
+ * if connection required to be closed, terminate while loop
+ */
+					if(*c->pstatus_run != 1) goto END;
 				break;
 
 				default:
@@ -282,24 +279,18 @@ void *SR_Data_Threads(void *arg)
 /*
  * keep socket alive forever
  */
-
-/* 
- * if connection required to be closed, terminate while loop
- */
-// 			if(*c->pstatus_run != 1) goto END1;
-			
 			switch(SR_mode){
 				case 'R':
 /*
  * R(eceivers)
  */
 					while(1){
-						
+
+						if(R_KAN(c, sockfd, 5, *c->pstatus_run) != 1) return NULL;
 /* 
  * if connection required to be closed, terminate while loop
  */
-// 						if(*c->pstatus_run != 1) goto END1;
-						if(R_KAN(c, sockfd, 5) != 1) return NULL;
+						if(*c->pstatus_run != 1) goto END1;
 					}
 
 				break;
@@ -309,13 +300,12 @@ void *SR_Data_Threads(void *arg)
  * S(ender)
  */
 					while(1){
+
+						if( S_KAN(c, sockfd, 5, *c->pstatus_run) != 1) return NULL;
 /* 
  * if connection required to be closed, terminate while loop
  */
-// 						if(*c->pstatus_run != 1) goto END1;
-						
-						if( S_KAN(c, sockfd, 5) != 1) return NULL;
-					}
+						if(*c->pstatus_run != 1) goto END1;					}
 
 				break;
 
@@ -331,12 +321,6 @@ void *SR_Data_Threads(void *arg)
  * back to Sender, Sender will first send the data and then receive from Receiver
  * works only for 1 R process
  */
-
-/* 
- * if connection required to be closed, terminate while loop
- */
-// 			if(*c->pstatus_run != 1) goto END1;
-
 			switch(SR_mode){
 				case 'R':
 /*
@@ -345,12 +329,8 @@ void *SR_Data_Threads(void *arg)
  * the Receiver process will now send the data 
  */
 					while(1){
-/* 
- * if connection required to be closed, terminate while loop
- */
-// 						if(*c->pstatus_run != 1) goto END1;
-						
-						if( R_KAN(c, sockfd, 0) == -1) return NULL;
+
+						if( R_KAN(c, sockfd, 0, *c->pstatus_run) == -1) return NULL;
 /*
  * last Pthread_barrier_wait is done in SR_hub.c
  *
@@ -358,7 +338,11 @@ void *SR_Data_Threads(void *arg)
  * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
  * synced too
  */
-						if( S_KAN(c, sockfd, 0) == -1) return NULL;
+						if( S_KAN(c, sockfd, 0, *c->pstatus_run) == -1) return NULL;
+/* 
+ * if connection required to be closed, terminate while loop
+ */
+						if(*c->pstatus_run != 1) goto END1;
 					}
 				break;
 
@@ -369,12 +353,8 @@ void *SR_Data_Threads(void *arg)
  * another loop
  */
 					while(1){
-/* 
- * if connection required to be closed, terminate while loop
- */
-// 						if(*c->pstatus_run != 1) goto END1;
-						
-						if( S_KAN(c, sockfd, 0) == -1) return NULL;
+
+						if( S_KAN(c, sockfd, 0, *c->pstatus_run) == -1) return NULL;
 /*
  * last Pthread_barrier_wait is done in SR_hub.c
  *
@@ -382,7 +362,11 @@ void *SR_Data_Threads(void *arg)
  * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
  * synced too
  */
-						if( R_KAN(c, sockfd, 0) == -1) return NULL;
+						if( R_KAN(c, sockfd, 0, *c->pstatus_run) == -1) return NULL;
+/* 
+ * if connection required to be closed, terminate while loop
+ */
+						if(*c->pstatus_run != 1) goto END1;
 					}
 				break;
 
@@ -472,7 +456,7 @@ lmssize_t Read(lmint_t descrpt , lmchar_t *buff, lmint_t n, lmchar_t SR)
 /*
  * Recevier function, ATDT A,D  KeepAllive N
  */
-lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
+lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode, lmint_t EndTrans){
 
 	lmint_t  R_done, last, retval;
 	opts_t *Popts, opts;
@@ -484,19 +468,33 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
  * Receiver threads, set R_done = 0, once the 
  * transfer of entire message is done (ie. Sender sends EOMB sequence
  * set R_done = 1
+ * 
+ * EndTrans is a variable which is used to indicate if the thread is 
+ * working or if it is determined to be terminated
+ * if EndTrans == 1 the thread is usual, working thread
+ * if EndTrans != 1 the thread will be terminated. In this case do not read or write 
+ * from/to socket and jump over the loop
+ * This is done because we need to sync all terminating threads and terminate them 
+ * and then signaling SR_hub which terminates all SR_Data_Threads
  */
-	R_done = 0;
+	if(EndTrans == 1){
+		R_done = 1;
+	}
+	else{
+		R_done = 0;
+	}
 /*
  * thread reads the data from buffer and send over TCP/IP to client
  */
-	do{
+	while(R_done == 1){
 /*
  * last thread will set last = 1 
  */
 		last = 0;
 /*
- * gate syncing all threads, syncing for Sender is done after reading from socket
- * after sycning, check that the Sender received EOFbuff, if yes, set R_done = 1
+ * gate syncing all threads, syncing for Sender is done after reading from socket;
+ * after sycning, check that the Sender received EOFbuff (ie the last sequence of the 
+ * entirte transmitted message), if yes, set R_done = 1
  */
 		pt_sync(c->psync_loc);
 				
@@ -556,8 +554,7 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 		}
 
 		Pthread_mutex_unlock(c->plock);
-
-	}while(R_done == 1);
+	}
 /*
  * EOFbuff received, transmition is finished
  * 
@@ -638,7 +635,7 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 /*
  * Sender function, ATDT A,D  KeepAllive N
  */
-lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
+lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode, lmint_t EndTrans){
 
 	lmchar_t prevbuff[EOBlen+1];
 	lmint_t eofbuffcond, retval;
@@ -651,9 +648,22 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 /*
  * thread reads data from TCP/IP socket sent by client and 
  * write them to buffer
- */	
-	eofbuffcond = 0;
-	do{
+ * 
+ * EndTrans is a variable which is used to indicate if the thread is 
+ * working or if it is determined to be terminated
+ * if EndTrans == 1 the thread is usual, working thread
+ * if EndTrans != 1 the thread will be terminated. In this case do not read or write 
+ * from/to socket and jump over the loop
+ * This is done because we need to sync all terminating threads and terminate them 
+ * and then signaling SR_hub which terminates all SR_Data_Threads
+ */
+	if(EndTrans == 1){
+		eofbuffcond = 0;
+	}
+	else{
+		eofbuffcond = 1;
+	}
+	while(eofbuffcond != 1){
 /*
  * set counter of Receiving threads to number of R_threads (used in synchronizaiton of R_Threads)
  */
@@ -671,6 +681,8 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 /*
  * The buffer has been red from socket, send broadcast signal to all R_threads to go on
  * then unlock mutex and wait for semaphore
+ * if end of entire transfer, set pEofBuff = 0, ie. sigal R_Threads that this is the 
+ * very last write to socket
  */
 		if(eofbuffcond == 1)
 			*c->pEofBuff = 0;
@@ -686,7 +698,7 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 /*
  * if end of buffer reached, leave do cycle
  */
-	}while(eofbuffcond != 1);
+	}
 /*
  * sender sent payload, before closign socket send back acknowledgement --SEOB, Sender receives --REOB
  * do it only if ATDT mode == D

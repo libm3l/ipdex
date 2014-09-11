@@ -265,6 +265,8 @@ void *SR_hub(void *arg)
  * free borrowed memory malloced before starting thread in Data_Thread()->Start_SR_HubThread(); this is done in Data_Thread
  * after joining the thread
  */
+
+        printf(" SR_Hub terminating \n");
 	return NULL;
 }
 
@@ -300,18 +302,5 @@ void terminal_loop_sequence(SR_hub_thread_str_t *c){
 			Pthread_cond_signal(c->pcond);
 		
 	Pthread_mutex_unlock(c->plock);
-/*
- * set socket to 0, the sockets are already closed so the 
- * number is absolete.
- * number of connections is specified by using number of 
- * synced SR_threads from psync_loc->ntreads variable
- * 
- * the reason why to set socket number to 0 is to 
- * avoid possible conflicts when closing them while other Data_Thread may use it, ie.
- * when the socket was already closed by corresponding SR_Data_Thread and 
- * Data_Thread reopened it for another different request.
- */
-// 	for(i=0; i<*c->psync_loc->nthreads; i++)
-// 		c->psockfd[i] = 0;
 }
 
