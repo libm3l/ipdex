@@ -110,25 +110,17 @@ void *SR_Data_Threads(void *arg)
  * synced too
  */
 		pt_sync_mod(c->psync_loc, 0, 1);
-// /* 
-//  * if connection required to be closed, terminate while loop
-//  */
-// 		if(*c->pstatus_run != 1) break;
 /*
  * get SR_mode and socket number of each connected processes
  * protext by mutex
  */
-// 		if(*c->pstatus_run == 1){
-			Pthread_mutex_lock(c->plock);
+		Pthread_mutex_lock(c->plock);
 
-				SR_mode =  c->pSR_mode[*c->pthr_cntr];
-				sockfd  =  c->psockfd[*c->pthr_cntr];
-				(*c->pthr_cntr)++; 
+			SR_mode =  c->pSR_mode[*c->pthr_cntr];
+			sockfd  =  c->psockfd[*c->pthr_cntr];
+			(*c->pthr_cntr)++; 
 
-			Pthread_mutex_unlock(c->plock);
-// 		}
-// 		else
-// 			break;
+		Pthread_mutex_unlock(c->plock);
 /*
  * decide which mode is used; depends on KeepAlive and ATDT option
  * the value of mode set in SR_hub.c
@@ -139,18 +131,16 @@ void *SR_Data_Threads(void *arg)
 /*
  * do not keep socket allive, ie. open and close secket every time the data transfer occurs
  */
-
-/* 
- * if connection required to be closed, terminate while loop
- */
-// 			if(*c->pstatus_run != 1) goto END;
-		
 			switch(SR_mode){
 				case 'R':
 /*
  * R(eceivers)
  */
 					if( R_KAN(c, sockfd, 1, *c->pstatus_run) == -1) return NULL;
+/* 
+ * if connection required to be closed, terminate while loop
+ */
+					if(*c->pstatus_run != 1) goto END;
 				break;
 
 				case 'S':
@@ -158,6 +148,10 @@ void *SR_Data_Threads(void *arg)
  * S(ender)
  */
 					if( S_KAN(c, sockfd, 1, *c->pstatus_run) == -1) return NULL;
+/* 
+ * if connection required to be closed, terminate while loop
+ */
+					if(*c->pstatus_run != 1) goto END;
 				break;
 
 				default:
@@ -173,11 +167,6 @@ void *SR_Data_Threads(void *arg)
  * works only for 1 R process
  * valid only of one Receiver, do not need to sync or barrier betwen swithich flod direciton
  */
-
-/* 
- * if connection required to be closed, terminate while loop
- */
-// 			if(*c->pstatus_run != 1) goto END;
 			
 			switch(SR_mode){
 				case 'R':
@@ -195,6 +184,10 @@ void *SR_Data_Threads(void *arg)
  * synced too
  */
 					if( S_KAN(c, sockfd, 2, *c->pstatus_run) == -1) return NULL;
+/* 
+ * if connection required to be closed, terminate while loop
+ */
+					if(*c->pstatus_run != 1) goto END;
 				break;
 
 				case 'S':
@@ -212,6 +205,10 @@ void *SR_Data_Threads(void *arg)
  * synced too
  */
 					if( R_KAN(c, sockfd, 2, *c->pstatus_run) == -1) return NULL;
+/* 
+ * if connection required to be closed, terminate while loop
+ */
+					if(*c->pstatus_run != 1) goto END;
 				break;
 
 				default:
@@ -282,24 +279,18 @@ void *SR_Data_Threads(void *arg)
 /*
  * keep socket alive forever
  */
-
-/* 
- * if connection required to be closed, terminate while loop
- */
-// 			if(*c->pstatus_run != 1) goto END1;
-			
 			switch(SR_mode){
 				case 'R':
 /*
  * R(eceivers)
  */
 					while(1){
-						
+
+						if(R_KAN(c, sockfd, 5, *c->pstatus_run) != 1) return NULL;
 /* 
  * if connection required to be closed, terminate while loop
  */
-// 						if(*c->pstatus_run != 1) goto END1;
-						if(R_KAN(c, sockfd, 5, *c->pstatus_run) != 1) return NULL;
+						if(*c->pstatus_run != 1) goto END1;
 					}
 
 				break;
@@ -309,13 +300,12 @@ void *SR_Data_Threads(void *arg)
  * S(ender)
  */
 					while(1){
+
+						if( S_KAN(c, sockfd, 5, *c->pstatus_run) != 1) return NULL;
 /* 
  * if connection required to be closed, terminate while loop
  */
-// 						if(*c->pstatus_run != 1) goto END1;
-						
-						if( S_KAN(c, sockfd, 5, *c->pstatus_run) != 1) return NULL;
-					}
+						if(*c->pstatus_run != 1) goto END1;					}
 
 				break;
 
@@ -331,12 +321,6 @@ void *SR_Data_Threads(void *arg)
  * back to Sender, Sender will first send the data and then receive from Receiver
  * works only for 1 R process
  */
-
-/* 
- * if connection required to be closed, terminate while loop
- */
-// 			if(*c->pstatus_run != 1) goto END1;
-
 			switch(SR_mode){
 				case 'R':
 /*
@@ -345,11 +329,7 @@ void *SR_Data_Threads(void *arg)
  * the Receiver process will now send the data 
  */
 					while(1){
-/* 
- * if connection required to be closed, terminate while loop
- */
-// 						if(*c->pstatus_run != 1) goto END1;
-						
+
 						if( R_KAN(c, sockfd, 0, *c->pstatus_run) == -1) return NULL;
 /*
  * last Pthread_barrier_wait is done in SR_hub.c
@@ -359,6 +339,10 @@ void *SR_Data_Threads(void *arg)
  * synced too
  */
 						if( S_KAN(c, sockfd, 0, *c->pstatus_run) == -1) return NULL;
+/* 
+ * if connection required to be closed, terminate while loop
+ */
+						if(*c->pstatus_run != 1) goto END1;
 					}
 				break;
 
@@ -369,11 +353,7 @@ void *SR_Data_Threads(void *arg)
  * another loop
  */
 					while(1){
-/* 
- * if connection required to be closed, terminate while loop
- */
-// 						if(*c->pstatus_run != 1) goto END1;
-						
+
 						if( S_KAN(c, sockfd, 0, *c->pstatus_run) == -1) return NULL;
 /*
  * last Pthread_barrier_wait is done in SR_hub.c
@@ -383,6 +363,10 @@ void *SR_Data_Threads(void *arg)
  * synced too
  */
 						if( R_KAN(c, sockfd, 0, *c->pstatus_run) == -1) return NULL;
+/* 
+ * if connection required to be closed, terminate while loop
+ */
+						if(*c->pstatus_run != 1) goto END1;
 					}
 				break;
 
