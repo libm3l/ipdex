@@ -105,7 +105,8 @@ void *SR_Data_Threads(void *arg)
  */
 		*c->pthr_cntr = 0;
 /*
- * wait until all SR_threads reach pt_sync, then start actual transfer of the data from S to R(s)
+ * wait until all SR_threads reach pt_sync, then start actual transfer of the data from S to R(s).
+ * This counter include all SR_Data_Threads and SR_Hub.
  * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
  * synced too
  */
@@ -274,7 +275,7 @@ void *SR_Data_Threads(void *arg)
 // 			else if(SR_mode == 'S'){
 // /*
 //  * S(ender), after finishing sending, receive the data
-//  * after that signal SR_hhub that SR operation is finished and it can do 
+//  * after that signal SR_hub that SR operation is finished and it can do 
 //  * another loop
 //  */
 // 				do{
@@ -369,7 +370,7 @@ void *SR_Data_Threads(void *arg)
 				case 'S':
 /*
  * S(ender), after finishing sending, receive the data
- * after that signal SR_hhub that SR operation is finished and it can do 
+ * after that signal SR_hub that SR operation is finished and it can do 
  * another loop
  */
 					while(1){
