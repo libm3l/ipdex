@@ -153,6 +153,13 @@ void *SR_Data_Threads(void *arg)
  */
 					if(*c->pstatus_run != 1) goto END;
 				break;
+				
+				case 'T':
+/*
+ * thread is to be terminated
+ */
+					printf("SR_Data_Threads: Terminate status\n");
+				break;
 
 				default:
 					Error("SR_Data_Threads: Wrong SR_mode");
@@ -209,6 +216,12 @@ void *SR_Data_Threads(void *arg)
  * if connection required to be closed, terminate while loop
  */
 					if(*c->pstatus_run != 1) goto END;
+				break;
+
+				case 'T':
+/*
+ * thread is to be terminated
+ */
 				break;
 
 				default:
@@ -310,6 +323,12 @@ void *SR_Data_Threads(void *arg)
 
 				break;
 
+				case 'T':
+/*
+ * thread is to be terminated
+ */
+				break;
+
 				default:
 					Error("SR_Data_Threads: Wrong SR_mode");
 				break;
@@ -371,6 +390,12 @@ void *SR_Data_Threads(void *arg)
 					}
 				break;
 
+				case 'T':
+/*
+ * thread is to be terminated
+ */
+				break;
+
 				default:
 					Error("SR_Data_Threads: Wrong SR_mode");
 				break;
@@ -396,6 +421,7 @@ END1:
 		if(c->psockfd[i] > 0){
 			if( close(c->psockfd[i]) == -1)
 				Perror("close");
+			c->psockfd[i] = 0;
 		}
 END:
 /*

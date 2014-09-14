@@ -360,7 +360,20 @@ void *Data_Threads(void *arg)
 			else if(*c->pcheckdata == 200){
 /*
  * delete thread
+ *
+ * check how many threads already arrived
  */
+// 				if(n_avail_loc_theads < n_rec_proc + 1){
+// 					some processes already arrived
+//					this can be done by checking local_cntr, if not 0, some sets already arrived
+// 				}
+
+/*
+ * set SR_mode to T as terminate
+ */
+				for(i=0; i < n_rec_proc + 1; i++)
+					SR_Threads->SR_mode[i] = 'T';
+				
 				Pthread_mutex_lock(c->plock);
 				if(*Thread_Status == 0 && *c->pretval == 0){
 					len1 = strlen(c->pname_of_data_set);
