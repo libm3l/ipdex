@@ -14,3 +14,7 @@
 	commit 0861eaabd5571a83ff3ba9ebf27b1f826b558d43
 		tested Example1-4, gentoo laptop PC, Suse Desktop PC
 		tests OK	
+
+	commit 34e519e5abd3576e75b1abdbc284df6afb2fb452
+		tested gentoo PC Gareway, all tests (1-4) only to approx 25K iterations
+		tests were OK
