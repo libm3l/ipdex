@@ -350,10 +350,10 @@ void *Data_Threads(void *arg)
  * Because there is already additional thread spawned by Add_Data_Thread, increase temporarily
  * the number of synced jobs - second 1 in pt_sync_mod
  */
-// 				Pthread_mutex_lock(c->plock);
-// 					(*c->prcounter)++;
-// 					*c->pretval = 1;
-// 				Pthread_mutex_unlock(c->plock);
+				Pthread_mutex_lock(c->plock);
+					(*c->prcounter)++;
+					*c->pretval = 1;
+				Pthread_mutex_unlock(c->plock);
 				
 				pt_sync_mod(c->psync, 1, 1);
 			}
