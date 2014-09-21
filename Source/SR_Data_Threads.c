@@ -76,7 +76,7 @@ void *SR_Data_Threads(void *arg)
 	SR_thread_args_t *c = (SR_thread_args_t *)arg;
 
 	lmchar_t SR_mode;
-	lmint_t sockfd, retval, retvaln;
+	lmint_t sockfd, retval;
 	lmsize_t i;
 /*
  * sync all SR_Threads and SR_hub so that Data_Thread goes further once they 
@@ -157,9 +157,16 @@ void *SR_Data_Threads(void *arg)
 				
 				case 'T':
 /*
- * thread is to be terminated
+ * thread is to be terminated sync all S and R SR_Data_Threads
  */
-					printf("SR_Data_Threads: Terminate status\n");
+					retval = pt_sync(c->psync_loc);
+/*
+ * signal the SR_hub and it can do another cycle, it is done by the last process leaving the 
+ * pt_sync()
+ */
+					if(retval == 1)Sem_post(c->psem_g);
+					goto END;
+					
 				break;
 
 				default:

@@ -2,10 +2,11 @@
 
 set i=1
 echo $i
-while ($i <= 10)
+while ($i <= 1000)
 
 	echo $i
 	./Client1_AddHeatChannel.out localhost 31000 HEAT
+	#sleep 1
 	./Client1_DelChannel.out localhost 31000 HEAT
 	
 	@ i = $i + 1

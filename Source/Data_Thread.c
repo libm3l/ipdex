@@ -389,12 +389,16 @@ void *Data_Threads(void *arg)
  */
 						*SR_Threads->status_run = 0;
 /*
- * delete this node, it will remove the item from buffer
+ * Singal SR_hub sem_wait(c->psem) for this semaphore, ie. as if all SR threads
+ * arrived. For SR threads in normal "working" state this is done 
+ * after }while(n_avail_loc_theads != 0) loop
+ */
+						Sem_post(&loc_sem);
+/*
+ * delete this node, it will remove the item from the buffer
  */
 						if( m3l_Umount(&c->Node) != 1)
 							Perror("m3l_Umount");
-						
-						
 /*
  * no leave do - while(n_avail_loc_theads != 0) loop 
  * the value of status_run is set to 0 
@@ -403,7 +407,7 @@ void *Data_Threads(void *arg)
  */
 						Pthread_mutex_unlock(c->plock);
 						pt_sync_mod(c->psync,1, 0);
-						goto END ;
+						goto END;
 					}
 				}
 				Pthread_mutex_unlock(c->plock);
@@ -461,17 +465,13 @@ END:
  * join SR_Threads and release memory
  */
 	for(i=0; i< n_avail_loc_theads; i++){
-
 		if( pthread_join(SR_Threads->data_threads[i], NULL) != 0)
 			Error(" Joining thread failed");
 	}
 	
-	printf(" All threads joined \n");
+	printf(" All SR_Threads threads joined \n");
 	
 	Pthread_mutex_destroy(&SR_Threads->lock);
-	
-	printf(" Pthread_mutex_destroy lock\n");
-	
 	Pthread_cond_destroy(&SR_Threads->dcond);
 	Sem_destroy(&SR_Threads->sem);
 
@@ -492,10 +492,8 @@ END:
 	free(SR_Threads->sync_loc->nsync);
 	free(SR_Threads->sync_loc->nthreads);
 	Pthread_mutex_destroy(&SR_Threads->sync_loc->mutex);
-	printf(" Pthread_mutex_destroy sync_lock->mutex\n");
 
 	Pthread_mutex_destroy(&SR_Threads->sync_loc->block);
-	printf(" Pthread_mutex_destroy sync_lock->block\n");
 
 	Pthread_cond_destroy(&SR_Threads->sync_loc->condvar);
 	Pthread_cond_destroy(&SR_Threads->sync_loc->last);
@@ -518,6 +516,8 @@ END:
  */
 	free(c->pData_Str);
 	free(c);
+	
+	printf("Data_Thread - TERMINATED \n");
 
 	return NULL;
 }
