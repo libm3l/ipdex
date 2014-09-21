@@ -388,9 +388,8 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 // 						Error("Server_Body: CatData");
 // 					Pthread_mutex_unlock(&Data_Threads->lock);
 /*
- * delte borrowed memory, at this stage the 
- * node does not contain Channel subset, it was 
- * dettached from the node in Add_Data_Thread
+ * delete borrowed memory, at this stage the node does not contain the Channel subset, it was 
+ * dettached from the node in Add_Data_Thread and moved to buffer
  */
 					if( m3l_Umount(&RecNode) != 1)
 						Perror("m3l_Umount");
@@ -457,6 +456,8 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 					Error("Server_Body: Error during sending data to socket");
 					if( m3l_Umount(&RecNode) != 1)
 						Perror("m3l_Umount");
+					if( close(newsockfd) == -1)
+						Perror("close");
 				}
 				else{
 /*

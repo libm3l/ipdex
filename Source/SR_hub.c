@@ -193,14 +193,14 @@ void *SR_hub(void *arg)
  * synced too
  */
 				pt_sync_mod(c->psync_loc, 0, 1);
-/* 
- * if connection required to be closed, terminate while loop
- */
-// 				if(*c->pstatus_run_h != 1) break;
 /*
  * once the data transfer is finished wait until all data is tranferred and S and R threads close their socket
 */
 				Sem_wait(c->psem_g);
+/* 
+ * if connection required to be closed, terminate while loop
+ */
+				if(*c->pstatus_run_h != 1) break;
 				terminal_loop_sequence(c);
 			}
 		break;
@@ -259,14 +259,16 @@ void *SR_hub(void *arg)
 			}
 		break;
 	}
-	
+/*
+ * Post semaphore, Data_Thread is vaiting for it so that it can start joinign 
+ * all SR_Data_Threads and SR_Hub threads
+ */
 	Sem_post(c->psem);
 /*
  * free borrowed memory malloced before starting thread in Data_Thread()->Start_SR_HubThread(); this is done in Data_Thread
  * after joining the thread
  */
-
-        printf(" SR_Hub terminating \n");
+// 	free(c);
 	return NULL;
 }
 
@@ -297,6 +299,12 @@ void terminal_loop_sequence(SR_hub_thread_str_t *c){
  * the server is waiting for signal before the continuing with data process identification. 
  * This is done in Server_Body before syncing with data threads
  * If this happens, signal Server_Body that at least one data_thread is avaiable 
+ * 
+ * This statement is valid is "fixed" specified upon start of the server (see 
+ * sequence in Server_Body:
+ * 
+ * 		"if( Popts_SB->opt_f == 'f'){
+ *			if(*Data_Threads->n_data_threads == 0){"
  */
 		if(*c->pcounter == 1)
 			Pthread_cond_signal(c->pcond);

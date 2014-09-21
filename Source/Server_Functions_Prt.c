@@ -352,7 +352,6 @@ lmint_t pt_sync(pt_sync_t *sync)
  * wait for condvar
  */
 		Pthread_cond_wait(sync->pcondvar, sync->pmutex);
-		retval = 0;
 	} 
 /*
  * last process

@@ -350,17 +350,30 @@ void *Data_Threads(void *arg)
  * Because there is already additional thread spawned by Add_Data_Thread, increase temporarily
  * the number of synced jobs - second 1 in pt_sync_mod
  */
-// 				Pthread_mutex_lock(c->plock);
+				Pthread_mutex_lock(c->plock);
 // 					(*c->prcounter)++;
-// 					*c->pretval = 1;
-// 				Pthread_mutex_unlock(c->plock);
+					*c->pretval = 1;
+				Pthread_mutex_unlock(c->plock);
 				
 				pt_sync_mod(c->psync, 1, 1);
 			}
 			else if(*c->pcheckdata == 200){
 /*
  * delete thread
+ *
+ * check how many threads already arrived
  */
+// 				if(n_avail_loc_theads < n_rec_proc + 1){
+// 					some processes already arrived
+//					this can be done by checking local_cntr, if not 0, some sets already arrived
+// 				}
+
+/*
+ * set SR_mode to T as terminate
+ */
+				for(i=0; i < n_rec_proc + 1; i++)
+					SR_Threads->SR_mode[i] = 'T';
+				
 				Pthread_mutex_lock(c->plock);
 				if(*Thread_Status == 0 && *c->pretval == 0){
 					len1 = strlen(c->pname_of_data_set);
@@ -376,12 +389,16 @@ void *Data_Threads(void *arg)
  */
 						*SR_Threads->status_run = 0;
 /*
- * delete this node, it will remove the item from buffer
+ * Singal SR_hub sem_wait(c->psem) for this semaphore, ie. as if all SR threads
+ * arrived. For SR threads in normal "working" state this is done 
+ * after }while(n_avail_loc_theads != 0) loop
+ */
+						Sem_post(&loc_sem);
+/*
+ * delete this node, it will remove the item from the buffer
  */
 						if( m3l_Umount(&c->Node) != 1)
 							Perror("m3l_Umount");
-						
-						
 /*
  * no leave do - while(n_avail_loc_theads != 0) loop 
  * the value of status_run is set to 0 
@@ -390,7 +407,7 @@ void *Data_Threads(void *arg)
  */
 						Pthread_mutex_unlock(c->plock);
 						pt_sync_mod(c->psync,1, 0);
-						goto END ;
+						goto END;
 					}
 				}
 				Pthread_mutex_unlock(c->plock);
@@ -429,36 +446,26 @@ void *Data_Threads(void *arg)
  */
 	}
 END:
-	
-	printf(" -----------  ENDING ---    %ld  %s\n", pthread_self(), local_set_name);
 /*
  * SR_hub sem_wait(c->psem) for this semaphore 
  * post it for the last time. After that SR_hub terminates and waits until all
  * SR_Data_Threads are finished
  */
 	Sem_post(&loc_sem);
-
-	printf(" -----------  Posting ---    %ld  %s\n", pthread_self(), local_set_name);
-
+/*
+ * SR_Hub posted semaphore, ie. all SR_Data_Thread are at the end on return 
+ * statement and so is SR_Hub, staty freeing memory and joining all threads
+ */
 	Sem_wait(&loc_sem);
-
-	printf(" -----------  Waiting ---    %ld  %s\n", pthread_self(), local_set_name);
-
 /*
  * join SR_Threads and release memory
  */
 	for(i=0; i< n_avail_loc_theads; i++){
-
 		if( pthread_join(SR_Threads->data_threads[i], NULL) != 0)
 			Error(" Joining thread failed");
 	}
 	
-	printf(" All threads joined \n");
-	
 	Pthread_mutex_destroy(&SR_Threads->lock);
-	
-	printf(" Pthread_mutex_destroy lock\n");
-	
 	Pthread_cond_destroy(&SR_Threads->dcond);
 	Sem_destroy(&SR_Threads->sem);
 
@@ -479,10 +486,8 @@ END:
 	free(SR_Threads->sync_loc->nsync);
 	free(SR_Threads->sync_loc->nthreads);
 	Pthread_mutex_destroy(&SR_Threads->sync_loc->mutex);
-	printf(" Pthread_mutex_destroy sync_lock->mutex\n");
 
 	Pthread_mutex_destroy(&SR_Threads->sync_loc->block);
-	printf(" Pthread_mutex_destroy sync_lock->block\n");
 
 	Pthread_cond_destroy(&SR_Threads->sync_loc->condvar);
 	Pthread_cond_destroy(&SR_Threads->sync_loc->last);
