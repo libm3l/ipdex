@@ -259,14 +259,15 @@ void *SR_hub(void *arg)
 			}
 		break;
 	}
-	
+/*
+ * Post semaphore, Data_Thread is vaiting for it so that it can start joinign 
+ * all SR_Data_Threads and SR_Hub threads
+ */
 	Sem_post(c->psem);
 /*
  * free borrowed memory malloced before starting thread in Data_Thread()->Start_SR_HubThread(); this is done in Data_Thread
  * after joining the thread
  */
-
-        printf(" SR_Hub terminating \n");
 // 	free(c);
 	return NULL;
 }

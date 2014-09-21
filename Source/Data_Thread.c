@@ -446,21 +446,17 @@ void *Data_Threads(void *arg)
  */
 	}
 END:
-	
-	printf(" -----------  ENDING ---    %ld  %s\n", pthread_self(), local_set_name);
 /*
  * SR_hub sem_wait(c->psem) for this semaphore 
  * post it for the last time. After that SR_hub terminates and waits until all
  * SR_Data_Threads are finished
  */
 	Sem_post(&loc_sem);
-
-	printf(" -----------  Posting ---    %ld  %s\n", pthread_self(), local_set_name);
-
+/*
+ * SR_Hub posted semaphore, ie. all SR_Data_Thread are at the end on return 
+ * statement and so is SR_Hub, staty freeing memory and joining all threads
+ */
 	Sem_wait(&loc_sem);
-
-	printf(" -----------  Waiting ---    %ld  %s\n", pthread_self(), local_set_name);
-
 /*
  * join SR_Threads and release memory
  */
@@ -468,8 +464,6 @@ END:
 		if( pthread_join(SR_Threads->data_threads[i], NULL) != 0)
 			Error(" Joining thread failed");
 	}
-	
-	printf(" All SR_Threads threads joined \n");
 	
 	Pthread_mutex_destroy(&SR_Threads->lock);
 	Pthread_cond_destroy(&SR_Threads->dcond);
@@ -516,8 +510,6 @@ END:
  */
 	free(c->pData_Str);
 	free(c);
-	
-	printf("Data_Thread - TERMINATED \n");
 
 	return NULL;
 }
