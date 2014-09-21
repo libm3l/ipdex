@@ -351,7 +351,7 @@ void *Data_Threads(void *arg)
  * the number of synced jobs - second 1 in pt_sync_mod
  */
 				Pthread_mutex_lock(c->plock);
-					(*c->prcounter)++;
+// 					(*c->prcounter)++;
 					*c->pretval = 1;
 				Pthread_mutex_unlock(c->plock);
 				

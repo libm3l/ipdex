@@ -165,7 +165,7 @@ void *SR_Data_Threads(void *arg)
  * pt_sync()
  */
 					if(retval == 1)Sem_post(c->psem_g);
-					goto END;
+					goto END1;
 					
 				break;
 
@@ -425,18 +425,19 @@ END1:
  * to check if the socket is opened, check its value. 
  * if 0, it was already closed
  */
-	for(i=0; i<*c->psync_loc->nthreads; i++)
+	for(i=0; i<*c->psync_loc->nthreads; i++){
 		if(c->psockfd[i] > 0){
 			if( close(c->psockfd[i]) == -1)
 				Perror("close");
 			c->psockfd[i] = 0;
 		}
+	}
 END:
 /*
  * case 1.2  ends here, case 1,2 close their opened sockets
  * themeselves
  */
-	free(c);
+// 	free(c);
 	return NULL;
 }
 
