@@ -165,7 +165,7 @@ void *SR_Data_Threads(void *arg)
  * pt_sync()
  */
 					if(retval == 1)Sem_post(c->psem_g);
-					goto END1;
+					goto END;
 					
 				break;
 
@@ -434,7 +434,7 @@ END1:
 	}
 END:
 /*
- * case 1.2  ends here, case 1,2 close their opened sockets
+ * case 1,2  ends here, they close their opened sockets
  * themeselves
  */
 // 	free(c);

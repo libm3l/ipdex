@@ -338,7 +338,7 @@ void *Data_Threads(void *arg)
  * if the first round, ie. Data_Thread was added now (for this thread round == 0),
  * post semaphore. The semaphore signalizes Server_Body that it can enter
  * the pt_sync. For case of adding thread, the Server body has just one pt_sync instead of two.
- * The first missing pt_sync is then provided by newly spawned Data_Thread. 
+ * The first missing pt_sync is then provided by the newly spawned Data_Thread for which round == 0. 
  * This semaphore makes sure that the pt_sync in this thread is executed before pt_sync
  * in Server_Body so that the Server_Body pt_sync_mod is used in connenction with 
  * second pt_sync in Data_Threads
@@ -354,7 +354,10 @@ void *Data_Threads(void *arg)
 // 					(*c->prcounter)++;
 					*c->pretval = 1;
 				Pthread_mutex_unlock(c->plock);
-				
+/*
+ * sync all threads, ie. Setvet_Body + all Data_Threads
+ * because tere is a new DATA_Thread add temporarily 1 and then increase number of synced threads for next round
+ */
 				pt_sync_mod(c->psync, 1, 1);
 			}
 			else if(*c->pcheckdata == 200){
@@ -367,22 +370,21 @@ void *Data_Threads(void *arg)
 // 					some processes already arrived
 //					this can be done by checking local_cntr, if not 0, some sets already arrived
 // 				}
-
-/*
- * set SR_mode to T as terminate
- */
-				for(i=0; i < n_rec_proc + 1; i++)
-					SR_Threads->SR_mode[i] = 'T';
 				
 				Pthread_mutex_lock(c->plock);
 				if(*Thread_Status == 0 && *c->pretval == 0){
 					len1 = strlen(c->pname_of_data_set);
 					if(len1 == len && strncmp(c->pname_of_data_set,local_set_name, len) == 0){
 /*
+ * set SR_mode to T as terminate
+ */
+					for(i=0; i < n_rec_proc + 1; i++)
+						SR_Threads->SR_mode[i] = 'T';
+/*
  * this thread is to be removed
  */
 // 						*c->pData_Str->status_run=0;
-						(*c->prcounter)--;
+// 						(*c->prcounter)--;
 						*c->pretval = 1;
 /*
  * set status run for SR_Hub and SR_Data_Thread to 0, ie. terminate while loops
@@ -451,12 +453,12 @@ END:
  * post it for the last time. After that SR_hub terminates and waits until all
  * SR_Data_Threads are finished
  */
-	Sem_post(&loc_sem);
+// 	Sem_post(&loc_sem);
 /*
  * SR_Hub posted semaphore, ie. all SR_Data_Thread are at the end on return 
  * statement and so is SR_Hub, staty freeing memory and joining all threads
  */
-	Sem_wait(&loc_sem);
+// 	Sem_wait(&loc_sem);
 /*
  * join SR_Threads and release memory
  */
@@ -508,6 +510,7 @@ END:
 /*
  * release borrowed memory, malloced before starting thread in Data_Thread()
  */
+        printf(" Leaving DATA_Thread\n");
 	free(c->pData_Str);
 	free(c);
 
