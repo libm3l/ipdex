@@ -458,7 +458,7 @@ END:
  * SR_Hub posted semaphore, ie. all SR_Data_Thread are at the end on return 
  * statement and so is SR_Hub, staty freeing memory and joining all threads
  */
-// 	Sem_wait(&loc_sem);
+// 	Sem_wait(&loc_sem);    this casused deadlock - if needed add a new semaphore
 /*
  * join SR_Threads and release memory
  */
