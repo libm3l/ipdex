@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
 // 	tim.tv_sec = 1;
 	tim.tv_sec = 0;
 // 	tim.tv_nsec = 300000000L;    /* 0.1 secs */
-	tim.tv_nsec = 20000000L;    /* 0.1 secs */
+	tim.tv_nsec = 30000000L;    /* 0.1 secs */
 
 	nmax = 100000;
 	PInpPar = &InpPar;
