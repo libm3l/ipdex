@@ -388,9 +388,8 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 // 						Error("Server_Body: CatData");
 // 					Pthread_mutex_unlock(&Data_Threads->lock);
 /*
- * delte borrowed memory, at this stage the 
- * node does not contain Channel subset, it was 
- * dettached from the node in Add_Data_Thread
+ * delete borrowed memory, at this stage the node does not contain the Channel subset, it was 
+ * dettached from the node in Add_Data_Thread and moved to buffer
  */
 					if( m3l_Umount(&RecNode) != 1)
 						Perror("m3l_Umount");
@@ -422,14 +421,14 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 				*Data_Threads->checkdata = 200;
 				*Data_Threads->retval = 0;
 				*Data_Threads->sync->incrm = -1;
-				(*Data_Threads->n_data_threads)--;
+// 				(*Data_Threads->n_data_threads)--;
 
 				if( snprintf(Data_Threads->name_of_data_set, MAX_NAME_LENGTH,"%s",name_of_required_data_set) < 0)
 					Perror("snprintf");
 
 				Pthread_mutex_unlock(&Data_Threads->lock);
 /*
- * once all necessary data are set, send signal to all threads to start unloc mutex
+ * once all necessary data are set, send signal to all threads to start then lock mutex
  * and release borrowed memory. The following syncing point is the same as the syncing point in Data_Thread.c
  */
 				pt_sync(Data_Threads->sync);
@@ -457,6 +456,8 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 					Error("Server_Body: Error during sending data to socket");
 					if( m3l_Umount(&RecNode) != 1)
 						Perror("m3l_Umount");
+					if( close(newsockfd) == -1)
+						Perror("close");
 				}
 				else{
 /*

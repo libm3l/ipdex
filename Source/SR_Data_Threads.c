@@ -76,7 +76,7 @@ void *SR_Data_Threads(void *arg)
 	SR_thread_args_t *c = (SR_thread_args_t *)arg;
 
 	lmchar_t SR_mode;
-	lmint_t sockfd, retval, retvaln;
+	lmint_t sockfd, retval;
 	lmsize_t i;
 /*
  * sync all SR_Threads and SR_hub so that Data_Thread goes further once they 
@@ -157,9 +157,16 @@ void *SR_Data_Threads(void *arg)
 				
 				case 'T':
 /*
- * thread is to be terminated
+ * thread is to be terminated sync all S and R SR_Data_Threads
  */
-					printf("SR_Data_Threads: Terminate status\n");
+					retval = pt_sync(c->psync_loc);
+/*
+ * signal the SR_hub and it can do another cycle, it is done by the last process leaving the 
+ * pt_sync()
+ */
+					if(retval == 1)Sem_post(c->psem_g);
+					goto END;
+					
 				break;
 
 				default:
@@ -418,18 +425,19 @@ END1:
  * to check if the socket is opened, check its value. 
  * if 0, it was already closed
  */
-	for(i=0; i<*c->psync_loc->nthreads; i++)
+	for(i=0; i<*c->psync_loc->nthreads; i++){
 		if(c->psockfd[i] > 0){
 			if( close(c->psockfd[i]) == -1)
 				Perror("close");
 			c->psockfd[i] = 0;
 		}
+	}
 END:
 /*
- * case 1.2  ends here, case 1,2 close their opened sockets
+ * case 1,2  ends here, they close their opened sockets
  * themeselves
  */
-	free(c);
+// 	free(c);
 	return NULL;
 }
 

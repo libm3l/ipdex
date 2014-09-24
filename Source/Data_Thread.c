@@ -338,7 +338,7 @@ void *Data_Threads(void *arg)
  * if the first round, ie. Data_Thread was added now (for this thread round == 0),
  * post semaphore. The semaphore signalizes Server_Body that it can enter
  * the pt_sync. For case of adding thread, the Server body has just one pt_sync instead of two.
- * The first missing pt_sync is then provided by newly spawned Data_Thread. 
+ * The first missing pt_sync is then provided by the newly spawned Data_Thread for which round == 0. 
  * This semaphore makes sure that the pt_sync in this thread is executed before pt_sync
  * in Server_Body so that the Server_Body pt_sync_mod is used in connenction with 
  * second pt_sync in Data_Threads
@@ -350,11 +350,14 @@ void *Data_Threads(void *arg)
  * Because there is already additional thread spawned by Add_Data_Thread, increase temporarily
  * the number of synced jobs - second 1 in pt_sync_mod
  */
-// 				Pthread_mutex_lock(c->plock);
+				Pthread_mutex_lock(c->plock);
 // 					(*c->prcounter)++;
-// 					*c->pretval = 1;
-// 				Pthread_mutex_unlock(c->plock);
-				
+					*c->pretval = 1;
+				Pthread_mutex_unlock(c->plock);
+/*
+ * sync all threads, ie. Setvet_Body + all Data_Threads
+ * because tere is a new DATA_Thread add temporarily 1 and then increase number of synced threads for next round
+ */
 				pt_sync_mod(c->psync, 1, 1);
 			}
 			else if(*c->pcheckdata == 200){
@@ -367,34 +370,37 @@ void *Data_Threads(void *arg)
 // 					some processes already arrived
 //					this can be done by checking local_cntr, if not 0, some sets already arrived
 // 				}
-
-/*
- * set SR_mode to T as terminate
- */
-				for(i=0; i < n_rec_proc + 1; i++)
-					SR_Threads->SR_mode[i] = 'T';
 				
 				Pthread_mutex_lock(c->plock);
 				if(*Thread_Status == 0 && *c->pretval == 0){
 					len1 = strlen(c->pname_of_data_set);
 					if(len1 == len && strncmp(c->pname_of_data_set,local_set_name, len) == 0){
 /*
+ * set SR_mode to T as terminate
+ */
+					for(i=0; i < n_rec_proc + 1; i++)
+						SR_Threads->SR_mode[i] = 'T';
+/*
  * this thread is to be removed
  */
 // 						*c->pData_Str->status_run=0;
-						(*c->prcounter)--;
+// 						(*c->prcounter)--;
 						*c->pretval = 1;
 /*
  * set status run for SR_Hub and SR_Data_Thread to 0, ie. terminate while loops
  */
 						*SR_Threads->status_run = 0;
 /*
- * delete this node, it will remove the item from buffer
+ * Singal SR_hub sem_wait(c->psem) for this semaphore, ie. as if all SR threads
+ * arrived. For SR threads in normal "working" state this is done 
+ * after }while(n_avail_loc_theads != 0) loop
+ */
+						Sem_post(&loc_sem);
+/*
+ * delete this node, it will remove the item from the buffer
  */
 						if( m3l_Umount(&c->Node) != 1)
 							Perror("m3l_Umount");
-						
-						
 /*
  * no leave do - while(n_avail_loc_theads != 0) loop 
  * the value of status_run is set to 0 
@@ -403,7 +409,7 @@ void *Data_Threads(void *arg)
  */
 						Pthread_mutex_unlock(c->plock);
 						pt_sync_mod(c->psync,1, 0);
-						goto END ;
+						goto END;
 					}
 				}
 				Pthread_mutex_unlock(c->plock);
@@ -442,36 +448,26 @@ void *Data_Threads(void *arg)
  */
 	}
 END:
-	
-	printf(" -----------  ENDING ---    %ld  %s\n", pthread_self(), local_set_name);
 /*
  * SR_hub sem_wait(c->psem) for this semaphore 
  * post it for the last time. After that SR_hub terminates and waits until all
  * SR_Data_Threads are finished
  */
-	Sem_post(&loc_sem);
-
-	printf(" -----------  Posting ---    %ld  %s\n", pthread_self(), local_set_name);
-
-	Sem_wait(&loc_sem);
-
-	printf(" -----------  Waiting ---    %ld  %s\n", pthread_self(), local_set_name);
-
+// 	Sem_post(&loc_sem);
+/*
+ * SR_Hub posted semaphore, ie. all SR_Data_Thread are at the end on return 
+ * statement and so is SR_Hub, staty freeing memory and joining all threads
+ */
+// 	Sem_wait(&loc_sem);    this casused deadlock - if needed add a new semaphore
 /*
  * join SR_Threads and release memory
  */
 	for(i=0; i< n_avail_loc_theads; i++){
-
 		if( pthread_join(SR_Threads->data_threads[i], NULL) != 0)
 			Error(" Joining thread failed");
 	}
 	
-	printf(" All threads joined \n");
-	
 	Pthread_mutex_destroy(&SR_Threads->lock);
-	
-	printf(" Pthread_mutex_destroy lock\n");
-	
 	Pthread_cond_destroy(&SR_Threads->dcond);
 	Sem_destroy(&SR_Threads->sem);
 
@@ -492,10 +488,8 @@ END:
 	free(SR_Threads->sync_loc->nsync);
 	free(SR_Threads->sync_loc->nthreads);
 	Pthread_mutex_destroy(&SR_Threads->sync_loc->mutex);
-	printf(" Pthread_mutex_destroy sync_lock->mutex\n");
 
 	Pthread_mutex_destroy(&SR_Threads->sync_loc->block);
-	printf(" Pthread_mutex_destroy sync_lock->block\n");
 
 	Pthread_cond_destroy(&SR_Threads->sync_loc->condvar);
 	Pthread_cond_destroy(&SR_Threads->sync_loc->last);
@@ -516,6 +510,7 @@ END:
 /*
  * release borrowed memory, malloced before starting thread in Data_Thread()
  */
+        printf(" Leaving DATA_Thread\n");
 	free(c->pData_Str);
 	free(c);
 

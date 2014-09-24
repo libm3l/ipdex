@@ -18,3 +18,6 @@
 	commit 34e519e5abd3576e75b1abdbc284df6afb2fb452
 		tested gentoo PC Gareway, all tests (1-4) only to approx 25K iterations
 		tests were OK
+
+	commit 11097225fb9b2dd7f1bc08c1f628ecc37491a01f
+		tested gentoo PC Toshiba all tests (1-4) were OK
