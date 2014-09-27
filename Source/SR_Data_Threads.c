@@ -371,7 +371,7 @@ END1:
 END:
 /*
  * case 1,2  ends here, they close their opened sockets
- * themeselves
+ * themeselves, free meory and Return, thread wil be joined in Data_Thread.c
  */
 	free(c);
 	return NULL;

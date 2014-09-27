@@ -265,17 +265,13 @@ void *SR_hub(void *arg)
  */
 // 	Sem_post(c->psem);
 /*
- * free borrowed memory malloced before starting thread in Data_Thread()->Start_SR_HubThread(); this is done in Data_Thread
- * after joining the thread
+ * join the thread in  Data_Thread, let Data_Thread free borrowed memory
  */
-// 	free(c);
 	return NULL;
 }
 
 void terminal_loop_sequence(SR_hub_thread_str_t *c){
-	
-	lmsize_t i;
-	
+  
 	Pthread_mutex_lock(c->plock);
 /*
  * set the number of available threads for SR transfer to S + R(s) number of threads

@@ -493,13 +493,12 @@ END:
 	free(SR_Threads->ngotten);
 	free(SR_Threads->EofBuff);
 	free(SR_Threads->sync);
-
+	free(SR_Threads->status_run);
+	
 	free(SR_Threads->sync_loc->nsync);
 	free(SR_Threads->sync_loc->nthreads);
 	Pthread_mutex_destroy(&SR_Threads->sync_loc->mutex);
-
 	Pthread_mutex_destroy(&SR_Threads->sync_loc->block);
-
 	Pthread_cond_destroy(&SR_Threads->sync_loc->condvar);
 	Pthread_cond_destroy(&SR_Threads->sync_loc->last);
 	free(SR_Threads->sync_loc);
@@ -511,6 +510,7 @@ END:
 	Sem_destroy(&loc_sem);
 	
 	free(SR_Hub_Thread->data_thread);
+	free(SR_Hub_Thread);
 /*
  * release borrowed memory, malloced before starting thread in Data_Thread()
  */
