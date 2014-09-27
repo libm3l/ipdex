@@ -36,6 +36,5 @@
 #   delete line in Makefile starting with PATHLIBM3L
 #   and replace it with new PATHLIBM3L definition
 #
-#	sed -i "s|^\bPATHLIBM3L\b.*$|PATHLIBM3L = $PATHLIBM3L|" Makefile
-	sed -i '/^PATHLIBM3L/d' Makefile
+	sed  '/^PATHLIBM3L/d' Makefile.mk > Makefile
 	sed -i '/^HFILES/a \PATHLIBM3L = '"$PATHLIBM3L"'' Makefile
