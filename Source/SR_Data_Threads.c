@@ -138,10 +138,6 @@ void *SR_Data_Threads(void *arg)
  * R(eceivers)
  */
 					if( R_KAN(c, sockfd, 1) == -1) return NULL;
-/* 
- * if connection required to be closed, terminate while loop
- */
-					if(*c->pstatus_run != 1) goto END;
 				break;
 
 				case 'S':
@@ -149,10 +145,6 @@ void *SR_Data_Threads(void *arg)
  * S(ender)
  */
 					if( S_KAN(c, sockfd, 1) == -1) return NULL;
-/* 
- * if connection required to be closed, terminate while loop
- */
-					if(*c->pstatus_run != 1) goto END;
 				break;
 				
 				case 'T':
@@ -199,10 +191,7 @@ void *SR_Data_Threads(void *arg)
  * synced too
  */
 					if( S_KAN(c, sockfd, 2) == -1) return NULL;
-/* 
- * if connection required to be closed, terminate while loop
- */
-					if(*c->pstatus_run != 1) goto END;
+
 				break;
 
 				case 'S':
@@ -220,16 +209,21 @@ void *SR_Data_Threads(void *arg)
  * synced too
  */
 					if( R_KAN(c, sockfd, 2) == -1) return NULL;
-/* 
- * if connection required to be closed, terminate while loop
- */
-					if(*c->pstatus_run != 1) goto END;
+
 				break;
 
 				case 'T':
 /*
- * thread is to be terminated
+ * thread is to be terminated sync all S and R SR_Data_Threads
  */
+					retval = pt_sync(c->psync_loc);
+/*
+ * signal the SR_hub and it can do another cycle, it is done by the last process leaving the 
+ * pt_sync()
+ */
+					if(retval == 1)Sem_post(c->psem_g);
+					goto END;
+					
 				break;
 
 				default:
