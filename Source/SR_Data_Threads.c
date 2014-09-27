@@ -437,7 +437,7 @@ END:
  * case 1,2  ends here, they close their opened sockets
  * themeselves
  */
-// 	free(c);
+	free(c);
 	return NULL;
 }
 
