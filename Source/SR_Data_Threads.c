@@ -237,65 +237,7 @@ void *SR_Data_Threads(void *arg)
 				break;
 			}
 		break;
-/*  -------------------------------------------------------------- */
-// 		case 3:
-// /*
-//  * keep socket allive until clients request closing it
-//  */
-// 			Error("SR_Data_Threads: KA_mode == C not implemented yet");
-// 			exit(0);
-// 
-// 			if(SR_mode == 'R'){
-// /*
-//  * R(eceivers)
-//  */
-// 				do{
-// 					if( (retval = R_KAN(c, sockfd, 3)) == -1) return NULL;
-// 				}while(retval != 0);
-// 			}
-// 			else if(SR_mode == 'S'){
-// /*
-//  * S(ender)
-//  */
-// 				do{
-// 					if( (retval = S_KAN(c, sockfd, 3)) == -1) return NULL;
-// 				}while(retval != 0);
-// 			}
-// 			else{
-// 				Error("SR_Data_Threads: Wrong SR_mode");
-// 			}
-// 		break;
-// /*  -------------------------------------------------------------- */
-// 		case 4:
-// 			if(SR_mode == 'R'){
-// /*
-//  * R(eceivers)
-//  * when finishing with R, do not signal SR_hub to go to another loop, 
-//  * the Receiver process will now send the data 
-//  */
-// 				do{
-// 					if( (retval = R_KAN(c, sockfd, 4)) == -1) return NULL;
-// 					if( (retvaln = S_KAN(c, sockfd, 4)) == -1) return NULL;
-// 					retval = INTEGMIN(retval, retvaln);
-// 				}while(retval != 0);
-// 			}
-// 			else if(SR_mode == 'S'){
-// /*
-//  * S(ender), after finishing sending, receive the data
-//  * after that signal SR_hub that SR operation is finished and it can do 
-//  * another loop
-//  */
-// 				do{
-// 					if( (retval = S_KAN(c, sockfd, 4)) == -1) return NULL;
-// 					if( (retval = R_KAN(c, sockfd, 4)) == -1) return NULL;
-// 					retval = INTEGMIN(retval, retvaln);
-// 				}while(retval != 0);
-// 			}
-// 			else{
-// 				Error("SR_Data_Threads: Wrong SR_mode");
-// 			}
-// 		break;
-/*  -------------------------------------------------------------- */
+
 		case 5:  /* same as mode 1, do not close socket and do not signal SR_hub */
 /*
  * keep socket alive forever
