@@ -460,6 +460,15 @@ END:
  */
 // 	Sem_wait(&loc_sem);    this casused deadlock - if needed add a new semaphore
 /*
+ * join SR_hub and release memory
+ * join this thread before SR_Threads, it is because SR_Hub is waiting for final semaphore 
+ * from SR_Data_Threads. By joining SR_Hub_Thread after the SR_Threads were freed
+ * caused SR_Hub using already unuloated sempahore. By freeing malloced memory 
+ * after joinign thread, this problem is avoided
+ */
+	if( pthread_join(SR_Hub_Thread->data_thread[0], NULL) != 0)
+		Error(" Joining thread failed");
+/*
  * join SR_Threads and release memory
  */
 	for(i=0; i< n_avail_loc_theads; i++){
@@ -500,11 +509,6 @@ END:
  * free local semaphore
  */
 	Sem_destroy(&loc_sem);
-/*
- * join SR_hub and release memory
- */
-	if( pthread_join(SR_Hub_Thread->data_thread[0], NULL) != 0)
-		Error(" Joining thread failed");
 	
 	free(SR_Hub_Thread->data_thread);
 /*
