@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
 // 	tim.tv_nsec = 300000000L;    /* 0.1 secs */
 	tim.tv_nsec = 10000000L;    /* 0.1 secs */
 
-	nmax = 100000;
+	nmax = 1000;
 	PInpPar = &InpPar;
 /*
  * get port number

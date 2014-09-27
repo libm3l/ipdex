@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
 	tim.tv_sec = 0;
 	tim.tv_nsec = 10000000L;    /* 0.01 secs */
 
-	nmax = 100000;
+	nmax = 1000;
 	
 	PInpPar = &InpPar;
 /*
