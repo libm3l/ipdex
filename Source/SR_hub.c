@@ -267,7 +267,8 @@ void *SR_hub(void *arg)
 /*
  * join the thread in  Data_Thread, let Data_Thread free borrowed memory
  */
-	return NULL;
+// pthread_exit(NULL);
+return NULL;
 }
 
 void terminal_loop_sequence(SR_hub_thread_str_t *c){

@@ -176,17 +176,53 @@ void DestroyPredefinedAnswers(lsipdx_answer_t **Answers){
 /*
  * free memory in predefined answers
  */
-	if(m3l_Umount(&(*Answers)->RR_NEG) != 1)
-		Perror("m3l_Umount RR_NEG");
-	if(m3l_Umount(&(*Answers)->RR_POS) != 1)
-		Perror("m3l_Umount RR_POS");	
-	if(m3l_Umount(&(*Answers)->RR_WRREQ) != 1)
-		Perror("m3l_Umount RR_WRREQ");
-	if(m3l_Umount(&(*Answers)->RR_WRCONREQ) != 1)
-		Perror("m3l_Umount RR_WRREQ");
-
+	node_t *Tmp;
+	
+	Tmp = (*Answers)->RR_NEG;
+// 	if(m3l_Umount(&Tmp) != 1)
+// 		Perror("m3l_Umount RR_NEG");
+	
+	if( m3l_rm_list(2, &Tmp, (opts_t *)NULL) < 0){
+		Error("Unable to unmount node \n");
+	}
+	Tmp = (*Answers)->RR_POS;
+// 	if(m3l_Umount(&Tmp) != 1)
+// 		Perror("m3l_Umount RR_POS");
+	if( m3l_rm_list(2, &Tmp, (opts_t *)NULL) < 0){
+		Error("Unable to unmount node \n");
+	}
+	
+	Tmp = (*Answers)->RR_WNEG;
+// 	if(m3l_Umount(&Tmp) != 1)
+// 		Perror("m3l_Umount RR_POS");
+	if( m3l_rm_list(2, &Tmp, (opts_t *)NULL) < 0){
+		Error("Unable to unmount node \n");
+	}
+	
+	Tmp = (*Answers)->RR_WRREQ;	
+// 	if(m3l_Umount(&Tmp) != 1)
+// 		Perror("m3l_Umount RR_WRREQ");
+	if( m3l_rm_list(2, &Tmp, (opts_t *)NULL) < 0){
+		Error("Unable to unmount node \n");
+	}
+	Tmp = (*Answers)->RR_WRCONREQ;
+// 	if(m3l_Umount(&Tmp) != 1)
+// 		Perror("m3l_Umount RR_WRREQ");
+	if( m3l_rm_list(2,&Tmp, (opts_t *)NULL) < 0){
+		Error("Unable to unmount node \n");
+	}
+	
+	Tmp = (*Answers)->RR_NA;
+// 	if(m3l_Umount(&Tmp) != 1)
+// 		Perror("m3l_Umount RR_WRREQ");
+	if( m3l_rm_list(2,&Tmp, (opts_t *)NULL) < 0){
+		Error("Unable to unmount node \n");
+	}	
+	
 	free(*Answers);
 	*Answers = NULL;
+	
+	return;
 }
 
 node_t *ChannelList(const lmchar_t *name, lmsize_t Rproc, lmchar_t ATDT_mode, lmchar_t KA_mode){
