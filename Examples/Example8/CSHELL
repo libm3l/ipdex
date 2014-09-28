@@ -2,7 +2,7 @@
 
 set i=1
 echo $i
-while ($i <= 5)
+while ($i <= 1000)
 
 	echo $i
 	set NAME=`echo HEAT$i`

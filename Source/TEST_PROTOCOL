@@ -21,3 +21,10 @@
 
 	commit 11097225fb9b2dd7f1bc08c1f628ecc37491a01f
 		tested gentoo PC Toshiba all tests (1-4) were OK
+
+
+	commit 058cb453f13d7401c7f2212da3ad6066e2ea7b7d
+		tested 1-4 PS Toshiba, tests OK
+		test Ex8 - 1000 times opening and deleting new connection
+		test Ex8 opening channel, transfer 1000 times, close channel
+
