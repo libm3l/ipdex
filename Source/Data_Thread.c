@@ -516,7 +516,7 @@ END:
  */
         printf(" Leaving DATA_Thread\n");
 	free(c->pData_Str);
-// 	free(c);
+	free(c);
 
 	return NULL;
 }

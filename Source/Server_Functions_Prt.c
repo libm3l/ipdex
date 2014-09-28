@@ -474,10 +474,10 @@ lmint_t get_exchange_channel_mode(lmchar_t ATDTMode, lmchar_t KeepAlive_Mode){
 		retval = 1;
 	else if(ATDTMode == 'A' && KeepAlive_Mode == 'N')  /* Alternate transfer, close socket */
 		retval = 2;
-	else if(ATDTMode == 'D' && KeepAlive_Mode == 'C')  /* Direct transfer, close socket after client request it*/
-		retval = 3;
-	else if(ATDTMode == 'A' && KeepAlive_Mode == 'C')  /* Alternate transfer, close socket after client request it*/
-		retval = 4;
+// 	else if(ATDTMode == 'D' && KeepAlive_Mode == 'C')  /* Direct transfer, close socket after client request it*/
+// 		retval = 3;
+// 	else if(ATDTMode == 'A' && KeepAlive_Mode == 'C')  /* Alternate transfer, close socket after client request it*/
+// 		retval = 4;
 	else if(ATDTMode == 'D' && KeepAlive_Mode == 'Y')  /* Direct transfer, do not close socket*/
 		retval = 5;
 	else if(ATDTMode == 'A' && KeepAlive_Mode == 'Y')  /* Alternate transfer, do not close socket*/
