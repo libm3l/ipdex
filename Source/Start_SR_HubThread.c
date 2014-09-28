@@ -64,6 +64,9 @@ SR_hub_thread_str_t *Start_SR_HubThread(SR_thread_str_t *SR_Threads, data_thread
  */
 	lmint_t pth_err;
 	SR_hub_thread_str_t  *SR_Hub_Thread;
+	pthread_attr_t attr;
+	pthread_attr_init(&attr);
+        pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 /*
  * malloc the main node
  */
@@ -104,7 +107,7 @@ SR_hub_thread_str_t *Start_SR_HubThread(SR_thread_str_t *SR_Threads, data_thread
 	SR_Hub_Thread->psync_loc->pcondvar	= &SR_Threads->sync_loc->condvar;
 	SR_Hub_Thread->psync_loc->plast		= &SR_Threads->sync_loc->last;
 
-	while ( (pth_err = pthread_create(&SR_Hub_Thread->data_thread[0], NULL, &SR_hub,  SR_Hub_Thread)) != 0 && errno == EAGAIN);
+	while ( (pth_err = pthread_create(&SR_Hub_Thread->data_thread[0], &attr, &SR_hub,  SR_Hub_Thread)) != 0 && errno == EAGAIN);
 	if(pth_err != 0)
 		Perror("pthread_create()"); 
 

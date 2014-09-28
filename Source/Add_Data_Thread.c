@@ -75,6 +75,10 @@ lmsize_t Add_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread, node_t *
 	node_t *List;
 	data_thread_int_str_t **Tmp;
 	
+	pthread_attr_t attr;
+	pthread_attr_init(&attr);
+        pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+	
 	if(Gnode == NULL){
 		Warning("Add_Data_Thread: NULL Gnode");
 		return -1;
@@ -171,7 +175,7 @@ lmsize_t Add_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread, node_t *
 /*
  * create thread
  */
-	while ( ( pth_err = pthread_create(Data_Thread->Data_Str[newnum]->data_threadPID, NULL, &Data_Threads,  DataArgs)) != 0 && errno == EAGAIN);
+	while ( ( pth_err = pthread_create(Data_Thread->Data_Str[newnum]->data_threadPID, &attr, &Data_Threads,  DataArgs)) != 0 && errno == EAGAIN);
 	if(pth_err != 0)
 		Perror("pthread_create()");
 

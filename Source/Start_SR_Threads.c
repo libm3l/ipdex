@@ -62,6 +62,11 @@ SR_thread_str_t *Start_SR_Threads(lmint_t n_threads){
 	lmint_t pth_err;
 	SR_thread_str_t  *SR_Data_Thread;
 	SR_thread_args_t *SR_DataArgs;  
+	
+	
+	pthread_attr_t attr;
+	pthread_attr_init(&attr);
+        pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 /*
  * malloc the main node
  */
@@ -168,7 +173,7 @@ SR_thread_str_t *Start_SR_Threads(lmint_t n_threads){
 /*
  * create thread
  */
-		while ( (pth_err = pthread_create(&SR_Data_Thread->data_threads[i], NULL, &SR_Data_Threads,  SR_DataArgs)) != 0 && errno == EAGAIN);
+		while ( (pth_err = pthread_create(&SR_Data_Thread->data_threads[i], &attr, &SR_Data_Threads,   (void *)SR_DataArgs)) != 0 && errno == EAGAIN);
 		if(pth_err != 0)
 			Perror("pthread_create()"); 
 	}
