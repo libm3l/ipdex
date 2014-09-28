@@ -131,8 +131,10 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 	printf(" Unique ID is %ld\n", Make_ID_Number(sockfd));
 
 	
-	help = 1;
-	while(help++ < 11){
+// 	help = 1;
+// 	while(help++ < 11){
+	
+	while(1){
 /*
  * if already in cycle, you need to lock mutex here
  */
