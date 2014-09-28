@@ -534,8 +534,10 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 		free(Data_Threads->Data_Str[i]->data_threadPID);
 		free(Data_Threads->Data_Str[i]->name_of_channel);
 // 		free(Data_Threads->Data_Str[i]->status_run);
+		free(Data_Threads->Data_Str[i]);
 	}
 	
+	free(Data_Threads->Data_Str);
 	printf(" After joining \n");
 
 	Pthread_mutex_destroy(&Data_Threads->lock);
