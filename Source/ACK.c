@@ -179,42 +179,29 @@ void DestroyPredefinedAnswers(lsipdx_answer_t **Answers){
 	node_t *Tmp;
 	
 	Tmp = (*Answers)->RR_NEG;
-// 	if(m3l_Umount(&Tmp) != 1)
-// 		Perror("m3l_Umount RR_NEG");
-	
 	if( m3l_rm_list(2, &Tmp, (opts_t *)NULL) < 0){
 		Error("Unable to unmount node \n");
 	}
 	Tmp = (*Answers)->RR_POS;
-// 	if(m3l_Umount(&Tmp) != 1)
-// 		Perror("m3l_Umount RR_POS");
 	if( m3l_rm_list(2, &Tmp, (opts_t *)NULL) < 0){
 		Error("Unable to unmount node \n");
 	}
 	
 	Tmp = (*Answers)->RR_WNEG;
-// 	if(m3l_Umount(&Tmp) != 1)
-// 		Perror("m3l_Umount RR_POS");
 	if( m3l_rm_list(2, &Tmp, (opts_t *)NULL) < 0){
 		Error("Unable to unmount node \n");
 	}
 	
 	Tmp = (*Answers)->RR_WRREQ;	
-// 	if(m3l_Umount(&Tmp) != 1)
-// 		Perror("m3l_Umount RR_WRREQ");
 	if( m3l_rm_list(2, &Tmp, (opts_t *)NULL) < 0){
 		Error("Unable to unmount node \n");
 	}
 	Tmp = (*Answers)->RR_WRCONREQ;
-// 	if(m3l_Umount(&Tmp) != 1)
-// 		Perror("m3l_Umount RR_WRREQ");
 	if( m3l_rm_list(2,&Tmp, (opts_t *)NULL) < 0){
 		Error("Unable to unmount node \n");
 	}
 	
 	Tmp = (*Answers)->RR_NA;
-// 	if(m3l_Umount(&Tmp) != 1)
-// 		Perror("m3l_Umount RR_WRREQ");
 	if( m3l_rm_list(2,&Tmp, (opts_t *)NULL) < 0){
 		Error("Unable to unmount node \n");
 	}	

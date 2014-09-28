@@ -68,7 +68,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 	lmchar_t name_of_required_data_set[MAX_NAME_LENGTH], SR_mode;
 	
 	socklen_t clilen;
-	find_t *Tqst_SFounds;
 	node_t *RecNode, *DataBuffer;
 	lsipdx_answer_t *Answers;
 
@@ -76,6 +75,8 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 	Popts = &opts;
 	
 	m3l_set_Send_receive_tcpipsocket(&Popts);
+	
+	int help;
 	
 	cycle=0;
 /*
@@ -129,7 +130,9 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 	
 	printf(" Unique ID is %ld\n", Make_ID_Number(sockfd));
 
-	while(1){
+	
+	help = 1;
+	while(help++ < 11){
 /*
  * if already in cycle, you need to lock mutex here
  */
@@ -514,11 +517,15 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 
 	}      /* end of while(1) */
 	
-	if(Tqst_SFounds != NULL) m3l_DestroyFound(&Tqst_SFounds);
+	
+	printf(" Leving while loop %d\n", Data_Threads->nall_data_threads);
 /*
  * join threads and release memmory
  */
 	for(i=0; i< Data_Threads->nall_data_threads; i++){
+		
+		printf(" Joining thread %d  %d \n",  i, Data_Threads->Data_Str[i]->data_threadPID);
+		
 		if( Data_Threads->Data_Str[i]->data_threadPID != NULL){
 			if( pthread_join(*Data_Threads->Data_Str[i]->data_threadPID, NULL) != 0)
 				Error("Server_Body:  Joining thread failed");
@@ -528,6 +535,8 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 		free(Data_Threads->Data_Str[i]->name_of_channel);
 // 		free(Data_Threads->Data_Str[i]->status_run);
 	}
+	
+	printf(" After joining \n");
 
 	Pthread_mutex_destroy(&Data_Threads->lock);
 	Pthread_cond_destroy(&Data_Threads->cond);
@@ -547,11 +556,12 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 	Pthread_mutex_destroy(&Data_Threads->sync->block);
 	Pthread_cond_destroy(&Data_Threads->sync->condvar);
 	Pthread_cond_destroy(&Data_Threads->sync->last);
+	free(Data_Threads->sync->incrm);
 
 	free(Data_Threads->sync);
 
 	free(Data_Threads);
-	
+		
 	if(m3l_Umount(&DataBuffer) != 1)
 		Perror("m3l_Umount DataBuffer");
 
