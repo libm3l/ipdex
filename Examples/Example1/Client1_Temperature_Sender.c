@@ -56,6 +56,8 @@ int main(int argc, char *argv[])
 	node_t *Gnode=NULL, *RecNode=NULL, *TmpNode = NULL;
 	pid_t  childpid;
 	size_t *dim, i, j;
+	
+	FILE *fp;
 
 	lmint_t sockfd, portno, n, status, ch_stat, *tmpint, *tmpi;
 
@@ -144,6 +146,11 @@ int main(int argc, char *argv[])
 		if(nanosleep(&tim , &tim2) < 0 )
 			Error("Nano sleep system call failed \n");
  	}
+ 	
+ 	 if ( (fp = fopen("TEMPERATURE_STAT","w")) == NULL)
+	Perror("fopen");
+	fprintf(fp, "TEMPERATURE finished\n");
+	fclose(fp);	
 
 
      return 0; 

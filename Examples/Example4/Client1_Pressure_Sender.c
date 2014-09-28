@@ -55,6 +55,8 @@ int main(int argc, char *argv[])
 	node_t *Gnode=NULL, *RecNode=NULL, *TmpNode = NULL;
 	pid_t  childpid;
 	size_t *dim, i, j;
+	
+	FILE *fp;
 
 	lmint_t sockfd, portno, n, status, ch_stat, *tmpint, *tmpi;
 
@@ -150,6 +152,11 @@ int main(int argc, char *argv[])
  */
 	if( close(sockfd) == -1)
 		Perror("close");
+	
+ 	if ( (fp = fopen("PRESSURE_STAT","w")) == NULL)
+		Perror("fopen");
+	fprintf(fp, "PRESSURE finished\n");
+	fclose(fp);	
 
      return 0; 
 }

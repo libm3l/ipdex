@@ -57,6 +57,8 @@ int main(int argc, char *argv[])
 	pid_t  childpid;
 	size_t *dim, i, j;
 
+	FILE *fp;
+	
 	lmint_t sockfd, portno, n, status, ch_stat, *tmpint, *tmpi;
 
         socklen_t clilen;
@@ -145,6 +147,11 @@ int main(int argc, char *argv[])
 		if(nanosleep(&tim , &tim2) < 0 )
 			Error("Nano sleep system call failed \n");
  	}
+ 	
+ 	if ( (fp = fopen("DENSITY_STAT","w")) == NULL)
+		Perror("fopen");
+	fprintf(fp, "DENSITY finished\n");
+	fclose(fp);	
 
 
      return 0; 
