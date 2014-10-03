@@ -529,7 +529,7 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 
 		case 1:
 		case 2:
-			opts.opt_REOBseq = 'G'; // send EOFbuff sequence only
+			opts.opt_REOBseq = 'G'; // receive EOFbuff sequence only
 			if( m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts) < 0){
 				Error("SR_Data_Threads: Error when receiving  REOB\n");
 				return -1;
@@ -546,7 +546,7 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 /*
  * same as case 1, just do not close the socket
  */
-			opts.opt_REOBseq = 'G'; // send EOFbuff sequence only
+			opts.opt_REOBseq = 'G'; // receive EOFbuff sequence only
 			if( m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts) < 0){
 				Error("SR_Data_Threads: Error when receiving  REOB\n");
 				return -1;
@@ -556,7 +556,7 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 /*
  * same as case 1, just do not close the socket
  */
-			opts.opt_REOBseq = 'G'; // send EOFbuff sequence only
+			opts.opt_REOBseq = 'G'; // receive EOFbuff sequence only
 			if( m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts) < 0){
 				Error("SR_Data_Threads: Error when receiving  REOB\n");
 				return -1;
