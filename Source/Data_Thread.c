@@ -345,18 +345,19 @@ void *Data_Threads(void *arg)
  */
 				if(round == 0){
 					Sem_post(c->psem);
-				}
+				
 /*
- * Because there is already additional thread spawned by Add_Data_Thread, increase temporarily
- * the number of synced jobs - second 1 in pt_sync_mod
+ * set return value to 1 and increase number of total Data_Threads
  */
-				Pthread_mutex_lock(c->plock);
-// 					(*c->prcounter)++;
-					*c->pretval = 1;
-				Pthread_mutex_unlock(c->plock);
+					Pthread_mutex_lock(c->plock);
+						*c->pretval = 1;
+						(*c->prcounter)++;
+					Pthread_mutex_unlock(c->plock);
+				}
 /*
  * sync all threads, ie. Setvet_Body + all Data_Threads
  * because tere is a new DATA_Thread add temporarily 1 and then increase number of synced threads for next round
+ * the psync->incrm was set to 1 by Server_Body
  */
 				pt_sync_mod(c->psync, 1, 1);
 			}
@@ -384,7 +385,7 @@ void *Data_Threads(void *arg)
  * this thread is to be removed
  */
 // 						*c->pData_Str->status_run=0;
-// 						(*c->prcounter)--;
+						(*c->prcounter)--;
 						*c->pretval = 1;
 /*
  * set status run for SR_Hub and SR_Data_Thread to 0, ie. terminate while loops
