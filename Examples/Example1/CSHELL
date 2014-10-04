@@ -2,7 +2,7 @@
 
 #konsole -e ../../Source/Server_Main.out --port 31000 --input_file Definition_File_PDT_Modes  --show
 #konsole -e  valgrind --tool=memcheck  --trace-children=yes --vex-iropt-register-updates=allregs-at-mem-access --leak-check=full --leak-resolution=high --show-reachable=yes  --track-origins=yes ../../Source/Server_Main.out --port 31000 --input_file Definition_File_PDT_Modes  --show 
-sleep 5
+#sleep 5
 
 konsole -e ./Client1_Pressure_Sender.out localhost 31000
 konsole -e ./Client1_Pressure.out localhost 31000

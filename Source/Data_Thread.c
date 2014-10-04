@@ -260,77 +260,77 @@ void *Data_Threads(void *arg)
  * if arriving request was not sys_link_ type of request
  * check which connection arrived
  */
-			if(*c->pcheckdata == 0){
+			switch(*c->pcheckdata){
+				case 0:
 
-				Pthread_mutex_lock(c->plock);
+					Pthread_mutex_lock(c->plock);
 /*
  * if pretval == 0 and Thread_Status == 0 (thread available for pooling)
  */
 
-				if(*Thread_Status == 0 && *c->pretval == 0){
+					if(*Thread_Status == 0 && *c->pretval == 0){
 /* 
  * if the data thread was not identified yet
  */
-					len1 = strlen(c->pname_of_data_set);
-					if(len1 == len && strncmp(c->pname_of_data_set,local_set_name, len) == 0){
+						len1 = strlen(c->pname_of_data_set);
+						if(len1 == len && strncmp(c->pname_of_data_set,local_set_name, len) == 0){
 /*
  * save socket number and mode of the jobe (S, R), increase increment and set return value to 1
  */				
-						SR_Threads->sockfd[local_cntr]	= *c->psocket;
-						SR_Threads->SR_mode[local_cntr] = *c->pSR_mode;
-						local_cntr++;
-						*c->pretval = 1;
+							SR_Threads->sockfd[local_cntr]	= *c->psocket;
+							SR_Threads->SR_mode[local_cntr] = *c->pSR_mode;
+							local_cntr++;
+							*c->pretval = 1;
 /*
  * if thread status is S, set Thread_S_Status = 1 to block any other arriving S thread from 
  * being considered until the tranfer is finished (Check_Request.c and SR_Hub.c)
  */
-						if( *c->pSR_mode == 'S'){
-							*Thread_S_Status = 1;
-						}
+							if( *c->pSR_mode == 'S') *Thread_S_Status = 1;
 /*
  * if thread status is R, increment Thread_R_Status. Once the counter reaches value of requested
  * R_Thread any other arriving R_thread will be blocked until the tranfer is finished (Check_Request.c and SR_Hub.c)
  */
-						else if(*c->pSR_mode == 'R'){
-							(*Thread_R_Status)++;
-						}
-						else
-							Error("Data_Thread: Wrong SR_mode");
-/* 
+							else if(*c->pSR_mode == 'R'){
+								(*Thread_R_Status)++;
+							}
+							else
+								Error("Data_Thread: Wrong SR_mode");
+	/* 
  * when the thread is positively identified, decrement counter of available thread for next round of identification, 
  * once n_avail_loc_theads == 0 all SR threads arrived, leave do - while loop and decrement (*c->pcounter)--
  * ie. next arriving threads will not use this thread because it is alrady used
  */
-						n_avail_loc_theads--;
+							n_avail_loc_theads--;
 /*
  * if number of available SR threads is 0, ie. all S and R requests for particular data set arrived
  * decrement number of available data sets
  */
-						if(n_avail_loc_theads == 0){
+							if(n_avail_loc_theads == 0){
 /*
  * set number of available processes for SR_Thread to  n_rec_proc+1 = number of Receivers + Sender
  */
-							*SR_Threads->R_availth_counter = n_rec_proc+1;
+								*SR_Threads->R_availth_counter = n_rec_proc+1;
 /*
  * set Thread_Status to 1
  */
-							*Thread_Status = 1;
+								*Thread_Status = 1;
  /* 
   * decrement counter of thread  which will check condition, used to identify how many threads are still active
   * use in case of "fixed" communication setup - see SR_Hub sequence: if(*c->pcounter == 1); Pthread_cond_signal(c->pcond);
   */
-							(*c->prcounter)--;
+								(*c->prcounter)--;
+							}
 						}
 					}
-				}
 /*
  * synchronized all threads at the end
  */	
-				Pthread_mutex_unlock(c->plock);
+					Pthread_mutex_unlock(c->plock);
 
-				pt_sync(c->psync);
-			}
-			else if(*c->pcheckdata == 100){
+					pt_sync(c->psync);
+					break;
+
+				case 100:
 /*
  * request was _sys_link_ request
  */
@@ -343,25 +343,26 @@ void *Data_Threads(void *arg)
  * in Server_Body so that the Server_Body pt_sync_mod is used in connenction with 
  * second pt_sync in Data_Threads
  */
-				if(round == 0){
-					Sem_post(c->psem);
+					if(round == 0){
+						Sem_post(c->psem);
 				
 /*
  * set return value to 1 and increase number of total Data_Threads
  */
-					Pthread_mutex_lock(c->plock);
-						*c->pretval = 1;
-						(*c->prcounter)++;
-					Pthread_mutex_unlock(c->plock);
-				}
+						Pthread_mutex_lock(c->plock);
+							*c->pretval = 1;
+							(*c->prcounter)++;
+						Pthread_mutex_unlock(c->plock);
+					}
 /*
  * sync all threads, ie. Setvet_Body + all Data_Threads
  * because tere is a new DATA_Thread add temporarily 1 and then increase number of synced threads for next round
  * the psync->incrm was set to 1 by Server_Body
  */
-				pt_sync_mod(c->psync, 1, 1);
-			}
-			else if(*c->pcheckdata == 200){
+					pt_sync_mod(c->psync, 1, 1);
+					break;
+
+				case 200:
 /*
  * delete thread
  *
@@ -372,54 +373,57 @@ void *Data_Threads(void *arg)
 //					this can be done by checking local_cntr, if not 0, some sets already arrived
 // 				}
 				
-				Pthread_mutex_lock(c->plock);
-				if(*Thread_Status == 0 && *c->pretval == 0){
-					len1 = strlen(c->pname_of_data_set);
-					if(len1 == len && strncmp(c->pname_of_data_set,local_set_name, len) == 0){
+					Pthread_mutex_lock(c->plock);
+					if(*Thread_Status == 0 && *c->pretval == 0){
+						len1 = strlen(c->pname_of_data_set);
+						if(len1 == len && strncmp(c->pname_of_data_set,local_set_name, len) == 0){
 /*
  * set SR_mode to T as terminate
  */
-					for(i=0; i < n_rec_proc + 1; i++)
-						SR_Threads->SR_mode[i] = 'T';
+						for(i=0; i < n_rec_proc + 1; i++)
+							SR_Threads->SR_mode[i] = 'T';
 /*
  * this thread is to be removed
  */
-// 						*c->pData_Str->status_run=0;
-						(*c->prcounter)--;
-						*c->pretval = 1;
-						*c->pThreadID = pthread_self();
-						*c->pData_Str->status_run = 0;
+							(*c->prcounter)--;
+							*c->pretval = 1;
+							*c->pThreadID = pthread_self();
+							*c->pData_Str->status_run = 0;
 /*
  * set status run for SR_Hub and SR_Data_Thread to 0, ie. terminate while loops
  */
-						*SR_Threads->status_run = 0;
+							*SR_Threads->status_run = 0;
 /*
  * Singal SR_hub sem_wait(c->psem) for this semaphore, ie. as if all SR threads
  * arrived. For SR threads in normal "working" state this is done 
  * after }while(n_avail_loc_theads != 0) loop
  */
-						Sem_post(&loc_sem);
+							Sem_post(&loc_sem);
 /*
  * delete this node, it will remove the item from the buffer
  */
-						if( m3l_Umount(&c->Node) != 1)
-							Perror("m3l_Umount");
+							if( m3l_Umount(&c->Node) != 1)
+								Perror("m3l_Umount");
 /*
  * no leave do - while(n_avail_loc_theads != 0) loop 
  * the value of status_run is set to 0 
  * so the outer while loop (status_run == 1) will be automatically left too
  * This sequence may change later when SR_Data_Threads and SR_Hub are terminated
  */
-						Pthread_mutex_unlock(c->plock);
-						pt_sync_mod(c->psync,1, 0);
-						goto END;
+							Pthread_mutex_unlock(c->plock);
+							pt_sync_mod(c->psync,1, 0);
+							goto END;
+						}
 					}
-				}
-				Pthread_mutex_unlock(c->plock);
-				pt_sync_mod(c->psync,1, 0);
+					Pthread_mutex_unlock(c->plock);
+					pt_sync_mod(c->psync,1, 0);
+					break;
+
+				default:
+					Error("SR_Data_Threads: Wrong mode - check KeepAlive and ATDT specifications");
+				break;
 			}
-			else
-				Error("Wrong value of pcheckdata");
+
 /*
  * indicate that thread went through the identfication 
  * loop at least once. 
@@ -517,7 +521,6 @@ END:
 /*
  * release borrowed memory, malloced before starting thread in Data_Thread()
  */
-        printf(" Leaving DATA_Thread\n");
 	free(c->pData_Str);
 	free(c);
 
