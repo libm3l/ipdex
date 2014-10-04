@@ -456,17 +456,6 @@ void *Data_Threads(void *arg)
 	}
 END:
 /*
- * SR_hub sem_wait(c->psem) for this semaphore 
- * post it for the last time. After that SR_hub terminates and waits until all
- * SR_Data_Threads are finished
- */
-// 	Sem_post(&loc_sem);
-/*
- * SR_Hub posted semaphore, ie. all SR_Data_Thread are at the end on return 
- * statement and so is SR_Hub, staty freeing memory and joining all threads
- */
-// 	Sem_wait(&loc_sem);    this casused deadlock - if needed add a new semaphore
-/*
  * join SR_hub and release memory
  * join this thread before SR_Threads, it is because SR_Hub is waiting for final semaphore 
  * from SR_Data_Threads. By joining SR_Hub_Thread after the SR_Threads were freed
