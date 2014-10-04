@@ -185,7 +185,7 @@ typedef struct SR_hub_thread_str{
 	lmint_t			*pstatus_run_h;			/* status of the job, set to 1 upon initialization
 	                                                           once the connection requested to be be closed
 	                                                           set to 0 */
-
+	lmint_t			*pstatus_run_DataThr_h;
 }SR_hub_thread_str_t;
 
 

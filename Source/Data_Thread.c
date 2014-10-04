@@ -282,6 +282,10 @@ void *Data_Threads(void *arg)
 							local_cntr++;
 							*c->pretval = 1;
 /*
+ * indicate that at least one request arrived for this thread
+ */
+							*c->pData_Str->status_run = 2;
+/*
  * if thread status is S, set Thread_S_Status = 1 to block any other arriving S thread from 
  * being considered until the tranfer is finished (Check_Request.c and SR_Hub.c)
  */

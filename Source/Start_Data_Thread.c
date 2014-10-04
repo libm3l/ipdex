@@ -141,9 +141,9 @@ lmsize_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
 /*
  * malloc status_run variable and set it to 1; if 0 thread will be terminated
  */
-// 		if( (Data_Thread->Data_Str[i]->status_run = (lmint_t *)malloc(MAX_NAME_LENGTH* sizeof(lmint_t))) == NULL)
-// 			Perror("Start_Data_Thread: Data_Thread->Data_Str->lmint_t malloc");
-// 		*Data_Thread->Data_Str[i]->status_run = 1;
+		if( (Data_Thread->Data_Str[i]->status_run = (lmint_t *)malloc(MAX_NAME_LENGTH* sizeof(lmint_t))) == NULL)
+			Perror("Start_Data_Thread: Data_Thread->Data_Str->lmint_t malloc");
+		*Data_Thread->Data_Str[i]->status_run = 1;
 	}
 /*
  * set the value of for syncing thread to number of data sets + 2 (it. sync all Data_Thread (n_data_threads) + 
