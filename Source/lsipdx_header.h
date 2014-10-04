@@ -81,7 +81,7 @@ typedef struct data_thread_int_str{
 	pthread_t 		*data_threadPID;	/* thread ID of all threads in group data_threads */
 	lmchar_t 		*name_of_channel;	/* each spawn thread corresponds to required channel (data link)
 								store the name in this variable */
-// 	lmint_t			*status_run;		/* if 1, thread is active, if 0, thread should be terminated */
+	lmint_t			*status_run;		/* if 1, thread is active, if 0, thread should be terminated */
 }data_thread_int_str_t;
 
 typedef struct data_thread_args{
@@ -95,6 +95,7 @@ typedef struct data_thread_args{
 	pt_sync_t		*psync;
 	data_thread_int_str_t	*pData_Str;		/* Data_Thread specific data PID, name_of_channel etc. */
 	sem_t			*psem;
+	pthread_t		*pThreadID;
 }data_thread_args_t;
 
 /*
@@ -106,13 +107,13 @@ typedef struct data_thread_str{
 
 	lmsize_t 		*n_data_threads;  	/* number of thread in group data_threads */
 	lmsize_t 		nall_data_threads;  	/* number of allocated Data_Thread str in group data_threads */
-// 	lmsize_t 		*data_threads_availth_counter, *data_threads_remainth_counter; 	/* number of available and free threads  */
 	lmsize_t 		*data_threads_remainth_counter; 	/* number of available and free threads  */
 	lmchar_t 		*name_of_data_set, *SR_mode;	/* stores data_set name which is then compared in data_thread  and SR_moode*/
 	lmint_t  		*socket,  *retval, *checkdata;		/* socket ID passed to data_Thread, message upon receiving it, yes or not to check data*/
 	pt_sync_t		*sync;
 	data_thread_int_str_t	**Data_Str;		/* Data_Thread specific data PID, name_of_channel etc. */
 	sem_t			sem;
+	pthread_t		*ThreadID;
 }data_thread_str_t;
 
 

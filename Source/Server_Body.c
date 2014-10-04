@@ -131,10 +131,10 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 	printf(" Unique ID is %ld\n", Make_ID_Number(sockfd));
 
 	
-// 	help = 1;
-// 	while(help++ < 11){
+	help = 1;
+	while(help++ < 11){
 	
-	while(1){
+// 	while(1){
 /*
  * if already in cycle, you need to lock mutex here
  */
@@ -466,6 +466,11 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 // 					Pthread_mutex_lock(&Data_Threads->lock);
 // 						(*Data_Threads->n_data_threads)--;
 // 					Pthread_mutex_unlock(&Data_Threads->lock);
+					
+					if( pthread_join(*Data_Threads->ThreadID, NULL) != 0)
+						Error("Server_Body case200: Joining thread failed");
+					*Data_Threads->ThreadID = 0;
+
 				}
 				else{
 /*
@@ -531,14 +536,14 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 		
 		printf(" Joining thread %d  %d \n",  i, Data_Threads->Data_Str[i]->data_threadPID);
 		
-		if( Data_Threads->Data_Str[i]->data_threadPID != NULL){
+		if( Data_Threads->Data_Str[i]->status_run == 0){
 			if( pthread_join(*Data_Threads->Data_Str[i]->data_threadPID, NULL) != 0)
 				Error("Server_Body:  Joining thread failed");
 		}
 	
 		free(Data_Threads->Data_Str[i]->data_threadPID);
 		free(Data_Threads->Data_Str[i]->name_of_channel);
-// 		free(Data_Threads->Data_Str[i]->status_run);
+		free(Data_Threads->Data_Str[i]->status_run);
 		free(Data_Threads->Data_Str[i]);
 	}
 	
@@ -564,7 +569,8 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 	Pthread_cond_destroy(&Data_Threads->sync->condvar);
 	Pthread_cond_destroy(&Data_Threads->sync->last);
 	free(Data_Threads->sync->incrm);
-
+	free(Data_Threads->ThreadID);
+	
 	free(Data_Threads->sync);
 
 	free(Data_Threads);

@@ -387,6 +387,8 @@ void *Data_Threads(void *arg)
 // 						*c->pData_Str->status_run=0;
 						(*c->prcounter)--;
 						*c->pretval = 1;
+						*c->pThreadID = pthread_self();
+						*c->pData_Str->status_run = 0;
 /*
  * set status run for SR_Hub and SR_Data_Thread to 0, ie. terminate while loops
  */

@@ -90,6 +90,8 @@ data_thread_str_t *Allocate_Data_Thread_DataSet(void){
 		Perror("Data_Thread: Data_Thread->name_of_data_set");	
 	if ( (Data_Thread->SR_mode  = (lmchar_t *)malloc(sizeof(lmchar_t))) == NULL)
 		Perror("Data_Thread: Data_Thread->SR_mode");
+	if ( (Data_Thread->ThreadID  = (pthread_t *)malloc(sizeof(pthread_t))) == NULL)
+		Perror("Data_Thread: Data_Thread->sybc->ThreadID");
 /*
  * initialize sync 
  */
