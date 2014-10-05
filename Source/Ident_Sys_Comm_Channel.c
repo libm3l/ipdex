@@ -91,10 +91,6 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 
 	retval = 0;
 	
-		
-// 	if(m3l_Cat(*DataBuffer, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
-// 		Error("Server_Body: CatData");
-	
 	tmpname = name_of_required_data_set;
 /*
  * find /Header/Name_of_Channel in RecNode

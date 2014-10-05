@@ -168,19 +168,19 @@ lmint_t add_connection(const lmchar_t *hostname, lmint_t portno, const lmchar_t 
  * create header which will identify name of data set and Sender (S) or Receiver (R)
  */
 		if( ( Gnode = ChannelList(name_of_newchannel, 2,  'D', 'N')) == NULL)
-			Error("open_connection_to_server: NULL Gnode");
+			Error("add_connection: NULL Gnode");
 again: 
 		if ( (sockfd =  m3l_cli_open_socket(hostname, portno, (lmchar_t *)NULL)) < 0)
-			Error("open_connection_to_server: Could not open socket");
+			Error("add_connection: Could not open socket");
 /*
  * send header identifying name which connection will be used. Upon receiving this info, 
  * server will send back the answer
  */
 		if( (TmpNode = m3l_send_receive_tcpipsocket(Gnode, (lmchar_t *)NULL, sockfd, Popts)) == NULL){
-			Perror("open_connection_to_server: m3l_send_receive_tcpipsocket error");
+			Perror("add_connection: m3l_send_receive_tcpipsocket error");
 
 			if(m3l_Umount(&Gnode) != 1)
-				Perror("open_connection_to_server: m3l_Umount");
+				Perror("add_connection: m3l_Umount");
 			return -1;
 		}
 /*
@@ -260,19 +260,19 @@ lmint_t del_connection(const lmchar_t *hostname, lmint_t portno, const lmchar_t 
  * create header which will identify name of data set and Sender (S) or Receiver (R)
  */
 		if( ( Gnode = ChannelList(name_of_newchannel, 0,  'D', 'N')) == NULL)
-			Error("open_connection_to_server: NULL Gnode");
+			Error("del_connection: NULL Gnode");
 again: 
 		if ( (sockfd =  m3l_cli_open_socket(hostname, portno, (lmchar_t *)NULL)) < 0)
-			Error("open_connection_to_server: Could not open socket");
+			Error("del_connection: Could not open socket");
 /*
  * send header identifying name which connection will be used. Upon receiving this info, 
  * server will send back the answer
  */
 		if( (TmpNode = m3l_send_receive_tcpipsocket(Gnode, (lmchar_t *)NULL, sockfd, Popts)) == NULL){
-			Perror("open_connection_to_server: m3l_send_receive_tcpipsocket error");
+			Perror("del_connection: m3l_send_receive_tcpipsocket error");
 
 			if(m3l_Umount(&Gnode) != 1)
-				Perror("open_connection_to_server: m3l_Umount");
+				Perror("del_connection: m3l_Umount");
 			return -1;
 		}
 /*
