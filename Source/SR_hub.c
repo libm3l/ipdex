@@ -222,10 +222,6 @@ void *SR_hub(void *arg)
  * synced too
  */
 				pt_sync_mod(c->psync_loc, 0, 1);
-/* 
- * if connection required to be closed, terminate while loop
- */
-// 				if(*c->pstatus_run_h != 1) break;
 /*
  * do 2 loops (ie. Sender-to-receiver   and   Recevier-to-Sender) and then continue
  */
@@ -234,6 +230,10 @@ void *SR_hub(void *arg)
  * once the data transfer is finished wait until all data is tranferred and S and R threads close their socket
  */
 				Sem_wait(c->psem_g);
+/* 
+ * if connection required to be closed, terminate while loop
+ */
+				if(*c->pstatus_run_h != 1) break;
 				terminal_loop_sequence(c);
 			}
 		break;
@@ -253,7 +253,7 @@ void *SR_hub(void *arg)
  * synced too
  */
 				pt_sync_mod(c->psync_loc, 0, 1);
-// 				if(*c->pstatus_run_h != 1) break;
+				if(*c->pstatus_run_h != 1) break;
 
 				terminal_loop_sequence(c);
 			}
