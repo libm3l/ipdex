@@ -1,9 +1,9 @@
 #!/bin/csh
 
-#konsole -e ../../Source/Server_Main.out --port 34000 --input_file Definition_File_PDT_ATDT_A  --show
-konsole -e  valgrind --tool=memcheck  --trace-children=yes --vex-iropt-register-updates=allregs-at-mem-access --leak-check=full --leak-resolution=high --show-reachable=yes  --track-origins=yes ../../Source/Server_Main.out --port 34000 --input_file Definition_File_PDT_ATDT_A  --show 
+konsole -e ../../Source/Server_Main.out --port 29000 --input_file Definition_File_PDT_ATDT_A  --show
+#konsole -e  valgrind --tool=memcheck  --trace-children=yes --vex-iropt-register-updates=allregs-at-mem-access --leak-check=full --leak-resolution=high --show-reachable=yes  --track-origins=yes ../../Source/Server_Main.out --port 29000 --input_file Definition_File_PDT_ATDT_A  --show 
 sleep 5
 
-konsole -e ./Client1_Pressure_Sender.out localhost 34000
-konsole -e ./Client1_Pressure.out localhost 34000
+konsole -e ./Client1_Pressure_Sender.out localhost 29000
+konsole -e ./Client1_Pressure.out localhost 29000
 
