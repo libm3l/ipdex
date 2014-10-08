@@ -377,6 +377,8 @@ void *Data_Threads(void *arg)
 //					this can be done by checking local_cntr, if not 0, some sets already arrived
 // 				}
 
+
+					printf(" Option is %c \n",c->pPopts->opt_f);
 					Pthread_mutex_lock(c->plock);
 					if(*Thread_Status == 0 && *c->pretval == 0){
 						len1 = strlen(c->pname_of_data_set);

@@ -78,6 +78,7 @@ data_thread_args_t *Associate_Data_Thread(node_t *List, data_thread_str_t *Data_
 		DataArgs->pcheckdata 		=  Data_Thread->checkdata;
 		DataArgs->psem	 		= &Data_Thread->sem;
 		DataArgs->pThreadID		=  Data_Thread->ThreadID;
+		DataArgs->pPopts		=  Data_Thread->Popts;
 
 		DataArgs->psync 		=  Data_Thread->sync;
 		DataArgs->psync->pnsync 	=  Data_Thread->sync->nsync;

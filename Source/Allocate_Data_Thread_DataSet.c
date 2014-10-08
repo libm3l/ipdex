@@ -91,7 +91,9 @@ data_thread_str_t *Allocate_Data_Thread_DataSet(void){
 	if ( (Data_Thread->SR_mode  = (lmchar_t *)malloc(sizeof(lmchar_t))) == NULL)
 		Perror("Data_Thread: Data_Thread->SR_mode");
 	if ( (Data_Thread->ThreadID  = (pthread_t *)malloc(sizeof(pthread_t))) == NULL)
-		Perror("Data_Thread: Data_Thread->sybc->ThreadID");
+		Perror("Data_Thread: Data_Thread->ThreadID");
+	if ( (Data_Thread->Popts  = (opts_t *)malloc(sizeof(opts_t))) == NULL)
+		Perror("Data_Thread: Data_Thread->Popts");	
 /*
  * initialize sync 
  */

@@ -420,6 +420,8 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 				*Data_Threads->retval = 0;
 				*Data_Threads->sync->incrm = -1;
 
+				Data_Threads->Popts->opt_f ='f';
+
 				if( snprintf(Data_Threads->name_of_data_set, MAX_NAME_LENGTH,"%s",name_of_required_data_set) < 0)
 					Perror("snprintf");
 
@@ -568,6 +570,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 	Pthread_cond_destroy(&Data_Threads->sync->last);
 	free(Data_Threads->sync->incrm);
 	free(Data_Threads->ThreadID);
+	free(Data_Threads->Popts);
 	
 	free(Data_Threads->sync);
 
@@ -577,6 +580,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 		Perror("m3l_Umount DataBuffer");
 
 	DestroyPredefinedAnswers(&Answers);
+	printf(" Leaving SR_Hub \n");
 	
 	return 1;
 }

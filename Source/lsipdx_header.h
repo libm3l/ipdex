@@ -96,6 +96,8 @@ typedef struct data_thread_args{
 	data_thread_int_str_t	*pData_Str;		/* Data_Thread specific data PID, name_of_channel etc. */
 	sem_t			*psem;
 	pthread_t		*pThreadID;
+	opts_t		*pPopts;
+
 }data_thread_args_t;
 
 /*
@@ -114,6 +116,7 @@ typedef struct data_thread_str{
 	data_thread_int_str_t	**Data_Str;		/* Data_Thread specific data PID, name_of_channel etc. */
 	sem_t			sem;
 	pthread_t		*ThreadID;
+	opts_t		*Popts;
 }data_thread_str_t;
 
 
