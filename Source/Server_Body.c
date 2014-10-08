@@ -444,37 +444,46 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
  * If all threads went attempted to evaluate the incoming request and 
  * none of them identifed the thread, give error message
  */
-				if(*Data_Threads->retval == 1){
+				switch(*Data_Threads->retval){
+// 				if(*Data_Threads->retval == 1){
+					case 1:
 /*
  * data set was identified
  */
-					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
-					if( m3l_send_to_tcpipsocket(Answers->RR_POS, (const char *)NULL, newsockfd, Popts) < 1)
-					Error("Server_Body: Error during sending data to socket");
-					if( m3l_Umount(&RecNode) != 1)
-						Perror("m3l_Umount");
-					if( close(newsockfd) == -1)
-						Perror("close");
-					
-					if( pthread_join(*Data_Threads->ThreadID, NULL) != 0)
-						Error("Server_Body case200: Joining thread failed");
-					*Data_Threads->ThreadID = 0;
+						opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
+						if( m3l_send_to_tcpipsocket(Answers->RR_POS, (const char *)NULL, newsockfd, Popts) < 1)
+							Error("Server_Body: Error during sending data to socket");
+						if( m3l_Umount(&RecNode) != 1)
+							Perror("m3l_Umount");
+						if( close(newsockfd) == -1)
+							Perror("close");
+						
+						if( pthread_join(*Data_Threads->ThreadID, NULL) != 0)
+							Error("Server_Body case200: Joining thread failed");
+						*Data_Threads->ThreadID = 0;
+						
+						break;
 
-				}
-				else{
+// 				}
+// 				else{
+					case 2:
+						break;
+						
+					case 0:
 /*
  * none of the data set was able to identify request, issue warnign and close socket
  */
-					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
-					if( m3l_send_to_tcpipsocket(Answers->RR_NEG, (const char *)NULL, newsockfd, Popts) < 1)
-					Error("Server_Body: Error during sending data to socket");
-					printf(" Case 200 retval (%d)  --- %s   %c\n", *Data_Threads->retval, name_of_required_data_set, SR_mode);
-					Warning("Server_Body: Not valid data set");
-					if( m3l_Umount(&RecNode) != 1)
-						Perror("m3l_Umount");
-					if( close(newsockfd) == -1)
-						Perror("close");
-					continue;
+						opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
+						if( m3l_send_to_tcpipsocket(Answers->RR_NEG, (const char *)NULL, newsockfd, Popts) < 1)
+							Error("Server_Body: Error during sending data to socket");
+						printf(" Case 200 retval (%d)  --- %s   %c\n", *Data_Threads->retval, name_of_required_data_set, SR_mode);
+						Warning("Server_Body: Not valid data set");
+						if( m3l_Umount(&RecNode) != 1)
+							Perror("m3l_Umount");
+						if( close(newsockfd) == -1)
+							Perror("close");
+						continue;
+					break;
 				}
 			break;
 			
