@@ -377,8 +377,6 @@ void *Data_Threads(void *arg)
 //					this can be done by checking local_cntr, if not 0, some sets already arrived
 // 				}
 
-
-					printf(" Option is %c \n",c->pPopts->opt_f);
 					Pthread_mutex_lock(c->plock);
 					if(*Thread_Status == 0 && *c->pretval == 0){
 						len1 = strlen(c->pname_of_data_set);
@@ -386,8 +384,14 @@ void *Data_Threads(void *arg)
 							
 							if(*c->pData_Str->status_run == 2){
 /*
- * at least one client for this Data thread arrived, notify server by setting 
- * retval to 2 and ignore request to close connection
+ * at least one client for this Data thread arrived
+ */
+								if(c->pPopts->opt_f == 'f'){
+									
+								}
+								else{
+/*,
+ * notify server by setting retval to 2 and ignore request to close connection
  */
 								*c->pretval = 2;
 								break;
