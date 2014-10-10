@@ -393,8 +393,9 @@ void *Data_Threads(void *arg)
 /*,
  * notify server by setting retval to 2 and ignore request to close connection
  */
-								*c->pretval = 2;
-								break;
+									*c->pretval = 2;
+									break;
+								}
 							}
 /*
  * set SR_mode to T as terminate
