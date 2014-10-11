@@ -447,7 +447,6 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
  * none of them identifed the thread, give error message
  */
 				switch(*Data_Threads->retval){
-// 				if(*Data_Threads->retval == 1){
 					case 1:
 /*
  * data set was identified
@@ -466,9 +465,16 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 						
 						break;
 
-// 				}
-// 				else{
 					case 2:
+						opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
+						if( m3l_send_to_tcpipsocket(Answers->RR_NEG, (const char *)NULL, newsockfd, Popts) < 1)
+							Error("Server_Body: Error during sending data to socket");
+						if( m3l_Umount(&RecNode) != 1)
+							Perror("m3l_Umount");
+						if( close(newsockfd) == -1)
+							Perror("close");
+						printf(" Case 200 retval (%d)  --- %s   %c\n", *Data_Threads->retval, name_of_required_data_set, SR_mode);
+						Warning("Server_Body: Data_Thread busy");
 						break;
 						
 					case 0:

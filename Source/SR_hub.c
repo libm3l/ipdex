@@ -287,11 +287,19 @@ void terminal_loop_sequence(SR_hub_thread_str_t *c){
 		(*c->prcounter)++;
 /*
  * release thread, ie. set Thread_Status = 0, S_Status and R_Status
+ * these values are used in "buffer" and are used during identification 
+ * process
  */
 		*c->pThread_Status   = 0;	/* thread can be used again */
 		*c->pThread_S_Status = 0;	/* number of connected S processes is 0 */
 		*c->pThread_R_Status = 0;	/* number of connected R processes is 0 */
-		*c->pstatus_run_DataThr_h = 1;  /* indicate this thread is empty. ie. all its hubs are free */
+/*
+ * indicate this thread is empty. ie. all its hubs are free 
+ * in case at least one process for this Dat_Thread arrives, the Data_Thread
+ * sets it to 2, this is done to prevent closing thread while at least one client
+ * opens up CONNECTION
+ */
+		*c->pstatus_run_DataThr_h = 1; 
 /*
  * if all threads were occupied, ie *Data_Threads->n_data_threads == *c->pcounter == 0
  * the server is waiting for signal before the continuing with data process identification. 
