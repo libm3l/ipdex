@@ -31,3 +31,11 @@
 	commit 7400e3de4d7e3554b8b6ed8da3218f7187ba0ef8
 		tested 1-4 PS Toshiba, tests OK
 		test Ex8 - 1000 times opening and deleting new connection
+
+	commit 8f17b4998d6534d78b9a748f8ae74d8bcd14dd0b
+	        tested 1-4 PS Toshiba, tests OK
+		test Ex8 - 1000 times opening and deleting new connection
+		test Ex8 opening channel, transfer 1000 times, close channel
+
+	        test Ex8 - 1000 times opening and deleting new connection
+
