@@ -461,7 +461,7 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
  * but I think it is  not needed, moved lock after 
  */
 		if ( (n = Write(sockfd,c->pbuffer, *c->pngotten)) < *c->pngotten){
-			Perror("write()");
+			Warning("write()");
 			return -1;
 		}
 /* prcounter is counter of R_threads which still have not 
@@ -607,7 +607,7 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 
 		bzero(c->pbuffer,MAXLINE+1);
 		if (  (*c->pngotten = Read(sockfd, c->pbuffer, MAXLINE, 'R')) == -1){
-			Perror("read");
+			Warning("read");
 			return -1;
 		}
 
