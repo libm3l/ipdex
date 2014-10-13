@@ -297,7 +297,7 @@ void terminal_loop_sequence(SR_hub_thread_str_t *c){
  * indicate this thread is empty. ie. all its hubs are free 
  * in case at least one process for this Dat_Thread arrives, the Data_Thread
  * sets it to 2, this is done to prevent closing thread while at least one client
- * opens up CONNECTION
+ * opens up connection
  */
 		*c->pstatus_run_DataThr_h = 1; 
 /*
