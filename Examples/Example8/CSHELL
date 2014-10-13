@@ -2,13 +2,13 @@
 
 set i=1
 echo $i
-while ($i <= 5)
+while ($i <= 100)
 
 	echo $i
 	set NAME=`echo HEAT$i`
-	./Client1_AddHeatChannel.out localhost 32000 $NAME
+	./Client1_AddHeatChannel.out localhost 31000 $NAME
 	#sleep 1
-	./Client1_DelChannel.out localhost 32000 $NAME
+	./Client1_DelChannel.out localhost 31000 $NAME
 	
 	@ i = $i + 1
 end
