@@ -253,7 +253,7 @@ void *SR_hub(void *arg)
  * synced too
  */
 				pt_sync_mod(c->psync_loc, 0, 1);
-// 				if(*c->pstatus_run_h != 1) break;
+				if(*c->pstatus_run_h != 1) break;
 			}
 				terminal_loop_sequence(c);
 
