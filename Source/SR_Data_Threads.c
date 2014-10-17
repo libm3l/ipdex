@@ -75,7 +75,7 @@ void *SR_Data_Threads(void *arg)
 
 	lmchar_t SR_mode;
 	lmint_t sockfd, retval;
-	lmsize_t i;
+	lmsize_t loc_cntr;
 /*
  * sync all SR_Threads and SR_hub so that Data_Thread goes further once they 
  * are all spawned. Without that there were problems with case 200 where Data_Thread 
@@ -117,6 +117,7 @@ void *SR_Data_Threads(void *arg)
 
 			SR_mode =  c->pSR_mode[*c->pthr_cntr];
 			sockfd  =  c->psockfd[*c->pthr_cntr];
+			loc_cntr = *c->pthr_cntr;
 			(*c->pthr_cntr)++; 
 
 		Pthread_mutex_unlock(c->plock);
@@ -240,12 +241,12 @@ void *SR_Data_Threads(void *arg)
  * R(eceivers)
  */
 					while(1){
-
-						if(R_KAN(c, sockfd, 5) != 1) return NULL;
 /* 
  * if connection required to be closed, terminate while loop
  */
 						if(*c->pstatus_run != 1) goto END1;
+
+						if(R_KAN(c, sockfd, 5) != 1) goto END1;
 					}
 
 				break;
@@ -255,12 +256,11 @@ void *SR_Data_Threads(void *arg)
  * S(ender)
  */
 					while(1){
-
-						if( S_KAN(c, sockfd, 5) != 1) return NULL;
 /* 
  * if connection required to be closed, terminate while loop
- */
-						if(*c->pstatus_run != 1) goto END1;
+ */						if(*c->pstatus_run != 1) goto END1;
+
+						if( S_KAN(c, sockfd, 5) != 1) goto END1;
 					}
 
 				break;
@@ -359,12 +359,10 @@ END1:
  * to check if the socket is opened, check its value. 
  * if 0, it was already closed
  */
-	for(i=0; i<*c->psync_loc->nthreads; i++){
-		if(c->psockfd[i] > 0){
-			if( close(c->psockfd[i]) == -1)
-				Perror("close");
-			c->psockfd[i] = 0;
-		}
+	if(c->psockfd[loc_cntr] > 0){
+		if( close(c->psockfd[loc_cntr]) == -1)
+			Perror("close");
+		c->psockfd[loc_cntr] = 0;
 	}
 END:
 /*
@@ -410,7 +408,7 @@ lmssize_t Read(lmint_t descrpt , lmchar_t *buff, lmint_t n, lmchar_t SR)
 
 	if (  (ngotten = read(descrpt,buff,n)) == -1){
 		
-		Perror("SR_Data_Threads - Read");
+		Warning("SR_Data_Threads - Read");
 		return -1;
 	}
 	buff[ngotten] = '\0';

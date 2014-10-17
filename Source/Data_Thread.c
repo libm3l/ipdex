@@ -68,10 +68,10 @@ void *Data_Threads(void *arg)
  * Data_Thread (*Data_Thread->sync->nthreads = *Data_Thread->n_data_threads + 1;
  */
 	data_thread_args_t *c = (data_thread_args_t *)arg;
-	lmint_t local_cntr;
+	lmint_t sockfd, sockfd_R;
 	node_t *List, *TmpNode;
 	
-	lmsize_t len, len1, *data_rec_proc, n_rec_proc, n_avail_loc_theads, i;
+	lmsize_t len, len1, *data_rec_proc, n_rec_proc, n_avail_loc_theads, i, local_cntr;
 	
 	lmchar_t *data_set_name, local_set_name[MAX_NAME_LENGTH];
 	find_t *SFounds, *THRStat_SFounds;
@@ -91,6 +91,7 @@ void *Data_Threads(void *arg)
 	m3l_set_Find(&Popts);
 	round = 0;
 	len = 0;
+	sockfd_R = 0;
 /*
  * get my thread ID
  */
@@ -281,6 +282,8 @@ void *Data_Threads(void *arg)
 							SR_Threads->SR_mode[local_cntr] = *c->pSR_mode;
 							local_cntr++;
 							*c->pretval = 1;
+							
+							if(*c->pSR_mode  == 'S')sockfd_R = *c->psocket
 /*
  * indicate that at least one request arrived for this thread
  */
@@ -376,7 +379,6 @@ void *Data_Threads(void *arg)
 // 					some processes already arrived
 //					this can be done by checking local_cntr, if not 0, some sets already arrived
 // 				}
-
 					Pthread_mutex_lock(c->plock);
 					if(*c->pretval == 0){
 						len1 = strlen(c->pname_of_data_set);
@@ -386,10 +388,16 @@ void *Data_Threads(void *arg)
 /*
  * at least one client for this Data thread arrived
  */
-// 								if(c->pPopts->opt_f == 'f'){
-// 									
-// 								}
-// 								else{
+								if(c->pPopts->opt_f == 'f'){
+									
+									for(i=0; i < n_rec_proc + 1; i++){
+										sockfd = SR_Threads->sockfd[i];
+										if(close(sockfd) == -1)
+											Perror("close");
+										SR_Threads->sockfd[i] = 0;
+									}
+								}
+								else{
 /*
  * set sync job increment to 0, it was set by server body to -1
  * it is because we are not going to close any
@@ -406,7 +414,7 @@ void *Data_Threads(void *arg)
   */
 									pt_sync_mod(c->psync,1, 0);
 									break;
-// 								}
+								}
 							}
 /*
  * set SR_mode to T as terminate
@@ -476,7 +484,7 @@ void *Data_Threads(void *arg)
 /*
  * SR_hub sem_wait(c->psem) for this semaphore 
  */
-			Sem_post(&loc_sem);
+		Sem_post(&loc_sem);
 /*
  * now this thread signalled its own SR_hub that all connections arrived and SR_hub start synchronizing all 
  * SR_Data_Threads which are taking care of actual data transfer from S to R threads
@@ -492,6 +500,7 @@ void *Data_Threads(void *arg)
  * decrement a number of synchronized threads which (the value used in pt_sync(c->psync).
  * Some of the threads were already waiting and it gave rise to dead-lock
  */
+		sockfd_R = 0;
 	}
 END:
 /*
