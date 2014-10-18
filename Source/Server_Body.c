@@ -447,6 +447,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
  * none of them identifed the thread, give error message
  */
 				switch(*Data_Threads->retval){
+					case 1:
 					case 4:
 /*
  * data set was identified
