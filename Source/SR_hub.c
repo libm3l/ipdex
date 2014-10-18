@@ -268,6 +268,9 @@ void *SR_hub(void *arg)
  * join the thread in  Data_Thread, let Data_Thread free borrowed memory
  */
 // pthread_exit(NULL);
+
+// printf(" returning from SR_hub\n");
+
 return NULL;
 }
 

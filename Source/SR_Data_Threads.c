@@ -114,7 +114,7 @@ void *SR_Data_Threads(void *arg)
  * protext by mutex
  */
 		Pthread_mutex_lock(c->plock);
-
+		
 			SR_mode =  c->pSR_mode[*c->pthr_cntr];
 			sockfd  =  c->psockfd[*c->pthr_cntr];
 			loc_cntr = *c->pthr_cntr;
@@ -339,7 +339,7 @@ END1:
  */
 	if(c->psockfd[loc_cntr] > 0){
 		if( close(c->psockfd[loc_cntr]) == -1)
-			Perror("close");
+			Perror("SR_Data_Thread close");
 		c->psockfd[loc_cntr] = 0;
 	}
 END:
@@ -347,6 +347,7 @@ END:
  * case 1,2  ends here, they close their opened sockets
  * themeselves, free meory and Return, thread wil be joined in Data_Thread.c
  */
+// printf(" returning from SR_Data_Thread\n");
 	free(c);
 	return NULL;
 }
@@ -512,7 +513,7 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
  * close the socket 
  */
 			if( close(sockfd) == -1)
-				Perror("close");
+				Perror("R_KAN close");
 		break;
 
 			
@@ -632,7 +633,7 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
  * close the socket 
  */
 			if( close(sockfd) == -1)
-				Perror("close");
+				Perror("S_KAN close");
 		break;
 
 		case 5:  

@@ -447,7 +447,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
  * none of them identifed the thread, give error message
  */
 				switch(*Data_Threads->retval){
-					case 1:
+					case 4:
 /*
  * data set was identified
  */
@@ -462,10 +462,12 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 						if( pthread_join(*Data_Threads->ThreadID, NULL) != 0)
 							Error("Server_Body case200: Joining thread failed");
 						*Data_Threads->ThreadID = 0;
+						printf(" Case 100 retval (%d)  --- %s   %c\n", *Data_Threads->retval, name_of_required_data_set, SR_mode);
 						
 						break;
 
 					case 2:
+					case 3:
 						opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
 						if( m3l_send_to_tcpipsocket(Answers->RR_NEG, (const char *)NULL, newsockfd, Popts) < 1)
 							Error("Server_Body: Error during sending data to socket");

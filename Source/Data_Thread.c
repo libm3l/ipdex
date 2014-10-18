@@ -165,7 +165,7 @@ void *Data_Threads(void *arg)
 			printf("Data_Thread: Receiving_Processes not found\n");
 		}
 /*
- * set number of available local thread equal to number of readers + 1 writing
+ * set number of available local thread equal to number of readers + 1 writing process (ie Receivers + 1 Sender)
  */
 		n_avail_loc_theads = n_rec_proc + 1;
 
@@ -268,7 +268,6 @@ void *Data_Threads(void *arg)
 /*
  * if pretval == 0 and Thread_Status == 0 (thread available for pooling)
  */
-
 					if(*Thread_Status == 0 && *c->pretval == 0){
 /* 
  * if the data thread was not identified yet
@@ -326,6 +325,7 @@ void *Data_Threads(void *arg)
   * use in case of "fixed" communication setup - see SR_Hub sequence: if(*c->pcounter == 1); Pthread_cond_signal(c->pcond);
   */
 								(*c->prcounter)--;
+								*c->pData_Str->status_run = 3;
 							}
 						}
 					}
@@ -384,18 +384,26 @@ void *Data_Threads(void *arg)
 						len1 = strlen(c->pname_of_data_set);
 						if(len1 == len && strncmp(c->pname_of_data_set,local_set_name, len) == 0){
 		
-							if(*c->pData_Str->status_run == 2){
+							if(*c->pData_Str->status_run == 2 ){
 /*
  * at least one client for this Data thread arrived
  */
 								if(c->pPopts->opt_f == 'f'){
 									
-									for(i=0; i < n_rec_proc + 1; i++){
-										sockfd = SR_Threads->sockfd[i];
-										if(close(sockfd) == -1)
-											Perror("close");
-										SR_Threads->sockfd[i] = 0;
+									
+									printf(" n_avail_loc_theads %d %d\n", n_rec_proc, n_avail_loc_theads);
+// 									for(i=0; i < n_avail_loc_theads - 1; i++){
+									for(i=0; i < n_rec_proc + 1 - n_avail_loc_theads; i++){
+										printf(" --- %d \n", i);
+										if( (sockfd = SR_Threads->sockfd[i]) > 0){
+											printf(" Closing %d\n", sockfd);
+											if(close(sockfd) == -1)
+												Perror("Data_Thread close");
+											SR_Threads->sockfd[i] = 0;
+										}
 									}
+									*c->pretval = 4;
+									goto HERE;
 								}
 								else{
 /*
@@ -416,16 +424,39 @@ void *Data_Threads(void *arg)
 									break;
 								}
 							}
+							else if(*c->pData_Str->status_run == 3 ){
+/*
+ * all SR_Data_Threads for this Data_Thread arrived, ignore request
+ */
+/*
+ * set sync job increment to 0, it was set by server body to -1
+ * it is because we are not going to close any
+ * Data_Thread so the number os synced jobs remains unchanged
+ */
+									*c->psync->incrm = 0;
+/*,
+ * notify server by setting retval to 2 and ignore request to close connection
+ */
+									*c->pretval = 3;
+									Pthread_mutex_unlock(c->plock);
+ /*
+  * pt_sync_mod(c->psync,1, 0) can be used because it will not affect anything
+  */
+									pt_sync_mod(c->psync,1, 0);
+									break;
+							}
 /*
  * set SR_mode to T as terminate
  */
+							*c->pretval = 1;
+HERE:
 							for(i=0; i < n_rec_proc + 1; i++)
 								SR_Threads->SR_mode[i] = 'T';
 /*
  * this thread is to be removed
  */
 							(*c->prcounter)--;
-							*c->pretval = 1;
+// 							*c->pretval = 1;
 							*c->pThreadID = pthread_self();
 							*c->pData_Str->status_run = 0;
 /*
@@ -560,6 +591,8 @@ END:
  */
 	free(c->pData_Str);
 	free(c);
+	
+	printf(" leaving DATA_THREAD\n");
 
 	return NULL;
 }
