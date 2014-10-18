@@ -68,7 +68,7 @@ void *Data_Threads(void *arg)
  * Data_Thread (*Data_Thread->sync->nthreads = *Data_Thread->n_data_threads + 1;
  */
 	data_thread_args_t *c = (data_thread_args_t *)arg;
-	lmint_t sockfd, sockfd_R;
+	lmint_t sockfd_R;
 	node_t *List, *TmpNode;
 	
 	lmsize_t len, len1, *data_rec_proc, n_rec_proc, n_avail_loc_theads, i, local_cntr;
@@ -391,16 +391,10 @@ void *Data_Threads(void *arg)
 								if(c->pPopts->opt_f == 'f'){
 									
 									
-									printf(" n_avail_loc_theads %d %d\n", n_rec_proc, n_avail_loc_theads);
-// 									for(i=0; i < n_avail_loc_theads - 1; i++){
 									for(i=0; i < n_rec_proc + 1 - n_avail_loc_theads; i++){
-										printf(" --- %d \n", i);
-										if( (sockfd = SR_Threads->sockfd[i]) > 0){
-											printf(" Closing %d\n", sockfd);
-											if(close(sockfd) == -1)
-												Perror("Data_Thread close");
-											SR_Threads->sockfd[i] = 0;
-										}
+										if(close(SR_Threads->sockfd[i]) == -1)
+											Perror("Data_Thread close");
+										SR_Threads->sockfd[i] = 0;
 									}
 									*c->pretval = 4;
 									goto HERE;
@@ -592,7 +586,7 @@ END:
 	free(c->pData_Str);
 	free(c);
 	
-	printf(" leaving DATA_THREAD\n");
+// 	printf(" leaving DATA_THREAD\n");
 
 	return NULL;
 }
