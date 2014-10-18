@@ -283,7 +283,7 @@ void *Data_Threads(void *arg)
 							local_cntr++;
 							*c->pretval = 1;
 							
-							if(*c->pSR_mode  == 'S')sockfd_R = *c->psocket
+							if(*c->pSR_mode  == 'S')sockfd_R = *c->psocket;
 /*
  * indicate that at least one request arrived for this thread
  */
