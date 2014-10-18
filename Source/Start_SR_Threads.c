@@ -150,21 +150,21 @@ SR_thread_str_t *Start_SR_Threads(lmint_t n_threads){
 		SR_DataArgs->psem 		= &SR_Data_Thread->sem;
 		SR_DataArgs->psem_g 		= &SR_Data_Thread->sem_g;
 		SR_DataArgs->pdcond 		= &SR_Data_Thread->dcond;
-		SR_DataArgs->pSR_mode 	= SR_Data_Thread->SR_mode;
+		SR_DataArgs->pSR_mode 		= SR_Data_Thread->SR_mode;
 		SR_DataArgs->psockfd 		= SR_Data_Thread->sockfd;
-		SR_DataArgs->pthr_cntr 	= SR_Data_Thread->thr_cntr;
-		SR_DataArgs->prcounter	= SR_Data_Thread->R_remainth_counter;
+		SR_DataArgs->pthr_cntr 		= SR_Data_Thread->thr_cntr;
+		SR_DataArgs->prcounter		= SR_Data_Thread->R_remainth_counter;
 		SR_DataArgs->pcounter		= SR_Data_Thread->R_availth_counter;
 		SR_DataArgs->pbuffer		= SR_Data_Thread->buffer;
 		SR_DataArgs->pngotten		= SR_Data_Thread->ngotten;
 		SR_DataArgs->pEofBuff		= SR_Data_Thread->EofBuff;
 		SR_DataArgs->pstatus_run	= SR_Data_Thread->status_run;
 		
-		SR_DataArgs->psync		= SR_Data_Thread->sync;
+		SR_DataArgs->psync			= SR_Data_Thread->sync;
 		SR_DataArgs->psync_loc 			= SR_Data_Thread->sync_loc;
-		SR_DataArgs->psync_loc->pnsync 	= SR_Data_Thread->sync_loc->nsync;
+		SR_DataArgs->psync_loc->pnsync 		= SR_Data_Thread->sync_loc->nsync;
 		SR_DataArgs->psync_loc->pnthreads	= SR_Data_Thread->sync_loc->nthreads;
-		SR_DataArgs->psync_loc->pmutex 	= &SR_Data_Thread->sync_loc->mutex;
+		SR_DataArgs->psync_loc->pmutex 		= &SR_Data_Thread->sync_loc->mutex;
 		SR_DataArgs->psync_loc->pblock		= &SR_Data_Thread->sync_loc->block;
 		SR_DataArgs->psync_loc->pcondvar	= &SR_Data_Thread->sync_loc->condvar;
 		SR_DataArgs->psync_loc->plast		= &SR_Data_Thread->sync_loc->last;

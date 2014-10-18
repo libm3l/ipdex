@@ -378,30 +378,41 @@ void *Data_Threads(void *arg)
 // 				}
 
 					Pthread_mutex_lock(c->plock);
-					if(*Thread_Status == 0 && *c->pretval == 0){
+					if(*c->pretval == 0){
 						len1 = strlen(c->pname_of_data_set);
 						if(len1 == len && strncmp(c->pname_of_data_set,local_set_name, len) == 0){
-							
+		
 							if(*c->pData_Str->status_run == 2){
 /*
  * at least one client for this Data thread arrived
  */
-								if(c->pPopts->opt_f == 'f'){
-									
-								}
-								else{
+// 								if(c->pPopts->opt_f == 'f'){
+// 									
+// 								}
+// 								else{
+/*
+ * set sync job increment to 0, it was set by server body to -1
+ * it is because we are not going to close any
+ * Data_Thread so the number os synced jobs remains unchanged
+ */
+									*c->psync->incrm = 0;
 /*,
  * notify server by setting retval to 2 and ignore request to close connection
  */
 									*c->pretval = 2;
+									Pthread_mutex_unlock(c->plock);
+ /*
+  * pt_sync_mod(c->psync,1, 0) can be used because it will not affect anything
+  */
+									pt_sync_mod(c->psync,1, 0);
 									break;
-								}
+// 								}
 							}
 /*
  * set SR_mode to T as terminate
  */
-						for(i=0; i < n_rec_proc + 1; i++)
-							SR_Threads->SR_mode[i] = 'T';
+							for(i=0; i < n_rec_proc + 1; i++)
+								SR_Threads->SR_mode[i] = 'T';
 /*
  * this thread is to be removed
  */
@@ -431,11 +442,20 @@ void *Data_Threads(void *arg)
  * This sequence may change later when SR_Data_Threads and SR_Hub are terminated
  */
 							Pthread_mutex_unlock(c->plock);
+/*
+ * the last executed Data_Thread will lower number of synced jobs upon leaving
+ * the c->psync->incrm was set by Server_Body to -1
+ */
 							pt_sync_mod(c->psync,1, 0);
 							goto END;
 						}
 					}
+
 					Pthread_mutex_unlock(c->plock);
+/*
+ * the last executed Data_Thread will lower number of synced jobs upon leaving
+ * the c->psync->incrm was set by Server_Body to -1
+ */
 					pt_sync_mod(c->psync,1, 0);
 					break;
 
@@ -443,7 +463,6 @@ void *Data_Threads(void *arg)
 					Error("SR_Data_Threads: Wrong mode - check KeepAlive and ATDT specifications");
 				break;
 			}
-
 /*
  * indicate that thread went through the identfication 
  * loop at least once. 

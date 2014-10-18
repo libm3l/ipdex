@@ -254,9 +254,9 @@ void *SR_hub(void *arg)
  */
 				pt_sync_mod(c->psync_loc, 0, 1);
 				if(*c->pstatus_run_h != 1) break;
-
-				terminal_loop_sequence(c);
 			}
+				terminal_loop_sequence(c);
+
 		break;
 	}
 /*
@@ -297,8 +297,9 @@ void terminal_loop_sequence(SR_hub_thread_str_t *c){
  * indicate this thread is empty. ie. all its hubs are free 
  * in case at least one process for this Dat_Thread arrives, the Data_Thread
  * sets it to 2, this is done to prevent closing thread while at least one client
- * opens up CONNECTION
+ * opens up connection
  */
+		printf(" SRHub  Setting status run to 1\n");
 		*c->pstatus_run_DataThr_h = 1; 
 /*
  * if all threads were occupied, ie *Data_Threads->n_data_threads == *c->pcounter == 0
