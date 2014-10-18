@@ -251,7 +251,6 @@ void *SR_Data_Threads(void *arg)
  * S(ender)
  */
 					do{
-
 						if( S_KAN(c, sockfd, 5) != 1) goto END1;
 					}while(*c->pstatus_run == 1);
 
@@ -283,17 +282,13 @@ void *SR_Data_Threads(void *arg)
  * the Receiver process will now send the data 
  */
 					do{
-
 						if( R_KAN(c, sockfd, 0) == -1) return NULL;
 /*
- * last Pthread_barrier_wait is done in SR_hub.c
- *
  * wait until all SR_threads reach pt_sync, then start actual transfer of the data from S to R(s)
  * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
  * synced too
  */
 						if( S_KAN(c, sockfd, 0) == -1) return NULL;
-
 					}while(*c->pstatus_run == 1);
 				break;
 
@@ -307,14 +302,11 @@ void *SR_Data_Threads(void *arg)
 
 						if( S_KAN(c, sockfd, 0) == -1) return NULL;
 /*
- * last Pthread_barrier_wait is done in SR_hub.c
- *
  * wait until all SR_threads reach pt_sync, then start actual transfer of the data from S to R(s)
  * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
  * synced too
  */
 						if( R_KAN(c, sockfd, 0) == -1) return NULL;
-
 					}while(*c->pstatus_run == 1);
 				break;
 
