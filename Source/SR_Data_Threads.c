@@ -240,14 +240,9 @@ void *SR_Data_Threads(void *arg)
 /*
  * R(eceivers)
  */
-					while(1){
-/* 
- * if connection required to be closed, terminate while loop
- */
-						if(*c->pstatus_run != 1) goto END1;
-
+					do{
 						if(R_KAN(c, sockfd, 5) != 1) goto END1;
-					}
+					}while(*c->pstatus_run == 1);
 
 				break;
 
@@ -255,13 +250,10 @@ void *SR_Data_Threads(void *arg)
 /*
  * S(ender)
  */
-					while(1){
-/* 
- * if connection required to be closed, terminate while loop
- */						if(*c->pstatus_run != 1) goto END1;
+					do{
 
 						if( S_KAN(c, sockfd, 5) != 1) goto END1;
-					}
+					}while(*c->pstatus_run == 1);
 
 				break;
 
@@ -290,7 +282,7 @@ void *SR_Data_Threads(void *arg)
  * when finishing with R, do not signal SR_hub to go to another loop, 
  * the Receiver process will now send the data 
  */
-					while(1){
+					do{
 
 						if( R_KAN(c, sockfd, 0) == -1) return NULL;
 /*
@@ -301,11 +293,8 @@ void *SR_Data_Threads(void *arg)
  * synced too
  */
 						if( S_KAN(c, sockfd, 0) == -1) return NULL;
-/* 
- * if connection required to be closed, terminate while loop
- */
-						if(*c->pstatus_run != 1) goto END1;
-					}
+
+					}while(*c->pstatus_run == 1);
 				break;
 
 				case 'S':
@@ -314,7 +303,7 @@ void *SR_Data_Threads(void *arg)
  * after that signal SR_hub that SR operation is finished and it can do 
  * another loop
  */
-					while(1){
+					do{
 
 						if( S_KAN(c, sockfd, 0) == -1) return NULL;
 /*
@@ -325,11 +314,8 @@ void *SR_Data_Threads(void *arg)
  * synced too
  */
 						if( R_KAN(c, sockfd, 0) == -1) return NULL;
-/* 
- * if connection required to be closed, terminate while loop
- */
-						if(*c->pstatus_run != 1) goto END1;
-					}
+
+					}while(*c->pstatus_run == 1);
 				break;
 
 				case 'T':
