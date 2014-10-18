@@ -125,11 +125,11 @@ SR_thread_str_t *Start_SR_Threads(lmint_t n_threads){
  * initialize sync data structure
  */
 	if ( (SR_Data_Thread->sync_loc  = (pt_sync_t *)malloc(sizeof(pt_sync_t))) == NULL)
-		Perror("Data_Thread: Data_Thread->sync");
+		Perror("Start_SR_Threads: SR_Data_Thread->sync_loc");
 	if ( (SR_Data_Thread->sync_loc->nsync  = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
-		Perror("Data_Thread: Data_Thread->sybc->nsync");	
+		Perror("Start_SR_Threads: SR_Data_Thread->sync_loc->nsync");	
 	if ( (SR_Data_Thread->sync_loc->nthreads  = (lmsize_t *)malloc(sizeof(lmsize_t))) == NULL)
-		Perror("Data_Thread: Data_Thread->sybc->nthreads");
+		Perror("Start_SR_Threads: SR_Data_Thread->sync_loc->nthreads");
 	
 	Pthread_mutex_init(&SR_Data_Thread->sync_loc->mutex);
 	Pthread_mutex_init(&SR_Data_Thread->sync_loc->block);
