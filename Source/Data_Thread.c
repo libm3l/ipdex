@@ -544,6 +544,8 @@ END:
 		if( pthread_join(SR_Threads->data_threads[i], NULL) != 0)
 			Error(" Joining thread failed");
 	}
+
+	printf(" destroying DATA_THREAD\n");
 	
 	Pthread_mutex_destroy(&SR_Threads->lock);
 	Pthread_cond_destroy(&SR_Threads->dcond);
@@ -563,10 +565,13 @@ END:
 	free(SR_Threads->EofBuff);
 	free(SR_Threads->sync);
 	free(SR_Threads->status_run);
-	
+
+
 	free(SR_Threads->sync_loc->nsync);
 	free(SR_Threads->sync_loc->nthreads);
+	printf(" next1 DATA_THREAD\n");
 	Pthread_mutex_destroy(&SR_Threads->sync_loc->mutex);
+	printf(" next2 DATA_THREAD\n");
 	Pthread_mutex_destroy(&SR_Threads->sync_loc->block);
 	Pthread_cond_destroy(&SR_Threads->sync_loc->condvar);
 	Pthread_cond_destroy(&SR_Threads->sync_loc->last);
@@ -586,7 +591,7 @@ END:
 	free(c->pData_Str);
 	free(c);
 	
-// 	printf(" leaving DATA_THREAD\n");
+	printf(" leaving DATA_THREAD\n");
 
 	return NULL;
 }

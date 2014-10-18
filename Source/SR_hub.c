@@ -222,6 +222,7 @@ void *SR_hub(void *arg)
  * synced too
  */
 				pt_sync_mod(c->psync_loc, 0, 1);
+				if(*c->pstatus_run_h != 1) break;
 /*
  * do 2 loops (ie. Sender-to-receiver   and   Recevier-to-Sender) and then continue
  */
@@ -271,7 +272,7 @@ void *SR_hub(void *arg)
 
 // printf(" returning from SR_hub\n");
 
-return NULL;
+	return NULL;
 }
 
 void terminal_loop_sequence(SR_hub_thread_str_t *c){
