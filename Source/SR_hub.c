@@ -242,8 +242,7 @@ void *SR_hub(void *arg)
 		case 6:
 			while(1){
 /*
- * wait for semaphore from Data_Thread that 
- * all requests arrived
+ * wait for semaphore from Data_Thread that all requests arrived
  */
 				Sem_wait(c->psem);
 
@@ -291,16 +290,21 @@ void terminal_loop_sequence(SR_hub_thread_str_t *c){
  * these values are used in "buffer" and are used during identification 
  * process
  */
-		*c->pThread_Status   = 0;	/* thread can be used again */
-		*c->pThread_S_Status = 0;	/* number of connected S processes is 0 */
-		*c->pThread_R_Status = 0;	/* number of connected R processes is 0 */
+/*
+ * thread can be used againm if thread required to be 
+ * terminated, do not mark it as usable
+ */
+		if(*c->pstatus_run_h == 1){
+			*c->pThread_S_Status = 0;	/* number of connected S processes is 0 */
+			*c->pThread_R_Status = 0;	/* number of connected R processes is 0 */
+			*c->pThread_Status   = 0;	/* thread can be reused */
+		}
 /*
  * indicate this thread is empty. ie. all its hubs are free 
  * in case at least one process for this Dat_Thread arrives, the Data_Thread
  * sets it to 2, this is done to prevent closing thread while at least one client
  * opens up connection
  */
-		printf(" SRHub  Setting status run to 1\n");
 		*c->pstatus_run_DataThr_h = 1; 
 /*
  * if all threads were occupied, ie *Data_Threads->n_data_threads == *c->pcounter == 0
