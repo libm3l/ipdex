@@ -111,18 +111,18 @@ void Pthread_mutex_init(pthread_mutex_t *lock){
 }
 
 void Pthread_mutex_destroy(pthread_mutex_t *lock){
-	int retval;
-AGAIN:
-	if (  (retval = pthread_mutex_destroy(lock)) != 0){
-		if(retval == 16){
-			printf(" Trying to destroy mutex\n");
-			goto AGAIN;
-		}
-		Perror("pthread_mutex_destroy()");
-	}
-//  	if ( pthread_mutex_destroy(lock) != 0){
+// 	int retval;
+// AGAIN:
+// 	if (  (retval = pthread_mutex_destroy(lock)) != 0){
+// 		if(retval == 16){
+// 			printf(" Trying to destroy mutex\n");
+// 			goto AGAIN;
+// 		}
 // 		Perror("pthread_mutex_destroy()");
 // 	}
+ 	if ( pthread_mutex_destroy(lock) != 0){
+		Perror("pthread_mutex_destroy()");
+	}
 }
 
 void Pthread_mutex_lock(pthread_mutex_t *lock){

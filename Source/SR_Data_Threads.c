@@ -152,10 +152,12 @@ void *SR_Data_Threads(void *arg)
  */
 					retval = pt_sync(c->psync_loc);
 /*
- * signal the SR_hub and it can do another cycle, it is done by the last process leaving the 
- * pt_sync()
+ * the last thread leaving pt_sync will give back 0 all others 1
+ * the thread received retval == 0 is the last one sycned, once leaving 
+ * pt_thread post sempahore, ie. notify SR_Hub that all SR_Data_Threads are
+ * finishing and it is OK to start joining them
  */
-					if(retval == 1)Sem_post(c->psem_g);
+					if(retval == 0)Sem_post(c->psem_g);
 					goto END;
 					
 				break;
@@ -217,10 +219,12 @@ void *SR_Data_Threads(void *arg)
  */
 					retval = pt_sync(c->psync_loc);
 /*
- * signal the SR_hub and it can do another cycle, it is done by the last process leaving the 
- * pt_sync()
+ * the last thread leaving pt_sync will give back 0 all others 1
+ * the thread received retval == 0 is the last one sycned, once leaving 
+ * pt_thread post sempahore, ie. notify SR_Hub that all SR_Data_Threads are
+ * finishing and it is OK to start joining them
  */
-					if(retval == 1)Sem_post(c->psem_g);
+					if(retval == 0)Sem_post(c->psem_g);
 					goto END;
 					
 				break;
