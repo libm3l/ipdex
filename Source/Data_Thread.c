@@ -544,7 +544,9 @@ END:
 		if( pthread_join(SR_Threads->data_threads[i], NULL) != 0)
 			Error(" Joining thread failed");
 	}
-	
+/*
+ * free memory allocated in Start_SR_Threads and Start_SR_HubThread
+ */
 	Pthread_mutex_destroy(&SR_Threads->lock);
 	Pthread_cond_destroy(&SR_Threads->dcond);
 	Sem_destroy(&SR_Threads->sem);
