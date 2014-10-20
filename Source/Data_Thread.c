@@ -393,8 +393,6 @@ void *Data_Threads(void *arg)
  * at least one client for this Data thread arrived
  */
 								if(c->pPopts->opt_f == 'f'){
-									
-									
 									for(i=0; i < n_rec_proc + 1 - n_avail_loc_theads; i++){
 										if(close(SR_Threads->sockfd[i]) == -1)
 											Perror("Data_Thread close");
@@ -446,12 +444,14 @@ void *Data_Threads(void *arg)
 									pt_sync_mod(c->psync,1, 0);
 									break;
 							}
+							else{
 /*
  * set SR_mode to T as terminate and terminate while(1) loop
  */
-							*c->pretval = 1;
-							Data_Thread_Case_200(c, SR_Threads, n_rec_proc, &loc_sem );
-							goto END;
+								*c->pretval = 1;
+								Data_Thread_Case_200(c, SR_Threads, n_rec_proc, &loc_sem );
+								goto END;
+							}
 						}
 					}
 
