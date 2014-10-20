@@ -53,6 +53,7 @@
 #include "Start_SR_HubThread.h"
 #include "SR_hub.h"
 #include "Data_Thread.h"
+#include "Data_Thread_Functions.h"
 
 void *Data_Threads(void *arg)
 {
@@ -400,7 +401,11 @@ void *Data_Threads(void *arg)
 										SR_Threads->sockfd[i] = 0;
 									}
 									*c->pretval = 4;
-									goto HERE;
+									
+/*
+ * set SR_mode to T as terminate and terminate while(1) loop
+ */									Data_Thread_Case_200(c, SR_Threads, n_rec_proc, &loc_sem );
+									goto END;
 								}
 								else{
 /*
@@ -429,11 +434,10 @@ void *Data_Threads(void *arg)
  * set sync job increment to 0, it was set by server body to -1
  * it is because we are not going to close any
  * Data_Thread so the number os synced jobs remains unchanged
+ * 
+ *  notify server by setting retval to 3 and ignore request to close connection
  */
 									*c->psync->incrm = 0;
-/*,
- * notify server by setting retval to 2 and ignore request to close connection
- */
 									*c->pretval = 3;
 									Pthread_mutex_unlock(c->plock);
  /*
@@ -443,46 +447,10 @@ void *Data_Threads(void *arg)
 									break;
 							}
 /*
- * set SR_mode to T as terminate
+ * set SR_mode to T as terminate and terminate while(1) loop
  */
 							*c->pretval = 1;
-HERE:
-							for(i=0; i < n_rec_proc + 1; i++)
-								SR_Threads->SR_mode[i] = 'T';
-/*
- * this thread is to be removed
- */
-							(*c->prcounter)--;
-// 							*c->pretval = 1;
-							*c->pThreadID = pthread_self();
-							*c->pData_Str->status_run = 0;
-/*
- * set status run for SR_Hub and SR_Data_Thread to 0, ie. terminate while loops
- */
-							*SR_Threads->status_run = 0;
-/*
- * Singal SR_hub sem_wait(c->psem) for this semaphore, ie. as if all SR threads
- * arrived. For SR threads in normal "working" state this is done 
- * after }while(n_avail_loc_theads != 0) loop
- */
-							Sem_post(&loc_sem);
-/*
- * delete this node, it will remove the item from the buffer
- */
-							if( m3l_Umount(&c->Node) != 1)
-								Perror("m3l_Umount");
-/*
- * no leave do - while(n_avail_loc_theads != 0) loop 
- * the value of status_run is set to 0 
- * so the outer while loop (status_run == 1) will be automatically left too
- * This sequence may change later when SR_Data_Threads and SR_Hub are terminated
- */
-							Pthread_mutex_unlock(c->plock);
-/*
- * the last executed Data_Thread will lower number of synced jobs upon leaving
- * the c->psync->incrm was set by Server_Body to -1
- */
-							pt_sync_mod(c->psync,1, 0);
+							Data_Thread_Case_200(c, SR_Threads, n_rec_proc, &loc_sem );
 							goto END;
 						}
 					}
