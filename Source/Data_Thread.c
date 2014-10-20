@@ -274,6 +274,9 @@ void *Data_Threads(void *arg)
  */
 						len1 = strlen(c->pname_of_data_set);
 						if(len1 == len && strncmp(c->pname_of_data_set,local_set_name, len) == 0){
+
+// 	n_avail_loc_theads = Data_Thread_Case_0(c, SR_Threads, n_avail_loc_theads, &local_cntr,
+// 				Thread_Status, Thread_S_Status, Thread_R_Status, n_rec_proc);
 /*
  * save socket number and mode of the jobe (S, R), increase increment and set return value to 1
  */				
