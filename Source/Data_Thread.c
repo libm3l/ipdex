@@ -399,7 +399,6 @@ void *Data_Threads(void *arg)
 										SR_Threads->sockfd[i] = 0;
 									}
 									*c->pretval = 4;
-									
 /*
  * set SR_mode to T as terminate and terminate while(1) loop
  */									Data_Thread_Case_200(c, SR_Threads, n_rec_proc, &loc_sem );
@@ -444,7 +443,7 @@ void *Data_Threads(void *arg)
 									pt_sync_mod(c->psync,1, 0);
 									break;
 							}
-							else{
+							else if(*c->pData_Str->status_run == 1 ){
 /*
  * set SR_mode to T as terminate and terminate while(1) loop
  */
@@ -452,6 +451,8 @@ void *Data_Threads(void *arg)
 								Data_Thread_Case_200(c, SR_Threads, n_rec_proc, &loc_sem );
 								goto END;
 							}
+							else
+								Warning("Data_Thread: wrong values of status_run");
 						}
 					}
 
