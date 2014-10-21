@@ -70,45 +70,46 @@ lmsize_t Data_Thread_Case_0(data_thread_args_t *c, SR_thread_str_t *SR_Threads, 
 
 
 
-void Data_Thread_Case_200(data_thread_args_t *c, SR_thread_str_t *SR_Threads, lmsize_t n_rec_proc, sem_t *loc_sem ){
+lmint_t Data_Thread_Case_200(data_thread_args_t *c, SR_thread_str_t *SR_Threads, lmsize_t n_rec_proc, sem_t *loc_sem ){
 	
 	lmsize_t i;
-
+/*
+ * set SR_mode for all SR_Data_Threads as 'T" - terminate
+ */
 	for(i=0; i < n_rec_proc + 1; i++)
 		SR_Threads->SR_mode[i] = 'T';
 /*
  * this thread is to be removed
  */
-		(*c->prcounter)--;
-// 							*c->pretval = 1;
-		*c->pThreadID = pthread_self();
-		*c->pData_Str->status_run = 0;
+	(*c->prcounter)--;
+	*c->pThreadID = pthread_self();
+	*c->pData_Str->status_run = 0;
 /*
  * set status run for SR_Hub and SR_Data_Thread to 0, ie. terminate while loops
  */
-		*SR_Threads->status_run = 0;
+	*SR_Threads->status_run = 0;
 /*
  * Singal SR_hub sem_wait(c->psem) for this semaphore, ie. as if all SR threads
  * arrived. For SR threads in normal "working" state this is done 
  * after }while(n_avail_loc_theads != 0) loop
  */
-		Sem_post(loc_sem);
+	Sem_post(loc_sem);
 /*
  * delete this node, it will remove the item from the buffer
  */
-		if( m3l_Umount(&c->Node) != 1)
-			Perror("m3l_Umount");
+	if( m3l_Umount(&c->Node) != 1)
+		Perror("m3l_Umount");
 /*
  * no leave do - while(n_avail_loc_theads != 0) loop 
  * the value of status_run is set to 0 
  * so the outer while loop (status_run == 1) will be automatically left too
  * This sequence may change later when SR_Data_Threads and SR_Hub are terminated
  */
-		Pthread_mutex_unlock(c->plock);
+	Pthread_mutex_unlock(c->plock);
 /*
  * the last executed Data_Thread will lower number of synced jobs upon leaving
  * the c->psync->incrm was set by Server_Body to -1
  */
-		pt_sync_mod(c->psync,1, 0);
-	return;
+	pt_sync_mod(c->psync,1, 0);
+	return 1;
 }

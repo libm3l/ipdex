@@ -401,7 +401,9 @@ void *Data_Threads(void *arg)
 									*c->pretval = 4;
 /*
  * set SR_mode to T as terminate and terminate while(1) loop
- */									Data_Thread_Case_200(c, SR_Threads, n_rec_proc, &loc_sem );
+ */									
+									if(Data_Thread_Case_200(c, SR_Threads, n_rec_proc, &loc_sem) != 1)
+										Error("DATA_Thread: Data_Thread_Case_200");
 									goto END;
 								}
 								else{
@@ -448,7 +450,8 @@ void *Data_Threads(void *arg)
  * set SR_mode to T as terminate and terminate while(1) loop
  */
 								*c->pretval = 1;
-								Data_Thread_Case_200(c, SR_Threads, n_rec_proc, &loc_sem );
+								if(Data_Thread_Case_200(c, SR_Threads, n_rec_proc, &loc_sem ) != 1)
+									Error("DATA_Thread: Data_Thread_Case_200");
 								goto END;
 							}
 							else
