@@ -116,8 +116,8 @@ int main(int argc, char *argv[])
 			tmpdf[j] = (i+1)*j*1.1;
 		free(dim);
 
-		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
-			Error("CatData");
+// 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
+// 			Error("CatData");
 
 
 	for(i=0; i<nmax; i++){
@@ -137,8 +137,8 @@ int main(int argc, char *argv[])
 /*
  * add pressure array, array has 10 pressure with some values
  */			
-		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
- 			Error("CatData");
+// 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
+//  			Error("CatData");
 		
 		client_sender(Gnode, sockfd, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
 

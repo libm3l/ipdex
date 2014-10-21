@@ -107,8 +107,8 @@ int main(int argc, char *argv[])
 
 		Gnode = client_receiver(sockfd, PInpPar, (opts_t *)NULL, (opts_t *)NULL);
 
- 		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
- 			Error("CatData");
+//  		if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
+//  			Error("CatData");
 		
 		if(m3l_Umount(&Gnode) != 1)
 			Perror("m3l_Umount");
