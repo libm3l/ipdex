@@ -58,8 +58,8 @@
 static inline lmssize_t Read(lmint_t, lmchar_t *, lmint_t, lmchar_t);
 static inline lmssize_t Write(lmint_t, lmchar_t *, lmsize_t);
 
-static lmint_t R_KAN(SR_thread_args_t *, lmint_t, lmint_t);
-static lmint_t S_KAN(SR_thread_args_t *, lmint_t, lmint_t);
+static lmint_t R_KAN(SR_thread_args_t *, lmint_t, lmint_t, lmint_t *);
+static lmint_t S_KAN(SR_thread_args_t *, lmint_t, lmint_t, lmint_t *);
 
 static lmint_t R_EOFC(lmint_t);
 static lmssize_t S_EOFC(lmint_t, lmint_t);
@@ -136,14 +136,14 @@ void *SR_Data_Threads(void *arg)
 /*
  * R(eceivers)
  */
-					if( R_KAN(c, sockfd, 1) == -1) return NULL;
+					if( R_KAN(c, sockfd, 1, c->pstatus_run) == -1) return NULL;
 				break;
 
 				case 'S':
 /*
  * S(ender)
  */
-					if( S_KAN(c, sockfd, 1) == -1) return NULL;
+					if( S_KAN(c, sockfd, 1, c->pstatus_run) == -1) return NULL;
 				break;
 				
 				case 'T':
@@ -183,7 +183,7 @@ void *SR_Data_Threads(void *arg)
  * when finishing with R, do not signal SR_hub to go to another loop, 
  * the Receiver process will now send the data 
  */
-					if( R_KAN(c, sockfd, 0) == -1) return NULL;
+					if( R_KAN(c, sockfd, 0, c->pstatus_run) == -1) return NULL;
 /*
  * last Pthread_barrier_wait is done in SR_hub.c
  *
@@ -191,7 +191,7 @@ void *SR_Data_Threads(void *arg)
  * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
  * synced too
  */
-					if( S_KAN(c, sockfd, 2) == -1) return NULL;
+					if( S_KAN(c, sockfd, 2, c->pstatus_run) == -1) return NULL;
 
 				break;
 
@@ -201,7 +201,7 @@ void *SR_Data_Threads(void *arg)
  * after that signal SR_hub that SR operation is finished and it can do 
  * another loop
  */
-					if( S_KAN(c, sockfd, 0) == -1) return NULL;
+					if( S_KAN(c, sockfd, 0, c->pstatus_run) == -1) return NULL;
 /*
  * last Pthread_barrier_wait is done in SR_hub.c
  *
@@ -209,7 +209,7 @@ void *SR_Data_Threads(void *arg)
  * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
  * synced too
  */
-					if( R_KAN(c, sockfd, 2) == -1) return NULL;
+					if( R_KAN(c, sockfd, 2, c->pstatus_run) == -1) return NULL;
 
 				break;
 
@@ -245,7 +245,7 @@ void *SR_Data_Threads(void *arg)
  * R(eceivers)
  */
 					do{
-						if(R_KAN(c, sockfd, 5) != 1) goto END1;
+						if(R_KAN(c, sockfd, 5, c->pstatus_run) != 1) goto END1;
 					}while(*c->pstatus_run == 1);
 
 				break;
@@ -255,7 +255,7 @@ void *SR_Data_Threads(void *arg)
  * S(ender)
  */
 					do{
-						if( S_KAN(c, sockfd, 5) != 1) goto END1;
+						if( S_KAN(c, sockfd, 5, c->pstatus_run) != 1) goto END1;
 					}while(*c->pstatus_run == 1);
 
 				break;
@@ -286,13 +286,13 @@ void *SR_Data_Threads(void *arg)
  * the Receiver process will now send the data 
  */
 					do{
-						if( R_KAN(c, sockfd, 0) == -1) return NULL;
+						if( R_KAN(c, sockfd, 0, c->pstatus_run) == -1) return NULL;
 /*
  * wait until all SR_threads reach pt_sync, then start actual transfer of the data from S to R(s)
  * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
  * synced too
  */
-						if( S_KAN(c, sockfd, 0) == -1) return NULL;
+						if( S_KAN(c, sockfd, 0, c->pstatus_run) == -1) return NULL;
 					}while(*c->pstatus_run == 1);
 				break;
 
@@ -304,13 +304,13 @@ void *SR_Data_Threads(void *arg)
  */
 					do{
 
-						if( S_KAN(c, sockfd, 0) == -1) return NULL;
+						if( S_KAN(c, sockfd, 0, c->pstatus_run) == -1) return NULL;
 /*
  * wait until all SR_threads reach pt_sync, then start actual transfer of the data from S to R(s)
  * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
  * synced too
  */
-						if( R_KAN(c, sockfd, 0) == -1) return NULL;
+						if( R_KAN(c, sockfd, 0, c->pstatus_run) == -1) return NULL;
 					}while(*c->pstatus_run == 1);
 				break;
 
@@ -403,7 +403,7 @@ lmssize_t Read(lmint_t descrpt , lmchar_t *buff, lmint_t n, lmchar_t SR)
 /*
  * Recevier function, ATDT A,D  KeepAllive N
  */
-lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
+lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode, lmint_t *pstatus_run){
 
 	lmint_t  R_done, last, retval;
 	opts_t *Popts, opts;
@@ -432,7 +432,9 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
  * entirte transmitted message), if yes, set R_done = 1
  */
 		pt_sync(c->psync_loc);
-				
+		
+		if( *pstatus_run != 1)  break;
+		
 		if(*c->pEofBuff != 0){
 			R_done = 1;}
 		else{
@@ -526,12 +528,23 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 /*
  * same as case 1 and 2, just do not close the socket
  */
-			opts.opt_REOBseq = 'G'; // receive EOFbuff sequence only
-			if( m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts) < 0){
-				Error("SR_Data_Threads: Error when receiving  REOB\n");
-				return -1;
+			if(*pstatus_run != 1){
+				
+				if( close(sockfd) == -1)
+					Perror("R_KAN close");
+			
+// 			opts.opt_EOBseq = 'E'; // send EOFbuff sequence only	
+// 			if( m3l_send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, Popts) < 0){
+// 				Error("SR_Data_Threads: Error when sending  SEOB\n");
+// 				return -1;
 			}
-
+			else{
+				opts.opt_REOBseq = 'G'; // receive EOFbuff sequence only
+				if( m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts) < 0){
+					Error("SR_Data_Threads: Error when receiving  REOB\n");
+					return -1;
+				}
+			}
 		break;
 		
 		default:
@@ -550,7 +563,7 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 	case 2:
 		pt_sync(c->psync_loc); 
 /*
- * signal the SR_hub and it can do another cycle
+ * sync all S and R threads and last R thread signals the SR_hub and it can do another cycle
  */
 		if(last == 1)Sem_post(c->psem_g);
 	break;
@@ -562,7 +575,7 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 /*
  * Sender function, ATDT A,D  KeepAllive N
  */
-lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
+lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode, lmint_t *pstatus_run){
 
 	lmchar_t prevbuff[EOBlen+1];
 	lmint_t eofbuffcond, retval;
@@ -604,8 +617,11 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 /*
  * wait on synchronization point, the syncing for Receivers is done before writing the 
  * buffer to socket
+ * this syncing makes all R threads writing buffer which S thread received
  */
 		pt_sync(c->psync_loc);
+		
+		// if pstatus_run == 1 close(sockfd); break;
 /*
  * wait until all Receivers sent the data to the socket
  */
@@ -645,6 +661,14 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 /*
  * same as case 1 and 2, just do not close the socket
  */
+// 			if pstatus_run == 1  close(sockfd); break;
+// 			opts.opt_REOBseq = 'G'; // receive EOFbuff sequence only
+// 			if( m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts) < 0){
+// 				Error("SR_Data_Threads: Error when receiving  REOB\n");
+// 				return -1;
+// 			}
+// 			else
+               
 			opts.opt_EOBseq = 'E'; // send EOFbuff sequence only	
 			if( m3l_send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, Popts) < 0){
 				Error("SR_Data_Threads: Error when sending  SEOB\n");
@@ -657,7 +681,7 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 		break;
 	}
 /*
- * synck before letting SR_hub to close sockets
+ * sync all S and R threads before last R threads signals SR_hub to close sockets
  */
 	switch(mode){
 	case 0:
@@ -666,7 +690,7 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode){
 		pt_sync(c->psync_loc);
 	break;
 	}
-	
+
 	return retval;
 }
 
