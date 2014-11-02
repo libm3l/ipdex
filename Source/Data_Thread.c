@@ -305,7 +305,7 @@ void *Data_Threads(void *arg)
 							}
 							else
 								Error("Data_Thread: Wrong SR_mode");
-	/* 
+/* 
  * when the thread is positively identified, decrement counter of available thread for next round of identification, 
  * once n_avail_loc_theads == 0 all SR threads arrived, leave do - while loop and decrement (*c->pcounter)--
  * ie. next arriving threads will not use this thread because it is alrady used
@@ -343,7 +343,7 @@ void *Data_Threads(void *arg)
 
 				case 100:
 /*
- * request was _sys_link_ request
+ * request was _sys_link_ request to open a new channel
  */
 /*
  * if the first round, ie. Data_Thread was added now (for this thread round == 0),
@@ -376,13 +376,7 @@ void *Data_Threads(void *arg)
 				case 200:
 /*
  * delete thread
- *
- * check how many threads already arrived
  */
-// 				if(n_avail_loc_theads < n_rec_proc + 1){
-// 					some processes already arrived
-//					this can be done by checking local_cntr, if not 0, some sets already arrived
-// 				}
 					Pthread_mutex_lock(c->plock);
 					if(*c->pretval == 0){
 						len1 = strlen(c->pname_of_data_set);
