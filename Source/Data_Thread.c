@@ -69,7 +69,7 @@ void *Data_Threads(void *arg)
  * Data_Thread (*Data_Thread->sync->nthreads = *Data_Thread->n_data_threads + 1;
  */
 	data_thread_args_t *c = (data_thread_args_t *)arg;
-	lmint_t sockfd_R;
+	lmint_t sockfd_S;
 	node_t *List, *TmpNode;
 	
 	lmsize_t len, len1, *data_rec_proc, n_rec_proc, n_avail_loc_theads, i, local_cntr;
@@ -92,7 +92,7 @@ void *Data_Threads(void *arg)
 	m3l_set_Find(&Popts);
 	round = 0;
 	len = 0;
-	sockfd_R = 0;
+	sockfd_S = 0;
 /*
  * get my thread ID
  */
@@ -285,8 +285,6 @@ void *Data_Threads(void *arg)
 							SR_Threads->SR_mode[local_cntr] = *c->pSR_mode;
 							local_cntr++;
 							*c->pretval = 1;
-							
-							if(*c->pSR_mode  == 'S')sockfd_R = *c->psocket;
 /*
  * indicate that at least one request arrived for this thread
  */
@@ -295,7 +293,10 @@ void *Data_Threads(void *arg)
  * if thread status is S, set Thread_S_Status = 1 to block any other arriving S thread from 
  * being considered until the tranfer is finished (Check_Request.c and SR_Hub.c)
  */
-							if( *c->pSR_mode == 'S') *Thread_S_Status = 1;
+							if( *c->pSR_mode == 'S'){
+								*Thread_S_Status = 1;
+								sockfd_S = *c->psocket;
+							}
 /*
  * if thread status is R, increment Thread_R_Status. Once the counter reaches value of requested
  * R_Thread any other arriving R_thread will be blocked until the tranfer is finished (Check_Request.c and SR_Hub.c)
@@ -494,7 +495,7 @@ void *Data_Threads(void *arg)
  * decrement a number of synchronized threads which (the value used in pt_sync(c->psync).
  * Some of the threads were already waiting and it gave rise to dead-lock
  */
-		sockfd_R = 0;
+		sockfd_S = 0;
 	}
 END:
 /*
