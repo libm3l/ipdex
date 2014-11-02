@@ -58,3 +58,17 @@
 	       close Pressure Temperature Density while Example1 runnign
 	       reopen 
 	       run Example1
+
+	commit  723c7f7066040357d462775dcc0f0ce2a46fa37b
+	       tested 1-4 PS Toshiba, tests OK
+	       test Ex8 - 1000 times opening and deleting new connection
+	       test Ex8 opening channel, transfer 1000 times, close channel
+	       test Ex8 - 1000 times opening and deleting new connection	
+	       
+	       close Pressure Temperature Density while Example1 runnign
+	       reopen 
+	       run Example1
+	       close Pressure Temperature Density while Example1 runnign
+	       reopen 
+	       run Example1	
+	       
