@@ -94,9 +94,14 @@ data_thread_args_t *Associate_Data_Thread(node_t *List, data_thread_str_t *Data_
  */
 		if(yes > 0){
 			if( (DataArgs->pData_Str = (data_thread_int_str_t *)malloc(sizeof(data_thread_int_str_t))) == NULL)
-				Perror("Associate_Data_Thread: DataArgs->pData_Str malloc");	
+				Perror("Associate_Data_Thread: DataArgs->pData_Str malloc");
+/*
+ * safe thread specific data 
+ *   - name of thread
+ *   - status of thread
+ */
 			DataArgs->pData_Str->name_of_channel = Data_Thread->Data_Str[i]->name_of_channel;
-			DataArgs->pData_Str->status_run      = Data_Thread->Data_Str[i]->status_run;
+			DataArgs->pData_Str->status_run             = Data_Thread->Data_Str[i]->status_run;
 		}
 		else
 			DataArgs->pData_Str = NULL;
