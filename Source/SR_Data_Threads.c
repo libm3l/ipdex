@@ -415,7 +415,6 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode, lmint_t *pstatu
  * Receiver threads, set R_done = 0, once the 
  * transfer of entire message is done (ie. Sender sends EOMB sequence
  * set R_done = 1
- * 
  */
 	R_done = 1;
 /*
@@ -435,10 +434,21 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode, lmint_t *pstatu
 		
 		if( *pstatus_run != 1)  break;
 		
-		if(*c->pEofBuff != 0){
-			R_done = 1;}
-		else{
-			R_done = 0;}
+		switch(*c->pEofBuff){
+			
+			case 0:
+				R_done = 0;
+				break;
+				
+			case 1:
+				R_done = 1;
+				break;
+		}
+		
+// 		if(*c->pEofBuff != 0){
+// 			R_done = 1;}
+// 		else{
+// 			R_done = 0;}
 /*
  * the mutex was locked here to protect writing to each individual sockets
  * but I think it is  not needed, moved lock after 
@@ -600,12 +610,32 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode, lmint_t *pstatu
 		*c->pEofBuff = 1;
 
 		bzero(c->pbuffer,MAXLINE+1);
-		if (  (*c->pngotten = Read(sockfd, c->pbuffer, MAXLINE, 'R')) == -1){
+		
+		switch(  (*c->pngotten = Read(sockfd, c->pbuffer, MAXLINE, 'R'))   ){
+		case -1:
+/*
+ * error readig socket
+ */
 			Warning("read");
+			eofbuffcond = 3;
+			*c->pEofBuff = 3;
 			return -1;
+		break;
+		
+		case 0:
+/*
+ * client closed socket
+ */
+			eofbuffcond = 2;
+			*c->pEofBuff = 2;
+		break;
+		
+		default:
+/*
+ * check end of buffer
+ */
+			eofbuffcond = Check_EOFbuff(c->pbuffer,prevbuff, strlen(c->pbuffer), EOBlen, EOFbuff);
 		}
-
-		eofbuffcond = Check_EOFbuff(c->pbuffer,prevbuff, strlen(c->pbuffer), EOBlen, EOFbuff);
 /*
  * The buffer has been red from socket, send broadcast signal to all R_threads to go on
  * then unlock mutex and wait for semaphore
@@ -620,8 +650,6 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode, lmint_t *pstatu
  * this syncing makes all R threads writing buffer which S thread received
  */
 		pt_sync(c->psync_loc);
-		
-		// if pstatus_run == 1 close(sockfd); break;
 /*
  * wait until all Receivers sent the data to the socket
  */
