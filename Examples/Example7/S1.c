@@ -125,7 +125,7 @@ int main(int argc, char *argv[])
  */
 
 		if((i+1)%5 == 0){
-			PInpPar->data_name = nameOut1;
+			PInpPar->channel_name = nameOut1;
 			
 /*
  * add pressure array, array has 5 pressure with some values
@@ -140,7 +140,7 @@ int main(int argc, char *argv[])
 			
 		}
 		else{
-			PInpPar->data_name = nameOut2;
+			PInpPar->channel_name = nameOut2;
 /*
  * add pressure array, array has 5 pressure with some values
  */	
@@ -179,7 +179,7 @@ int main(int argc, char *argv[])
 /*
  * open socket
  */
-		PInpPar->data_name = nameIn;
+		PInpPar->channel_name = nameIn;
 		PInpPar->SR_MODE = 'R';
 		if ( (PInpPar->mode = get_exchange_channel_mode('D', 'N')) == -1)
 			Error("wrong client mode");

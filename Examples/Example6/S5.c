@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
 /*
  * open socket
  */
-		PInpPar->data_name = nameIn1;
+		PInpPar->channel_name = nameIn1;
 		PInpPar->SR_MODE = 'R';
 		if ( (PInpPar->mode = get_exchange_channel_mode('D', 'N')) == -1)
 			Error("wrong client mode");
@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
 /*
  * open socket
  */
-		PInpPar->data_name = nameIn2;
+		PInpPar->channel_name = nameIn2;
 		PInpPar->SR_MODE = 'R';
 		if ( (PInpPar->mode = get_exchange_channel_mode('D', 'N')) == -1)
 			Error("wrong client mode");
@@ -187,7 +187,7 @@ int main(int argc, char *argv[])
 /*
  * open socket
  */
-		PInpPar->data_name = nameOut;
+		PInpPar->channel_name = nameOut;
 		PInpPar->SR_MODE = 'S';
 		if ( (PInpPar->mode = get_exchange_channel_mode('D', 'N')) == -1)
 			Error("wrong client mode");

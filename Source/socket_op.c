@@ -72,7 +72,7 @@ lmint_t open_connection_to_server(const lmchar_t *hostname, lmint_t portno, clie
 /*
  * create header which will identify name of data set and Sender (S) or Receiver (R)
  */
-		if( (Gnode = Header(ClientInPar->data_name, ClientInPar->SR_MODE)) == NULL)
+		if( (Gnode = Header(ClientInPar->channel_name, ClientInPar->SR_MODE)) == NULL)
 			Error("open_connection_to_server: NULL Gnode");
 again:
 		if ( (sockfd =  m3l_cli_open_socket(hostname, portno, (lmchar_t *)NULL)) < 0)

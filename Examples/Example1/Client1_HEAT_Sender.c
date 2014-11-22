@@ -121,7 +121,7 @@ int main(int argc, char *argv[])
 /*
  * open socket
  */
-		PInpPar->data_name = name;
+		PInpPar->channel_name = name;
 		PInpPar->SR_MODE = 'S';
 		if ( (PInpPar->mode = get_exchange_channel_mode('D', 'N')) == -1)
 			Error("wrong client mode");

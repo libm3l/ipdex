@@ -196,7 +196,7 @@ typedef struct SR_hub_thread_str{
  * stores data needed to identify modes of connection etc.
  */
 typedef struct client_fce_struct{
-	lmchar_t *data_name;
+	lmchar_t *channel_name;
 	lmchar_t SR_MODE;
 	lmint_t mode;
 }client_fce_struct_t;
