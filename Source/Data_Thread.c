@@ -408,7 +408,7 @@ void *Data_Threads(void *arg)
  * Data_Thread so the number os synced jobs remains unchanged
  */
 									*c->psync->incrm = 0;
-/*,
+/*
  * notify server by setting retval to 2 and ignore request to close connection
  */
 									*c->pretval = 2;
@@ -424,14 +424,30 @@ void *Data_Threads(void *arg)
 /*
  * all SR_Data_Threads for this Data_Thread arrived, ignore request
  */
+								if(c->pPopts->opt_f == 'f'){
+									for(i=0; i < n_rec_proc + 1 - n_avail_loc_theads; i++){
+										if(close(SR_Threads->sockfd[i]) == -1)
+											Perror("Data_Thread close");
+										SR_Threads->sockfd[i] = 0;
+									}
+									*c->pretval = 4;
+/*
+ * set SR_mode to T as terminate and terminate while(1) loop
+ */									
+									if(Data_Thread_Case_200(c, SR_Threads, n_rec_proc, &loc_sem) != 1)
+										Error("DATA_Thread: Data_Thread_Case_200");
+									goto END;
+								}
+								else{
 /*
  * set sync job increment to 0, it was set by server body to -1
  * it is because we are not going to close any
  * Data_Thread so the number os synced jobs remains unchanged
- * 
- *  notify server by setting retval to 3 and ignore request to close connection
  */
 									*c->psync->incrm = 0;
+/*,
+ * notify server by setting retval to 2 and ignore request to close connection
+ */
 									*c->pretval = 3;
 									Pthread_mutex_unlock(c->plock);
  /*
@@ -439,6 +455,7 @@ void *Data_Threads(void *arg)
   */
 									pt_sync_mod(c->psync,1, 0);
 									break;
+								}
 							}
 							else if(*c->pData_Str->status_run == 1 ){
 /*
