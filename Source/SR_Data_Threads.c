@@ -55,7 +55,7 @@
 
 #define INTEGMIN(X,Y) ((X) < (Y) ? (X) : (Y)); 
 
-static inline lmssize_t Read(lmint_t, lmchar_t *, lmint_t, lmchar_t);
+static inline lmssize_t Read(lmint_t, lmchar_t *, lmint_t);
 static inline lmssize_t Write(lmint_t, lmchar_t *, lmsize_t);
 
 static lmint_t R_KAN(SR_thread_args_t *, lmint_t, lmint_t, lmint_t *);
@@ -385,7 +385,7 @@ lmssize_t Write(lmint_t sockfd,  lmchar_t *buffer, lmsize_t size){
 }
 
 
-lmssize_t Read(lmint_t descrpt , lmchar_t *buff, lmint_t n, lmchar_t SR)
+lmssize_t Read(lmint_t descrpt , lmchar_t *buff, lmint_t n)
 {
 	lmsize_t ngotten;
 
@@ -611,7 +611,7 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode, lmint_t *pstatu
 
 		bzero(c->pbuffer,MAXLINE+1);
 		
-		switch(  (*c->pngotten = Read(sockfd, c->pbuffer, MAXLINE, 'R'))   ){
+		switch(  (*c->pngotten = Read(sockfd, c->pbuffer, MAXLINE))   ){
 		case -1:
 /*
  * error readig socket
@@ -619,6 +619,7 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode, lmint_t *pstatu
 			Warning("read");
 			eofbuffcond = 3;
 			*c->pEofBuff = 3;
+			*pstatus_run = 3;
 			return -1;
 		break;
 		
@@ -628,6 +629,7 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode, lmint_t *pstatu
  */
 			eofbuffcond = 2;
 			*c->pEofBuff = 2;
+			*pstatus_run = 2;
 		break;
 		
 		default:
@@ -741,8 +743,9 @@ lmint_t R_EOFC(lmint_t sockfd){
 	do{
 /*
  * bzero buffer
- */		bzero(buff,sizeof(buff));
-		if (  (ngotten = Read(sockfd, buff, EOFClen, 'A')) == -1)
+ */		
+		bzero(buff,sizeof(buff));
+		if (  (ngotten = Read(sockfd, buff, EOFClen)) == -1)
  			Perror("read");
 		
 		nreceived = nreceived + ngotten;
