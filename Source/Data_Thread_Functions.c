@@ -85,7 +85,7 @@ lmint_t Data_Thread_Case_200(data_thread_args_t *c, SR_thread_str_t *SR_Threads,
 	*c->pThreadID = pthread_self();
 	*c->pData_Str->status_run = 0;
 /*
- * set status run for SR_Hub and SR_Data_Thread to 0, ie. terminate while loops
+ * set status run for SR_Hub and SR_Data_Thread to 0, ie. terminated while loops
  */
 	*SR_Threads->status_run = 0;
 /*
