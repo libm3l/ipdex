@@ -175,9 +175,10 @@ void *SR_hub(void *arg)
  * number of SR_Data_Threads + SR_Hub + Data_Thread
  */
 	pt_sync_mod(c->psync_loc, 0, 2);
-
 /*
  * start loop for transfer
+ * if required termination of the connection then 
+ * Data_Threa in Data_Thread_Case_200 *c->pstatus_run_h = status_run = 0
  */
 	switch(*c->pSRh_mode){
 		case 1:
