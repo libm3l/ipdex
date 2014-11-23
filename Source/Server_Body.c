@@ -463,7 +463,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 						if( pthread_join(*Data_Threads->ThreadID, NULL) != 0)
 							Error("Server_Body case200: Joining thread failed");
 						*Data_Threads->ThreadID = 0;
-						printf(" Case 200 retval (%d)  --- %s   %c\n", *Data_Threads->retval, name_of_required_data_set, SR_mode);
+						printf(" Case 200 1,4 retval (%d)  --- %s   %c\n", *Data_Threads->retval, name_of_required_data_set, *Data_Threads->SR_mode);
 						
 						break;
 
@@ -476,7 +476,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 							Perror("m3l_Umount");
 						if( close(newsockfd) == -1)
 							Perror("close");
-						printf(" Case 200 retval (%d)  --- %s   %c\n", *Data_Threads->retval, name_of_required_data_set, SR_mode);
+						printf(" Case 200 2,3 retval (%d)  --- %s   %c\n", *Data_Threads->retval, name_of_required_data_set, *Data_Threads->SR_mode);
 						Warning("Server_Body: Data_Thread busy");
 						break;
 						
@@ -487,7 +487,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 						opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
 						if( m3l_send_to_tcpipsocket(Answers->RR_NEG, (const char *)NULL, newsockfd, Popts) < 1)
 							Error("Server_Body: Error during sending data to socket");
-						printf(" Case 200 retval (%d)  --- %s   %c\n", *Data_Threads->retval, name_of_required_data_set, SR_mode);
+						printf(" Case 200 0 retval (%d)  --- %s   %c\n", *Data_Threads->retval, name_of_required_data_set, *Data_Threads->SR_mode);
 						Warning("Server_Body: Not valid data set");
 						if( m3l_Umount(&RecNode) != 1)
 							Perror("m3l_Umount");
@@ -545,7 +545,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 		
 		printf(" Joining thread %d  %d \n",  i, Data_Threads->Data_Str[i]->data_threadPID);
 		
-		if( Data_Threads->Data_Str[i]->status_run == 1){
+		if( *Data_Threads->Data_Str[i]->status_run == 1){
 			if( pthread_join(*Data_Threads->Data_Str[i]->data_threadPID, NULL) != 0)
 				Error("Server_Body:  Joining thread failed");
 		}
