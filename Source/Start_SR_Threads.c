@@ -120,7 +120,7 @@ SR_thread_str_t *Start_SR_Threads(lmint_t n_threads){
 	*SR_Data_Thread->R_remainth_counter = 0;
 	*SR_Data_Thread->R_availth_counter = 0;
 	
-	*SR_Data_Thread->status_run = 1;
+	*SR_Data_Thread->status_run = 0;
 /*
  * initialize sync data structure
  */

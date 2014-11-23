@@ -178,7 +178,7 @@ void *SR_hub(void *arg)
 /*
  * start loop for transfer
  * if required termination of the connection then 
- * Data_Threa in Data_Thread_Case_200 *c->pstatus_run_h = status_run = 0
+ * Data_Threa in Data_Thread_Case_200 *c->pstatus_run_h = status_run = 1
  */
 	switch(*c->pSRh_mode){
 		case 1:
@@ -201,7 +201,7 @@ void *SR_hub(void *arg)
 /* 
  * if connection required to be closed, terminate while loop
  */
-				if(*c->pstatus_run_h != 1) break;
+				if(*c->pstatus_run_h != 0) break;
 				terminal_loop_sequence(c);
 			}
 		break;
@@ -223,7 +223,7 @@ void *SR_hub(void *arg)
  * synced too
  */
 				pt_sync_mod(c->psync_loc, 0, 1);
-				if(*c->pstatus_run_h != 1) break;
+				if(*c->pstatus_run_h != 0) break;
 /*
  * do 2 loops (ie. Sender-to-receiver   and   Recevier-to-Sender) and then continue
  */
@@ -235,7 +235,7 @@ void *SR_hub(void *arg)
 /* 
  * if connection required to be closed, terminate while loop
  */
-				if(*c->pstatus_run_h != 1) break;
+				if(*c->pstatus_run_h != 0) break;
 				terminal_loop_sequence(c);
 			}
 		break;
@@ -254,7 +254,7 @@ void *SR_hub(void *arg)
  * synced too
  */
 				pt_sync_mod(c->psync_loc, 0, 1);
-				if(*c->pstatus_run_h != 1) break;
+				if(*c->pstatus_run_h != 0) break;
 			}
 			
 			terminal_loop_sequence(c);
@@ -296,10 +296,10 @@ void terminal_loop_sequence(SR_hub_thread_str_t *c){
  * process
  */
 /*
- * thread can be used againm if thread required to be 
+ * thread can be used again if thread required to be 
  * terminated, do not mark it as usable
  */
-		if(*c->pstatus_run_h == 1){
+		if(*c->pstatus_run_h == 0){
 			*c->pThread_S_Status = 0;	/* number of connected S processes is 0 */
 			*c->pThread_R_Status = 0;	/* number of connected R processes is 0 */
 			*c->pThread_Status   = 0;	/* thread can be reused */
@@ -311,7 +311,7 @@ void terminal_loop_sequence(SR_hub_thread_str_t *c){
  * this is done to prevent closing thread while at least one client
  * opens up connection
  */
-		*c->pstatus_run_DataThr_h = 1; 
+		*c->pstatus_run_DataThr_h = 0; 
 /*
  * if all threads were occupied, ie *Data_Threads->n_data_threads == *c->pcounter == 0
  * the server is waiting for signal before the continuing with data process identification. 

@@ -246,7 +246,7 @@ void *SR_Data_Threads(void *arg)
  */
 					do{
 						if(R_KAN(c, sockfd, 5, c->pstatus_run) != 1) goto END1;
-					}while(*c->pstatus_run == 1);
+					}while(*c->pstatus_run == 0);
 
 				break;
 
@@ -256,7 +256,7 @@ void *SR_Data_Threads(void *arg)
  */
 					do{
 						if( S_KAN(c, sockfd, 5, c->pstatus_run) != 1) goto END1;
-					}while(*c->pstatus_run == 1);
+					}while(*c->pstatus_run == 0);
 
 				break;
 
@@ -293,7 +293,7 @@ void *SR_Data_Threads(void *arg)
  * synced too
  */
 						if( S_KAN(c, sockfd, 0, c->pstatus_run) == -1) return NULL;
-					}while(*c->pstatus_run == 1);
+					}while(*c->pstatus_run == 0);
 				break;
 
 				case 'S':
@@ -311,7 +311,7 @@ void *SR_Data_Threads(void *arg)
  * synced too
  */
 						if( R_KAN(c, sockfd, 0, c->pstatus_run) == -1) return NULL;
-					}while(*c->pstatus_run == 1);
+					}while(*c->pstatus_run == 0);
 				break;
 
 				case 'T':
@@ -432,32 +432,41 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode, lmint_t *pstatu
  */
 		pt_sync(c->psync_loc);
 		
-		if( *pstatus_run != 1)  break;
+		if( *pstatus_run != 0)  break;
 		
 		switch(*c->pEofBuff){
 			
 			case 0:
 				R_done = 0;
-				break;
-				
-			case 1:
-				R_done = 1;
-				break;
-		}
-		
-// 		if(*c->pEofBuff != 0){
-// 			R_done = 1;}
-// 		else{
-// 			R_done = 0;}
 /*
  * the mutex was locked here to protect writing to each individual sockets
  * but I think it is  not needed, moved lock after 
  */
-		if ( (n = Write(sockfd,c->pbuffer, *c->pngotten)) < *c->pngotten){
-			Warning("write()");
-			return -1;
+				if ( (n = Write(sockfd,c->pbuffer, *c->pngotten)) < *c->pngotten){
+					Warning("write()");
+					Pthread_mutex_lock(c->plock);
+						*pstatus_run = 4;
+					Pthread_mutex_unlock(c->plock);
+				}
+				break;
+				
+			case 1:
+				R_done = 1;
+/*
+ * the mutex was locked here to protect writing to each individual sockets
+ * but I think it is  not needed, moved lock after 
+ */
+				if ( (n = Write(sockfd,c->pbuffer, *c->pngotten)) < *c->pngotten){
+					Warning("write()");
+					Pthread_mutex_lock(c->plock);
+						*pstatus_run = 4;
+					Pthread_mutex_unlock(c->plock);
+					R_done = 0;
+				}
+				break;
 		}
-/* prcounter is counter of R_threads which still have not 
+/* 
+ * prcounter is counter of R_threads which still have not 
  * read wrote the buffer to TCP/IP socket
  * The values is reset in S_KAN each time S_KAn reads from socket
  */ 
@@ -511,6 +520,13 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode, lmint_t *pstatu
  * do in only ff ATDT mode is D
  */
 	retval = 1;
+	
+	
+/*
+ *     NOTE: 
+ *	HERE - based on value of pstatus_run decide what to do
+ *      for all values except 0,1 close socket - not normal termination
+ */
 
 	switch(mode){
 		
@@ -538,7 +554,7 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode, lmint_t *pstatu
 /*
  * same as case 1 and 2, just do not close the socket
  */
-			if(*pstatus_run != 1){
+			if(*pstatus_run != 0){
 				
 				if( close(sockfd) == -1)
 					Perror("R_KAN close");
@@ -615,6 +631,8 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode, lmint_t *pstatu
 		case -1:
 /*
  * error readig socket
+ * it is not needed to lock these values by mutex, all R_threads are waiting on pt_sync
+ * so there is not any process which can manipulate them
  */
 			Warning("read");
 			eofbuffcond = 3;
@@ -626,6 +644,8 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode, lmint_t *pstatu
 		case 0:
 /*
  * client closed socket
+ * it is not needed to lock these values by mutex, all R_threads are waiting on pt_sync
+ * so there is not any process which can manipulate them
  */
 			eofbuffcond = 2;
 			*c->pEofBuff = 2;
@@ -657,9 +677,18 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode, lmint_t *pstatu
  */
 		Sem_wait(c->psem);
 /*
- * if end of buffer reached, leave do cycle
+ * if end of buffer reached, or abnormal termination, leave do cycle
  */
+		if(*pstatus_run > 1) break;
 	}
+	
+	
+/*
+ *     NOTE: 
+ *	HERE - based on value of pstatus_run decide what to do
+ *      for all values except 0,1 close socket - not normal termination
+ */
+
 /*
  * sender sent payload, before closign socket send back acknowledgement --SEOB, Sender receives --REOB
  * do it only if ATDT mode == D

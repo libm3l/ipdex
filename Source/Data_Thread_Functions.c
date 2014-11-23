@@ -87,7 +87,7 @@ lmint_t Data_Thread_Case_200(data_thread_args_t *c, SR_thread_str_t *SR_Threads,
 /*
  * set status run for SR_Hub and SR_Data_Thread to 0, ie. terminated while loops
  */
-	*SR_Threads->status_run = 0;
+	*SR_Threads->status_run = 1;
 /*
  * Singal SR_hub sem_wait(c->psem) for this semaphore, ie. as if all SR threads
  * arrived. For SR threads in normal "working" state this is done 
