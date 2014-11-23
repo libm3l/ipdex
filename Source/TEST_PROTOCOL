@@ -71,4 +71,23 @@
 	       close Pressure Temperature Density while Example1 runnign
 	       reopen 
 	       run Example1	
+	
+	
+	commit 9b753aa4dc75c23e89535c2bce42a2dbd9602b07
+	       tested 1-4 PS Toshiba, tests OK
+	       test Ex8 - 1000 times opening and deleting new connection
+	       test Ex8 opening channel, transfer 1000 times, close channel
+	       test Ex8 - 1000 times opening and deleting new connection	
 	       
+	       close Temperature while Example2 runnign
+	       reopen 
+	       run Example2
+	       
+	       Running example 1
+	       opening 100 channels and closing them
+	       Opening HEAT channel
+	       running 1000 times
+	       closing
+	       Opening HEAT channel
+	       running 1000 times
+	       closing	       
