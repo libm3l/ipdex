@@ -545,7 +545,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 		
 		printf(" Joining thread %d  %d \n",  i, Data_Threads->Data_Str[i]->data_threadPID);
 		
-		if( Data_Threads->Data_Str[i]->status_run == 0){
+		if( Data_Threads->Data_Str[i]->status_run == 1){
 			if( pthread_join(*Data_Threads->Data_Str[i]->data_threadPID, NULL) != 0)
 				Error("Server_Body:  Joining thread failed");
 		}

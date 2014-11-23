@@ -244,7 +244,7 @@ void *Data_Threads(void *arg)
  * initialization phase is over, now there is a while(1) loop in whith the threads are identified
  * according to their name. The while loop is terminated in case 200, ie. when requested to be terminated
  */
-// 	while(*c->pData_Str->status_run==1){
+// 	while(*c->pData_Str->status_run==0){
 	while(1){
 		
 		local_cntr = 0;

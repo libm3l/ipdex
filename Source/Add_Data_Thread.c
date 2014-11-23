@@ -138,7 +138,7 @@ lmsize_t Add_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread, node_t *
 	if( (Data_Thread->Data_Str[newnum]->name_of_channel = (lmchar_t *)malloc(MAX_NAME_LENGTH* sizeof(lmchar_t))) == NULL)
 		Perror("Add_Data_Thread: Data_Thread->Data_Str->name_of_channel malloc");
 /*
- * malloc status_run variable and set it to 1; if 0 thread was joined
+ * malloc status_run variable and set it to 0; if 1 thread was joined
  */
 	if( (Data_Thread->Data_Str[newnum]->status_run = (lmint_t *)malloc(MAX_NAME_LENGTH* sizeof(lmint_t))) == NULL)
 		Perror("Add_Data_Thread: Data_Thread->Data_Str->lmint_t malloc");
