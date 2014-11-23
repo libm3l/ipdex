@@ -142,7 +142,7 @@ lmsize_t Add_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread, node_t *
  */
 	if( (Data_Thread->Data_Str[newnum]->status_run = (lmint_t *)malloc(MAX_NAME_LENGTH* sizeof(lmint_t))) == NULL)
 		Perror("Add_Data_Thread: Data_Thread->Data_Str->lmint_t malloc");
-	*Data_Thread->Data_Str[newnum]->status_run = 1;
+	*Data_Thread->Data_Str[newnum]->status_run = 0;
 /*
  * increase number of threads by 1
  * number of synced threads (*Data_Thread->sync->nthreads) will be increased

@@ -457,7 +457,7 @@ void *Data_Threads(void *arg)
 									break;
 								}
 							}
-							else if(*c->pData_Str->status_run == 1 ){
+							else if(*c->pData_Str->status_run == 0 ){
 /*
  * set SR_mode to T as terminate and terminate while(1) loop
  */

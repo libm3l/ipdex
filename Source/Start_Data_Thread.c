@@ -139,11 +139,11 @@ lmsize_t Start_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread){
 		if( (Data_Thread->Data_Str[i]->name_of_channel = (lmchar_t *)malloc(MAX_NAME_LENGTH* sizeof(lmchar_t))) == NULL)
 			Perror("Start_Data_Thread: Data_Thread->Data_Str->name_of_channel malloc");
 /*
- * malloc status_run variable and set it to 1; if 0 thread will be terminated
+ * malloc status_run variable and set it to 0; if !=0 thread will be terminated
  */
 		if( (Data_Thread->Data_Str[i]->status_run = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
 			Perror("Start_Data_Thread: Data_Thread->Data_Str->lmint_t malloc");
-		*Data_Thread->Data_Str[i]->status_run = 1;
+		*Data_Thread->Data_Str[i]->status_run = 0;
 	}
 /*
  * set the value of for syncing thread to number of data sets + 2 (it. sync all Data_Thread (n_data_threads) + 
