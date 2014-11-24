@@ -5,3 +5,5 @@
 *.o
 *~
 /Source/Makefile
+*.so*
+*.out
