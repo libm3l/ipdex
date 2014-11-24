@@ -74,7 +74,7 @@ lmint_t Data_Thread_Case_200(data_thread_args_t *c, SR_thread_str_t *SR_Threads,
 	
 	lmsize_t i;
 /*
- * set SR_mode for all SR_Data_Threads as 'T" - terminate
+ * set SR_mode for all SR_Threads as 'T" - terminate
  */
 	for(i=0; i < n_rec_proc + 1; i++)
 		SR_Threads->SR_mode[i] = 'T';
@@ -103,7 +103,7 @@ lmint_t Data_Thread_Case_200(data_thread_args_t *c, SR_thread_str_t *SR_Threads,
  * no leave do - while(n_avail_loc_theads != 0) loop 
  * the value of status_run is set to 0 
  * so the outer while loop (status_run == 1) will be automatically left too
- * This sequence may change later when SR_Data_Threads and SR_Hub are terminated
+ * This sequence may change later when SR_Threads and SR_Hub are terminated
  */
 	Pthread_mutex_unlock(c->plock);
 /*

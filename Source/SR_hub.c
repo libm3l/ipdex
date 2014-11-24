@@ -172,7 +172,7 @@ void *SR_hub(void *arg)
  * some values from the list.
  * 
  * The value of processes which are synced on this pt_sync_mod is increased by 2, ie.
- * number of SR_Data_Threads + SR_Hub + Data_Thread
+ * number of SR_Threads + SR_Hub + Data_Thread
  */
 	pt_sync_mod(c->psync_loc, 0, 2);
 /*
@@ -263,7 +263,7 @@ void *SR_hub(void *arg)
 	}
 /*
  * Post semaphore, Data_Thread is vaiting for it so that it can start joinign 
- * all SR_Data_Threads and SR_Hub threads
+ * all SR_Threads and SR_Hub threads
  */
 // 	Sem_post(c->psem);
 /*

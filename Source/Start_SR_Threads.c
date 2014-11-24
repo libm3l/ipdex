@@ -52,7 +52,7 @@
 #include "libm3l.h"
 #include "lsipdx_header.h"
 #include "Start_SR_Threads.h"
-#include "SR_Data_Threads.h"
+#include "SR_Threads.h"
 #include "Server_Functions_Prt.h"
 
 
@@ -173,7 +173,7 @@ SR_thread_str_t *Start_SR_Threads(lmint_t n_threads){
 /*
  * create thread
  */
-		while ( (pth_err = pthread_create(&SR_Data_Thread->data_threads[i], &attr, &SR_Data_Threads,   (void *)SR_DataArgs)) != 0 && errno == EAGAIN);
+		while ( (pth_err = pthread_create(&SR_Data_Thread->data_threads[i], &attr, &SR_Threads,   (void *)SR_DataArgs)) != 0 && errno == EAGAIN);
 		if(pth_err != 0)
 			Perror("pthread_create()"); 
 	}

@@ -63,7 +63,7 @@ void *Data_Threads(void *arg)
  * arriving data set name and if possitive, decrement number of available threads 
  * for the particular data set (the numbet of available threads at the beginning = S + number_o_R threads
  * Once the number of available threads == 0, (ie. all S + R threads arrived) the 
- * thread notifies SR_Hub which synchronizes the S_R transfer (SR_Data_Threads)
+ * thread notifies SR_Hub which synchronizes the S_R transfer (SR_Threads)
  *
  * Number of all active Data_Thread == number of transferred data sets + 1. The values is set in 
  * Data_Thread (*Data_Thread->sync->nthreads = *Data_Thread->n_data_threads + 1;
@@ -237,7 +237,7 @@ void *Data_Threads(void *arg)
  * some values from the list.
  * 
  * The value of processes which are synced on this pt_sync_mod is increased by 2, ie.
- * number of SR_Data_Threads + SR_Hub + Data_Thread
+ * number of SR_Threads + SR_Hub + Data_Thread
  */
 	pt_sync_mod(SR_Threads->sync_loc, 0, 2);
 /*
@@ -422,7 +422,7 @@ void *Data_Threads(void *arg)
 							}
 							else if(*c->pData_Str->status_run == 3 ){
 /*
- * all SR_Data_Threads for this Data_Thread arrived, ignore request
+ * all SR_Threads for this Data_Thread arrived, ignore request
  */
 								if(c->pPopts->opt_f == 'f'){
 									for(i=0; i < n_rec_proc + 1 - n_avail_loc_theads; i++){
@@ -480,7 +480,7 @@ void *Data_Threads(void *arg)
 					break;
 
 				default:
-					Error("SR_Data_Threads: Wrong mode - check KeepAlive and ATDT specifications");
+					Error("SR_Threads: Wrong mode - check KeepAlive and ATDT specifications");
 				break;
 			}
 /*
@@ -499,7 +499,7 @@ void *Data_Threads(void *arg)
 		Sem_post(&loc_sem);
 /*
  * now this thread signalled its own SR_hub that all connections arrived and SR_hub start synchronizing all 
- * SR_Data_Threads which are taking care of actual data transfer from S to R threads
+ * SR_Threads which are taking care of actual data transfer from S to R threads
  * 
  * This thread does not need to wait for it and goes to while(1) loop again and waits on synchronization 
  * point pt_sync(c->psync). The thread is classified as taken (*Thread_Status == 1).
@@ -508,7 +508,7 @@ void *Data_Threads(void *arg)
  * Once the SR_hub is finished with all data transfer it sets *Thread_Status = 0 (in SR_hub: *c->pThread_Status = 0)
  * so that this thread can be again considered as being available.
  * 
- * NOTE: before this thread took case of syncyng SR_Data_Threads instead of SR_hub. The problem was that it needed to 
+ * NOTE: before this thread took case of syncyng SR_Threads instead of SR_hub. The problem was that it needed to 
  * decrement a number of synchronized threads which (the value used in pt_sync(c->psync).
  * Some of the threads were already waiting and it gave rise to dead-lock
  */
@@ -518,7 +518,7 @@ END:
 /*
  * join SR_hub and release memory
  * join this thread before SR_Threads, it is because SR_Hub is waiting for final semaphore 
- * from SR_Data_Threads. By joining SR_Hub_Thread after the SR_Threads were freed
+ * from SR_Threads. By joining SR_Hub_Thread after the SR_Threads were freed
  * caused SR_Hub using already unuloated sempahore. By freeing malloced memory 
  * after joinign thread, this problem is avoided
  */

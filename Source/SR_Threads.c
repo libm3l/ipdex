@@ -22,7 +22,7 @@
 
 
 /*
- *     Function SR_Data_Threads.c
+ *     Function SR_Threads.c
  *
  *     Date: 2013-09-08
  * 
@@ -51,7 +51,7 @@
 #include "libm3l.h"
 #include "lsipdx_header.h"
 #include "Server_Functions_Prt.h"
-#include "SR_Data_Threads.h"
+#include "SR_Threads.h"
 
 #define INTEGMIN(X,Y) ((X) < (Y) ? (X) : (Y)); 
 
@@ -69,7 +69,7 @@ static lmssize_t S_EOFC(lmint_t, lmint_t);
 //      mode 5: ATDTMode == 'D' && KeepAlive_Mode == 'Y'  /* Direct transfer, do not close socket*/
 //      mode 6: ATDTMode == 'A' && KeepAlive_Mode == 'Y'  /* Alternate transfer, do not close socket*/
 
-void *SR_Data_Threads(void *arg)
+void *SR_Threads(void *arg)
 {
 	SR_thread_args_t *c = (SR_thread_args_t *)arg;
 
@@ -83,7 +83,7 @@ void *SR_Data_Threads(void *arg)
  * some values from the list.
  * 
  * The value of processes which are synced on this pt_sync_mod is increased by 2, ie.
- * number of SR_Data_Threads + SR_Hub + Data_Thread
+ * number of SR_Threads + SR_Hub + Data_Thread
  */	
 	pt_sync_mod(c->psync_loc, 0, 2);
 /* 
@@ -96,15 +96,15 @@ void *SR_Data_Threads(void *arg)
  * the last invoking of pt_sync_mod is done in SR_hub.c
  * 
  * 
- *  *c->pthr_cntr local counter uniques for all SR_Data_Threads for one SR_Hub, upon start, all
+ *  *c->pthr_cntr local counter uniques for all SR_Threads for one SR_Hub, upon start, all
  * SR_Data_Thread will set it to 0 and then wait on pt_sync until all requests arrive.
- * One they arrive, SR_Data_Threads will grab them one by one, getting socket number and SR_mode from an array which is filled in
+ * One they arrive, SR_Threads will grab them one by one, getting socket number and SR_mode from an array which is filled in
  * Data_Thread (SR_Threads->sockfd) 
  */
 		*c->pthr_cntr = 0;
 /*
  * wait until all SR_threads reach pt_sync, then start actual transfer of the data from S to R(s).
- * This counter include all SR_Data_Threads and SR_Hub.
+ * This counter include all SR_Threads and SR_Hub.
  * becasue the internal counter of synced jobs is set to S+R, we have to add 1 so that SR_Hub is 
  * synced too
  */
@@ -148,13 +148,13 @@ void *SR_Data_Threads(void *arg)
 				
 				case 'T':
 /*
- * thread is to be terminated sync all S and R SR_Data_Threads
+ * thread is to be terminated sync all S and R SR_Threads
  */
 					retval = pt_sync(c->psync_loc);
 /*
  * the last thread leaving pt_sync will give back 0 all others 1
  * the thread received retval == 0 is the last one sycned, once leaving 
- * pt_thread post sempahore, ie. notify SR_Hub that all SR_Data_Threads are
+ * pt_thread post sempahore, ie. notify SR_Hub that all SR_Threads are
  * finishing and it is OK to start joining them
  */
 					if(retval == 0)Sem_post(c->psem_g);
@@ -163,7 +163,7 @@ void *SR_Data_Threads(void *arg)
 				break;
 
 				default:
-					Error("SR_Data_Threads: Wrong SR_mode");
+					Error("SR_Threads: Wrong SR_mode");
 				break;
 			}
 		break;
@@ -215,13 +215,13 @@ void *SR_Data_Threads(void *arg)
 
 				case 'T':
 /*
- * thread is to be terminated sync all S and R SR_Data_Threads
+ * thread is to be terminated sync all S and R SR_Threads
  */
 					retval = pt_sync(c->psync_loc);
 /*
  * the last thread leaving pt_sync will give back 0 all others 1
  * the thread received retval == 0 is the last one sycned, once leaving 
- * pt_thread post sempahore, ie. notify SR_Hub that all SR_Data_Threads are
+ * pt_thread post sempahore, ie. notify SR_Hub that all SR_Threads are
  * finishing and it is OK to start joining them
  */
 					if(retval == 0)Sem_post(c->psem_g);
@@ -230,7 +230,7 @@ void *SR_Data_Threads(void *arg)
 				break;
 
 				default:
-					Error("SR_Data_Threads: Wrong SR_mode");
+					Error("SR_Threads: Wrong SR_mode");
 				break;
 			}
 		break;
@@ -267,7 +267,7 @@ void *SR_Data_Threads(void *arg)
 				break;
 
 				default:
-					Error("SR_Data_Threads: Wrong SR_mode");
+					Error("SR_Threads: Wrong SR_mode");
 				break;
 			}
 		break;
@@ -321,13 +321,13 @@ void *SR_Data_Threads(void *arg)
 				break;
 
 				default:
-					Error("SR_Data_Threads: Wrong SR_mode");
+					Error("SR_Threads: Wrong SR_mode");
 				break;
 			}
 		break;
 		
 		default:
-			Error("SR_Data_Threads: Wrong mode - check KeepAlive and ATDT specifications");
+			Error("SR_Threads: Wrong mode - check KeepAlive and ATDT specifications");
 		break;
 		}
 	}
@@ -391,7 +391,7 @@ lmssize_t Read(lmint_t descrpt , lmchar_t *buff, lmint_t n)
 
 	if (  (ngotten = read(descrpt,buff,n)) == -1){
 		
-		Warning("SR_Data_Threads - Read");
+		Warning("SR_Threads - Read");
 		return -1;
 	}
 	buff[ngotten] = '\0';
@@ -538,7 +538,7 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode, lmint_t *pstatu
 		case 2:
 			opts.opt_REOBseq = 'G'; // receive EOFbuff sequence only
 			if( m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts) < 0){
-				Error("SR_Data_Threads: Error when receiving  REOB\n");
+				Error("SR_Threads: Error when receiving  REOB\n");
 				return -1;
 			}
 /*
@@ -561,13 +561,13 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode, lmint_t *pstatu
 			
 // 			opts.opt_EOBseq = 'E'; // send EOFbuff sequence only	
 // 			if( m3l_send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, Popts) < 0){
-// 				Error("SR_Data_Threads: Error when sending  SEOB\n");
+// 				Error("SR_Threads: Error when sending  SEOB\n");
 // 				return -1;
 			}
 			else{
 				opts.opt_REOBseq = 'G'; // receive EOFbuff sequence only
 				if( m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts) < 0){
-					Error("SR_Data_Threads: Error when receiving  REOB\n");
+					Error("SR_Threads: Error when receiving  REOB\n");
 					return -1;
 				}
 			}
@@ -705,7 +705,7 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode, lmint_t *pstatu
 		case 2:
 			opts.opt_EOBseq = 'E'; // send EOFbuff sequence only	
 			if( m3l_send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, Popts) < 0){
-				Error("SR_Data_Threads: Error when sending  SEOB\n");
+				Error("SR_Threads: Error when sending  SEOB\n");
 				return -1;
 			}
 /*
@@ -723,14 +723,14 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode, lmint_t *pstatu
 // 			if pstatus_run == 1  close(sockfd); break;
 // 			opts.opt_REOBseq = 'G'; // receive EOFbuff sequence only
 // 			if( m3l_receive_tcpipsocket((const lmchar_t *)NULL, sockfd, Popts) < 0){
-// 				Error("SR_Data_Threads: Error when receiving  REOB\n");
+// 				Error("SR_Threads: Error when receiving  REOB\n");
 // 				return -1;
 // 			}
 // 			else
                
 			opts.opt_EOBseq = 'E'; // send EOFbuff sequence only	
 			if( m3l_send_to_tcpipsocket((node_t *)NULL, (const lmchar_t *)NULL, sockfd, Popts) < 0){
-				Error("SR_Data_Threads: Error when sending  SEOB\n");
+				Error("SR_Threads: Error when sending  SEOB\n");
 				return -1;
 			}
 		break;

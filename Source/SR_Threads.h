@@ -22,7 +22,7 @@
 
 
 /*
- *     Header file SR_Data_Threads.h
+ *     Header file SR_Threads.h
  *
  *     Date: 2013-09-07
  * 
@@ -41,6 +41,6 @@
 #ifndef  __ST_DATA_THREADS_H__
 #define  __ST_DATA_THREADS_H__
 
-extern void *SR_Data_Threads(void *);
+extern void *SR_Threads(void *);
 
 #endif
