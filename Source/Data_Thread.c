@@ -480,7 +480,7 @@ void *Data_Threads(void *arg)
 					break;
 
 				default:
-					Error("SR_Threads: Wrong mode - check KeepAlive and ATDT specifications");
+					Error("SR_Threads: Wrong pcheckdata value");
 				break;
 			}
 /*
