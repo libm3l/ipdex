@@ -503,17 +503,18 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 /*
  * shutdown Server
  */
+				Pthread_mutex_unlock(&Data_Threads->lock);
 				activser = 0;
 /*
  * confirm to client
  */
-					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
-					if( m3l_send_to_tcpipsocket(Answers->RR_POS, (const char *)NULL, newsockfd, Popts) < 1)
-						Error("Server_Body: Error during sending data to socket");
-					if( m3l_Umount(&RecNode) != 1)
-						Perror("m3l_Umount");
-					if( close(newsockfd) == -1)
-						Perror("close");
+				opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
+				if( m3l_send_to_tcpipsocket(Answers->RR_POS, (const char *)NULL, newsockfd, Popts) < 1)
+					Error("Server_Body: Error during sending data to socket");
+				if( m3l_Umount(&RecNode) != 1)
+					Perror("m3l_Umount");
+				if( close(newsockfd) == -1)
+					Perror("close");
 			break;
 			
 			case 501:
