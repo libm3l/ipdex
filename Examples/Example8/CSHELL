@@ -2,7 +2,7 @@
 
 set i=1
 echo $i
-while ($i <= 100)
+while ($i <= 10)
 
 	echo $i
 	set NAME=`echo HEAT$i`
@@ -12,3 +12,4 @@ while ($i <= 100)
 	
 	@ i = $i + 1
 end
+	./Client1_Shutdown.out localhost 31000 

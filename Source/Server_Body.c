@@ -62,7 +62,7 @@
 lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 	
 	lmsize_t i;
-	lmint_t sockfd, newsockfd, cycle,tmpval;
+	lmint_t sockfd, newsockfd, cycle,tmpval,activser;
 	struct sockaddr_in cli_addr;
 	data_thread_str_t *Data_Threads;
 	lmchar_t name_of_required_data_set[MAX_NAME_LENGTH], SR_mode;
@@ -76,9 +76,8 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 	
 	m3l_set_Send_receive_tcpipsocket(&Popts);
 	
-	int help;
-	
 	cycle=0;
+	activser = 1;
 /*
  * create standard answers and queue
  */
@@ -128,12 +127,11 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 		Perror("Open_Bind_Listen");
 	
 	
-	printf(" Unique ID is %ld\n", Make_ID_Number(sockfd));
+// 	printf(" Unique ID is %ld\n", Make_ID_Number(sockfd));
 	
-// 	help = 1;
-// 	while(help++ < 11){
+ 	while(activser == 1){
 	
-	while(1){
+// 	while(1){
 /*
  * if already in cycle, you need to lock mutex here
  */
@@ -463,12 +461,15 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 						if( pthread_join(*Data_Threads->ThreadID, NULL) != 0)
 							Error("Server_Body case200: Joining thread failed");
 						*Data_Threads->ThreadID = 0;
-						printf(" Case 200 1,4 retval (%d)  --- %s   %c\n", *Data_Threads->retval, name_of_required_data_set, *Data_Threads->SR_mode);
+						printf(" Case 200 1,4 retval (%d)  --- %s \n", *Data_Threads->retval, name_of_required_data_set);
 						
 						break;
 
 					case 2:
 					case 3:
+/* 
+ * did not close conenction
+ */
 						opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
 						if( m3l_send_to_tcpipsocket(Answers->RR_NEG, (const char *)NULL, newsockfd, Popts) < 1)
 							Error("Server_Body: Error during sending data to socket");
@@ -476,7 +477,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 							Perror("m3l_Umount");
 						if( close(newsockfd) == -1)
 							Perror("close");
-						printf(" Case 200 2,3 retval (%d)  --- %s   %c\n", *Data_Threads->retval, name_of_required_data_set, *Data_Threads->SR_mode);
+						printf(" Case 200 2,3 retval (%d)  --- %s \n", *Data_Threads->retval, name_of_required_data_set);
 						Warning("Server_Body: Data_Thread busy");
 						break;
 						
@@ -496,6 +497,23 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 						continue;
 					break;
 				}
+			break;
+			
+			case -200:
+/*
+ * shutdown Server
+ */
+				activser = 0;
+/*
+ * confirm to client
+ */
+					opts.opt_EOBseq = '\0'; // send EOFbuff sequence only
+					if( m3l_send_to_tcpipsocket(Answers->RR_POS, (const char *)NULL, newsockfd, Popts) < 1)
+						Error("Server_Body: Error during sending data to socket");
+					if( m3l_Umount(&RecNode) != 1)
+						Perror("m3l_Umount");
+					if( close(newsockfd) == -1)
+						Perror("close");
 			break;
 			
 			case 501:
@@ -543,9 +561,9 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
  */
 	for(i=0; i< Data_Threads->nall_data_threads; i++){
 		
-		printf(" Joining thread %d  %d \n",  i, Data_Threads->Data_Str[i]->data_threadPID);
+		printf(" Joining thread %d  %d %s\n",  i, Data_Threads->Data_Str[i]->data_threadPID, Data_Threads->Data_Str[i]->name_of_channel);
 		
-		if( *Data_Threads->Data_Str[i]->status_run == 1){
+		if( *Data_Threads->Data_Str[i]->status_run == 0){
 			if( pthread_join(*Data_Threads->Data_Str[i]->data_threadPID, NULL) != 0)
 				Error("Server_Body:  Joining thread failed");
 		}
@@ -562,6 +580,7 @@ lmint_t Server_Body(node_t *Gnode, lmint_t portno, opts_t* Popts_SB){
 	Pthread_mutex_destroy(&Data_Threads->lock);
 	Pthread_cond_destroy(&Data_Threads->cond);
 	Sem_destroy(&Data_Threads->sem);
+	printf(" After joining1 \n");
 
 	free(Data_Threads->name_of_data_set);
 	free(Data_Threads->SR_mode);

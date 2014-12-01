@@ -243,10 +243,28 @@ node_t *ChannelList(const lmchar_t *name, lmsize_t Rproc, lmchar_t ATDT_mode, lm
 	dim[0] = 1;
 	if(  (TmpNode = m3l_Mklist("request_type", "I", 1, dim, &Gnode, "/_sys_comm_", "./", (lmchar_t *)NULL)) == 0)
 		Error("m3l_Mklist");
-	if(Rproc == 0)
-		TmpNode->data.i[0] = 200;
-	else
-		TmpNode->data.i[0] = 100;
+	
+	switch(Rproc){
+		case 0:
+/*
+ * close Channel
+ */
+			TmpNode->data.i[0] = 200;
+		break;
+		
+		case -1:
+/*
+ * shutdown Server
+ */
+			TmpNode->data.i[0] = -200;
+		break;
+		
+		default:
+/*
+ * open new connection 
+ */
+			TmpNode->data.i[0] = 100;
+	}
 /*
  * add subset Channel
  */

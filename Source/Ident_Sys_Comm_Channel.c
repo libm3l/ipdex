@@ -340,6 +340,9 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 					*tmpname='\0';
 
 					Popts_CR->opt_s = 's';
+/*
+ * this option defines for Check_Request that the request is system request
+ */
 					if( Check_Request( (*DataBuffer), name_of_required_data_set, *SR_mode, Popts_CR) == 1){
 /*
  * channel exists
@@ -358,6 +361,13 @@ lmint_t Ident_Sys_Comm_Channel(node_t *RecNode, node_t **DataBuffer, data_thread
 					Error("Did not find any /_sys_comm_/Channel/Name_of_Channel");
 					return -10;
 				}
+			break;
+			
+			case -200:
+/*
+ * shutdown server
+ */
+				return -200;
 			break;
 			
 			default:

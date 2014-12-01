@@ -240,7 +240,7 @@ again:
 	return sockfd;
 }
 
-lmint_t del_connection(const lmchar_t *hostname, lmint_t portno, const lmchar_t *name_of_newchannel, opts_t *Popts){
+lmint_t del_connection(const lmchar_t *hostname, lmint_t portno, const lmchar_t *name_of_channel, opts_t *Popts){
 
 	lmint_t sockfd, retval;
 	node_t *Gnode, *TmpNode;
@@ -258,8 +258,110 @@ lmint_t del_connection(const lmchar_t *hostname, lmint_t portno, const lmchar_t 
 	if(hostname != NULL){
 /*
  * create header which will identify name of data set and Sender (S) or Receiver (R)
+ * set number of R processes to 0 to indicate you want to delete the channel
  */
-		if( ( Gnode = ChannelList(name_of_newchannel, 0,  'D', 'N')) == NULL)
+		if( ( Gnode = ChannelList(name_of_channel, 0,  '0', '0')) == NULL)
+			Error("del_connection: NULL Gnode");
+again: 
+		if ( (sockfd =  m3l_cli_open_socket(hostname, portno, (lmchar_t *)NULL)) < 0)
+			Error("del_connection: Could not open socket");
+/*
+ * send header identifying name which connection will be used. Upon receiving this info, 
+ * server will send back the answer
+ */
+		if( (TmpNode = m3l_send_receive_tcpipsocket(Gnode, (lmchar_t *)NULL, sockfd, Popts)) == NULL){
+			Perror("del_connection: m3l_send_receive_tcpipsocket error");
+
+			if(m3l_Umount(&Gnode) != 1)
+				Perror("del_connection: m3l_Umount");
+			return -1;
+		}
+/*
+ * get the value of the /RR/val
+ * this is an answer from the server which stores the return value in 
+ * ret_receipt == 0 all connections to the server specified for 
+ * given data set were taken, retry opening it again after certain time
+ */
+		retval = TmpNode->child->data.i[0];
+/*
+ * if retval == 1 adding new connection was succesfull
+ * if retval == 0 adding new connection failed
+ * if retval == 101 requested new connection already exist
+ */		
+		if(retval == 0){
+
+			if(m3l_Umount(&TmpNode) != 1)
+				Perror("m3l_Umount");
+
+			if( close(sockfd) == -1)
+				Perror("close");
+				
+			if(nanosleep(&tim , &tim2) < 0 )
+				Error("Nano sleep system call failed \n");
+			
+			if( ++conn_retry_counter > max_conn_attemps){
+				printf(" Number of connecitons exceeded max_conn_attemps\n");
+				return -2;
+			}
+			else{
+				goto again;
+			}
+		}
+		else if(retval == 101){
+/*
+ * requested connection already exist
+ */
+			if( close(sockfd) == -1)
+				Perror("close");
+			if(m3l_Umount(&Gnode) != 1)
+				Perror("m3l_Umount");
+			if(m3l_Umount(&TmpNode) != 1)
+				Perror("m3l_Umount");
+			return 101;
+		}
+
+		if(m3l_Umount(&Gnode) != 1)
+			Perror("m3l_Umount");
+		if(m3l_Umount(&TmpNode) != 1)
+			Perror("m3l_Umount");
+	}
+	else{
+		Error("Hostname not given");
+		return -1;
+	}
+
+	return sockfd;
+}
+
+
+
+
+
+
+
+
+
+lmint_t stop_server(const lmchar_t *hostname, lmint_t portno, opts_t *Popts){
+
+	lmint_t sockfd, retval;
+	node_t *Gnode, *TmpNode;
+	struct timespec tim, tim2;
+	
+	lmsize_t conn_retry_counter;
+	lmsize_t max_conn_attemps = 100;
+
+	tim.tv_sec = 0;
+// 	tim.tv_nsec = 100000000L;    /* 0.1 secs */
+	tim.tv_nsec = 10000000L;    /* 0.1 secs */
+	
+	conn_retry_counter = 0;
+
+	if(hostname != NULL){
+/*
+ * create header which will identify name of data set and Sender (S) or Receiver (R)
+ * set number of R processes to -1 to indicate you want to close the server
+ */
+		if( ( Gnode = ChannelList("none", -1,  '0', '0')) == NULL)
 			Error("del_connection: NULL Gnode");
 again: 
 		if ( (sockfd =  m3l_cli_open_socket(hostname, portno, (lmchar_t *)NULL)) < 0)

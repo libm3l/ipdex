@@ -140,7 +140,7 @@ lmsize_t Add_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread, node_t *
 /*
  * malloc status_run variable and set it to 0; if 1 thread was joined
  */
-	if( (Data_Thread->Data_Str[newnum]->status_run = (lmint_t *)malloc(MAX_NAME_LENGTH* sizeof(lmint_t))) == NULL)
+	if( (Data_Thread->Data_Str[newnum]->status_run = (lmint_t *)malloc(sizeof(lmint_t))) == NULL)
 		Perror("Add_Data_Thread: Data_Thread->Data_Str->lmint_t malloc");
 	*Data_Thread->Data_Str[newnum]->status_run = 0;
 /*

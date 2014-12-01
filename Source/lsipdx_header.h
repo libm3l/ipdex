@@ -78,10 +78,10 @@ typedef struct lsipdx_answer{
  */
 
 typedef struct data_thread_int_str{
-	pthread_t 		*data_threadPID;	/* thread ID of all threads in group data_threads */
+	pthread_t 	*data_threadPID;	/* thread ID of all threads in group data_threads */
 	lmchar_t 		*name_of_channel;	/* each spawn thread corresponds to required channel (data link)
 								store the name in this variable */
-	lmint_t			*status_run;		/* if 1, thread is active, if 0, thread should be terminated */
+	lmint_t		*status_run;		/* if 1, thread is active, if 0, thread should be terminated */
 }data_thread_int_str_t;
 
 typedef struct data_thread_args{
