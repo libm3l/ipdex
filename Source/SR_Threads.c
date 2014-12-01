@@ -428,7 +428,7 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode, lmint_t *pstatu
 /*
  * gate syncing all threads, syncing for Sender is done after reading from socket;
  * after sycning, check that the Sender received EOFbuff (ie the last sequence of the 
- * entirte transmitted message), if yes, set R_done = 1
+ * entirte transmitted message), if yes, set R_done = 0
  */
 		pt_sync(c->psync_loc);
 		
@@ -437,6 +437,10 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode, lmint_t *pstatu
 		switch(*c->pEofBuff){
 			
 			case 0:
+/*
+ * End of buffer was received
+ */
+
 				R_done = 0;
 /*
  * the mutex was locked here to protect writing to each individual sockets
@@ -448,14 +452,13 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode, lmint_t *pstatu
 						*pstatus_run = 4;
 					Pthread_mutex_unlock(c->plock);
 				}
-				break;
+			break;
 				
 			case 1:
-				R_done = 1;
 /*
- * the mutex was locked here to protect writing to each individual sockets
- * but I think it is  not needed, moved lock after 
+ * End of buffer was not received
  */
+				R_done = 1;
 				if ( (n = Write(sockfd,c->pbuffer, *c->pngotten)) < *c->pngotten){
 					Warning("write()");
 					Pthread_mutex_lock(c->plock);
@@ -463,12 +466,22 @@ lmint_t R_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode, lmint_t *pstatu
 					Pthread_mutex_unlock(c->plock);
 					R_done = 0;
 				}
-				break;
+			break;
+				
+			case 2:
+			case 3:
+/*
+ * error - sending client either closed socket 
+ * or there was an error reading from Sender's socket
+ * set R_done = 0
+ */
+				R_done = 0;
+			break;
 		}
 /* 
  * prcounter is counter of R_threads which still have not 
  * read wrote the buffer to TCP/IP socket
- * The values is reset in S_KAN each time S_KAn reads from socket
+ * The values is reset in S_KAN each time S_KAN reads from socket
  */ 
 		Pthread_mutex_lock(c->plock);
 			(*c->prcounter)--;
@@ -631,11 +644,11 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode, lmint_t *pstatu
 		case -1:
 /*
  * error readig socket
- * it is not needed to lock these values by mutex, all R_threads are waiting on pt_sync
+ * it is not needed to lock these variables by mutex, all R_threads are waiting on pt_sync
  * so there is not any process which can manipulate them
  */
 			Warning("read");
-			eofbuffcond = 3;
+			eofbuffcond  = 3;
 			*c->pEofBuff = 3;
 			*pstatus_run = 3;
 			return -1;
@@ -644,10 +657,10 @@ lmint_t S_KAN(SR_thread_args_t *c, lmint_t sockfd, lmint_t mode, lmint_t *pstatu
 		case 0:
 /*
  * client closed socket
- * it is not needed to lock these values by mutex, all R_threads are waiting on pt_sync
+ * it is not needed to lock these variables by mutex, all R_threads are waiting on pt_sync
  * so there is not any process which can manipulate them
  */
-			eofbuffcond = 2;
+			eofbuffcond  = 2;
 			*c->pEofBuff = 2;
 			*pstatus_run = 2;
 		break;
