@@ -10,6 +10,18 @@ and specify name of connection which they will use to transfer the data.
 Each client has to specify its role in the transfer chain - ie. either Sender
 or Receiver. Once all client processes arrive, lsipdx starts transferring the data. 
 
+Installatio
+-----------
+
+In Source directory type
+./configure PATH
+
+where PATH is a path to libm3l.so library
+
+then 
+
+gmake
+
 
 Portability
 -----------
