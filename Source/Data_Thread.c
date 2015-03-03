@@ -388,6 +388,10 @@ void *Data_Threads(void *arg)
  * at least one client for this Data thread arrived
  */
 								if(c->pPopts->opt_f == 'f'){
+/*
+ * if specified -force option, close this connection
+ * otherwise keep it alive
+ */
 									for(i=0; i < n_rec_proc + 1 - n_avail_loc_theads; i++){
 										if(close(SR_Threads->sockfd[i]) == -1)
 											Perror("Data_Thread close");
@@ -422,7 +426,7 @@ void *Data_Threads(void *arg)
 							}
 							else if(*c->pData_Str->status_run == 3 ){
 /*
- * all SR_Threads for this Data_Thread arrived, ignore request
+ * all SR_Threads for this Data_Thread arrived, if not specified -force,  ignore request
  */
 								if(c->pPopts->opt_f == 'f'){
 									for(i=0; i < n_rec_proc + 1 - n_avail_loc_theads; i++){
