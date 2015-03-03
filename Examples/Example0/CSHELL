@@ -7,16 +7,3 @@ sleep 5
 konsole -e ./Client1_Pressure_Sender.out localhost 31000
 konsole -e ./Client1_Pressure.out localhost 31000
 konsole -e ./Client1_Pressure.out localhost 31000
-
-	
-
-konsole -e ./Client1_Temperature_Sender.out localhost 31000
-konsole -e ./Client1_Temperature.out localhost 31000
-konsole -e ./Client1_Temperature.out localhost 31000
-
-
-
-konsole -e ./Client1_Density_Sender.out localhost 31000
-konsole -e ./Client1_Density.out localhost 31000
-konsole -e ./Client1_Density.out localhost 31000
-konsole -e ./Client1_Density.out localhost 31000
