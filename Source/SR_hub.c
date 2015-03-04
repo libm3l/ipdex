@@ -178,7 +178,7 @@ void *SR_hub(void *arg)
 /*
  * start loop for transfer
  * if required termination of the connection then 
- * Data_Threa in Data_Thread_Case_200 *c->pstatus_run_h = status_run = 1
+ * Data_Thread in Data_Thread_Case_200 *c->pstatus_run_h = status_run = 1
  */
 	switch(*c->pSRh_mode){
 		case 1:

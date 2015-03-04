@@ -121,7 +121,7 @@ typedef struct data_thread_str{
 
 
 /*
- * structure with pointers on SR_thread_str_t, each SR_Data_Thread has one
+ * structure with pointers on SR_thread_str_t, each SR_Thread has one
  */
 typedef struct SR_thread_args{
 	pthread_mutex_t   	*plock;				/* mutex */
@@ -144,7 +144,7 @@ typedef struct SR_thread_args{
 }SR_thread_args_t;
 
 /*
- * heap data for SR_Data_Thread, allocated in SR_Data_Thread
+ * heap data for SR_Thread, allocated in SR_Data_Thread
  */
 typedef struct SR_thread_str{
 	pthread_mutex_t   	lock;				/* mutex */

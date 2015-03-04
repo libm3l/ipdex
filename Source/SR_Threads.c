@@ -97,7 +97,7 @@ void *SR_Threads(void *arg)
  * 
  * 
  *  *c->pthr_cntr local counter uniques for all SR_Threads for one SR_Hub, upon start, all
- * SR_Data_Thread will set it to 0 and then wait on pt_sync until all requests arrive.
+ * SR_Thread will set it to 0 and then wait on pt_sync until all requests arrive.
  * One they arrive, SR_Threads will grab them one by one, getting socket number and SR_mode from an array which is filled in
  * Data_Thread (SR_Threads->sockfd) 
  */
@@ -343,7 +343,7 @@ END1:
  */
 	if(c->psockfd[loc_cntr] > 0){
 		if( close(c->psockfd[loc_cntr]) == -1)
-			Perror("SR_Data_Thread close");
+			Perror("SR_Thread close");
 		c->psockfd[loc_cntr] = 0;
 	}
 END:
@@ -351,7 +351,7 @@ END:
  * case 1,2  ends here, they close their opened sockets
  * themeselves, free meory and Return, thread wil be joined in Data_Thread.c
  */
-// printf(" returning from SR_Data_Thread\n");
+// printf(" returning from SR_Thread\n");
 	free(c);
 	return NULL;
 }
