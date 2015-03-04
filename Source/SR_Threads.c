@@ -69,6 +69,14 @@ static lmssize_t S_EOFC(lmint_t, lmint_t);
 //      mode 5: ATDTMode == 'D' && KeepAlive_Mode == 'Y'  /* Direct transfer, do not close socket*/
 //      mode 6: ATDTMode == 'A' && KeepAlive_Mode == 'Y'  /* Alternate transfer, do not close socket*/
 
+// status_run   = 0 running
+//                     = 1 client require closing
+//                     = 2 sender closed socket
+//                     = 3 receiver closed socket
+//                     = 4 error reading socket
+//                     = 5 error getting data from socket
+//                     = 6 error sending data to socket
+
 void *SR_Threads(void *arg)
 {
 	SR_thread_args_t *c = (SR_thread_args_t *)arg;
