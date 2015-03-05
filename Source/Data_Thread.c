@@ -55,6 +55,10 @@
 #include "Data_Thread.h"
 #include "Data_Thread_Functions.h"
 
+// *c->pData_Str->status_run = 0 active data set, no any SR_thread arrived
+//                                             = 2 at least one of the SR_thread arrived
+//                                             = 3 all SR_thread arrived
+
 void *Data_Threads(void *arg)
 {
 /* 
