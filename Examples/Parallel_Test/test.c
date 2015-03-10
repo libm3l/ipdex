@@ -171,7 +171,7 @@ void *ThreadTest(void *arg)
 	portno = c->portno;
 	
 	
-	printf(" port %d channels '%s' and '%s'\n", portno, c->name, c->name1);
+// 	printf(" port %d channels '%s' and '%s'\n", portno, c->name, c->name1);
 	
 // Pthread_mutex_lock(&lock);
 
@@ -205,14 +205,14 @@ void *ThreadTest(void *arg)
 	for(i=0; i<dim[0]; i++)
 		TmpNode->data.df[i] = i;
 	
-	Pthread_mutex_lock(&lock);
-		printf(" Port number %d\n\n", portno);
+// 	Pthread_mutex_lock(&lock);
+// 		printf(" Port number %d\n\n", portno);
 		
 // 	if(m3l_Cat(Gnode, "--detailed", "-P", "-L",  "*",   (char *)NULL) != 0)
 // 		Error("CatData");
-	Pthread_mutex_unlock(&lock);
+// 	Pthread_mutex_unlock(&lock);
 	
-	printf(" OPENING port %d channels '%s' and '%s'\n", portno, c->name, c->name1);
+// 	printf(" OPENING port %d channels '%s' and '%s'\n", portno, c->name, c->name1);
 	
 // Pthread_mutex_lock(&lock);	
 /*
@@ -228,8 +228,8 @@ void *ThreadTest(void *arg)
 /*
  * send data 
  */
-	if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
-		Error("CatData");
+// 	if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
+// 		Error("CatData");
 	
 	
 	if ( client_sender(Gnode, sockfd, PInpPar, (opts_t *)NULL, (opts_t *)NULL) !=1 )
@@ -245,7 +245,7 @@ void *ThreadTest(void *arg)
 
 // Pthread_mutex_unlock(&lock);
 	
-	printf(" SENT port %d channels '%s' and '%s'\n", portno, c->name, c->name1);
+// 	printf(" SENT port %d channels '%s' and '%s'\n", portno, c->name, c->name1);
 /*
  * receive data 
  */
@@ -263,7 +263,7 @@ void *ThreadTest(void *arg)
 	if( (sockfd = open_connection_to_server("localhost", portno, PInpPar, Popts_1)) < 1)
 		Error("socket_edge2stripe: Error when opening socket");
 	
-	printf(" OPENED port %d channels '%s''\n", portno, c->name1);
+// 	printf(" OPENED port %d channels '%s''\n", portno, c->name1);
 
 	if ( (Gnode = client_receiver(sockfd, PInpPar, (opts_t *)NULL, (opts_t *)NULL)) == NULL)
 		Error("socket_edge2stripe: client_receiver()"); 
@@ -348,7 +348,7 @@ void *ThreadTest(void *arg)
 	if(m3l_Umount(&Gnode) != 1)
 		Perror("socket_edge2stripe: m3l_Umount");
 	
-	printf(" RECEIVED port %d channels '%s' and '%s'\n", portno, c->name, c->name1);
+// 	printf(" RECEIVED port %d channels '%s' and '%s'\n", portno, c->name, c->name1);
 	
 // Pthread_mutex_unlock(&lock);
 
