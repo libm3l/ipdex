@@ -1,0 +1,13 @@
+
+/home/jka/Cprograms/Sources/lsipdx/Source/Server_Main.out --port 31000 --input_file Definition_File_STRIPE --show
+/home/jka/Cprograms/Sources/lsipdx/Source/Server_Main.out --port 32000 --input_file Definition_File_STRIPE --show
+
+
+./Client1_FakedSTRIPE.out localhost 31000
+./Client1_FakedSTRIPE_1.out localhost 32000
+ ./Client1_FakedSTRIPE_2.out localhost 31000
+
+ 
+ ./test.out
+ 
+ valgrind --log-file=LOG --tool=memcheck  --trace-children=yes --vex-iropt-register-updates=allregs-at-mem-access --leak-check=full --leak-resolution=high --show-reachable=yes  --track-origins=yes  ./test.out
