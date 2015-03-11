@@ -54,9 +54,8 @@
 #include "test.h"
 
 pthread_mutex_t   	lock;
-pthread_barrier_t bar, bar1;
-pthread_barrier_t bar2, bar3;
-pthread_barrier_t barS, barR;
+// pthread_barrier_t bar, bar1;
+// pthread_barrier_t bar2, bar3;
 
 void *ThreadTest(void *);
 
@@ -117,12 +116,9 @@ int main(){
 	ncyc = 10000;
 	for(j=0; j< ncyc; j++){
 		
-		pthread_barrier_init(&bar, NULL, nthreads);
-		pthread_barrier_init(&bar1, NULL, nthreads);
-		pthread_barrier_init(&bar2, NULL, nthreads);
-// 		pthread_barrier_init(&bar3, NULL, nthreads);
-		pthread_barrier_init(&barS, NULL, nthreads);
-		pthread_barrier_init(&barR, NULL, nthreads);
+// 		pthread_barrier_init(&bar, NULL, nthreads);
+// 		pthread_barrier_init(&bar1, NULL, nthreads);
+// 		pthread_barrier_init(&bar2, NULL, nthreads);
 
 		for(i=0; i < nthreads; i++){
 
@@ -141,12 +137,9 @@ int main(){
 		}
 		
 		printf(" Threads joined\n");
-		pthread_barrier_destroy(&bar);		
+	/*	pthread_barrier_destroy(&bar);		
 		pthread_barrier_destroy(&bar1);		
-		pthread_barrier_destroy(&bar2);		
-// 		pthread_barrier_destroy(&bar3);		
-		pthread_barrier_destroy(&barS);		
-		pthread_barrier_destroy(&barR);		
+		pthread_barrier_destroy(&bar2);	*/			
 	}
 		
 		
@@ -229,7 +222,7 @@ Pthread_mutex_lock(&lock);
 // 	printf(" OPENED port %d channels '%s' and '%s'\n", portno, c->name, c->name1);
 Pthread_mutex_unlock(&lock);
 	
-	pthread_barrier_wait(&bar);	
+// 	pthread_barrier_wait(&bar);	
 
 	
 // Pthread_mutex_lock(&lock);	
@@ -274,7 +267,7 @@ Pthread_mutex_lock(&lock);
 		Error("socket_edge2stripe: Error when opening socket");
 Pthread_mutex_unlock(&lock);
 
-	pthread_barrier_wait(&bar2);	
+// 	pthread_barrier_wait(&bar2);	
 
 	
 // Pthread_mutex_lock(&lock);	
