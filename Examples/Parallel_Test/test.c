@@ -54,6 +54,7 @@
 #include "test.h"
 
 pthread_mutex_t   	lock;
+pthread_barrier_t bar, bar1;
 
 void *ThreadTest(void *);
 
@@ -62,19 +63,23 @@ int main(){
 	
 	test_struct_t **DataArgs;
 	int i, pth_err, nthreads;
+	lmsize_t ncyc, j;
 	
 	pthread_t *PID;
 	
 	Pthread_mutex_init(&lock);
-	
+  
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
         pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+
+	nthreads = 2;
 	
 	if( (DataArgs = (test_struct_t **)malloc(sizeof(test_struct_t *) * 3)) == NULL)
 		perror("malloc");
 
-	for(i=0; i<3 ; i++){
+	
+	for(i=0; i<	3 ; i++){
 	     if( (DataArgs[i] = (test_struct_t *)malloc(sizeof(test_struct_t))) == NULL)
 		   perror("malloc");
 	     if( (DataArgs[i]->name = (lmchar_t *)malloc(8*sizeof(lmchar_t))) == NULL)
@@ -94,43 +99,50 @@ int main(){
 	snprintf(DataArgs[0]->name1, 8, "%s", "CSM2CFD");
 	DataArgs[0]->name1[7] = '\0';
 
-	DataArgs[1]->portno = 31000;
-	snprintf(DataArgs[1]->name, 8, "%s", "CFD2SIM");
-	DataArgs[1]->name[7] = '\0';
-	snprintf(DataArgs[1]->name1, 8, "%s", "SIM2CFD");
-	DataArgs[1]->name1[7] = '\0';
-	
-	DataArgs[2]->portno = 32000;
-	snprintf(DataArgs[2]->name, 8, "%s", "CFD2CSM");
+	DataArgs[2]->portno = 31000;
+	snprintf(DataArgs[2]->name, 8, "%s", "CFD2SIM");
 	DataArgs[2]->name[7] = '\0';
-	snprintf(DataArgs[2]->name1, 8, "%s", "CSM2CFD");
+	snprintf(DataArgs[2]->name1, 8, "%s", "SIM2CFD");
 	DataArgs[2]->name1[7] = '\0';
 	
-	nthreads = 3;
+	DataArgs[1]->portno = 32000;
+	snprintf(DataArgs[1]->name, 8, "%s", "CFD2CSM");
+	DataArgs[1]->name[7] = '\0';
+	snprintf(DataArgs[1]->name1, 8, "%s", "CSM2CFD");
+	DataArgs[1]->name1[7] = '\0';
 	
-	for(i=0; i < nthreads; i++){
+	
+	ncyc = 10;
+	for(j=0; j< ncyc; j++){
+		
+		pthread_barrier_init(&bar, NULL, nthreads);
+		pthread_barrier_init(&bar1, NULL, nthreads);
+	
+		for(i=0; i < nthreads; i++){
 
-	printf(" Snding port %d channels '%s' and '%s'\n", DataArgs[i]->portno, DataArgs[i]->name, DataArgs[i]->name1);
+			printf(" Sending port %d channels '%s' and '%s'\n", DataArgs[i]->portno, DataArgs[i]->name, DataArgs[i]->name1);
 
-	while ( ( pth_err = pthread_create(&PID[i], &attr, &ThreadTest,  DataArgs[i])) != 0 && errno == EAGAIN);
-		if(pth_err != 0)
-			Perror("pthread_create()");
-
+			while ( ( pth_err = pthread_create(&PID[i], &attr, &ThreadTest,  DataArgs[i])) != 0 && errno == EAGAIN);
+				if(pth_err != 0)
+					Perror("pthread_create()");
+		}
+		
+		printf(" Joining threads\n");
+		
+		for(i=0; i < nthreads; i++){	
+			if( pthread_join(PID[i], NULL) != 0)
+			Error(" Joining thread failed");
+		}
+		
+		printf(" Threads joined\n");
+		pthread_barrier_destroy(&bar);		
+		pthread_barrier_destroy(&bar1);		
 	}
-	
-	printf(" Joining threads\n");
-	
-	for(i=0; i < nthreads; i++){	
-		if( pthread_join(PID[i], NULL) != 0)
-		Error(" Joining thread failed");
-	}
-	
-	printf(" Threads joined\n");
-	
-	
+		
+		
 	free(PID);
-	
-	for(i=0; i<nthreads ; i++){
+		
+	for(i=0; i<3 ; i++){
 		free(DataArgs[i]->name);
 		free(DataArgs[i]->name1);
 		free(DataArgs[i]);
@@ -218,11 +230,15 @@ void *ThreadTest(void *arg)
 /*
  * open socket
  */
+Pthread_mutex_lock(&lock);
 	if( (sockfd = open_connection_to_server("localhost", c->portno, PInpPar, Popts_1)) < 1)
 		Error("client_sender: Error when opening socket");
-	
 	printf(" OPENED port %d channels '%s' and '%s'\n", portno, c->name, c->name1);
+Pthread_mutex_unlock(&lock);
+	pthread_barrier_wait(&bar);	
 
+	
+	
 // Pthread_mutex_unlock(&lock);
 
 /*
@@ -260,11 +276,19 @@ void *ThreadTest(void *arg)
 	m3l_set_Send_receive_tcpipsocket(&Popts_1);
 	m3l_set_Find(&Popts);
 // 	printf(" receiving data from connection \n");
+	
+Pthread_mutex_lock(&lock);
+	
 	if( (sockfd = open_connection_to_server("localhost", portno, PInpPar, Popts_1)) < 1)
 		Error("socket_edge2stripe: Error when opening socket");
 	
 // 	printf(" OPENED port %d channels '%s''\n", portno, c->name1);
+Pthread_mutex_unlock(&lock);
 
+	pthread_barrier_wait(&bar1);	
+
+	
+	
 	if ( (Gnode = client_receiver(sockfd, PInpPar, (opts_t *)NULL, (opts_t *)NULL)) == NULL)
 		Error("socket_edge2stripe: client_receiver()"); 
 /*
