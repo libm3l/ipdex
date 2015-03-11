@@ -54,8 +54,6 @@
 #include "test.h"
 
 pthread_mutex_t   	lock;
-// pthread_barrier_t bar, bar1;
-// pthread_barrier_t bar2, bar3;
 
 void *ThreadTest(void *);
 
@@ -115,14 +113,8 @@ int main(){
 	
 	ncyc = 10000;
 	for(j=0; j< ncyc; j++){
-		
-// 		pthread_barrier_init(&bar, NULL, nthreads);
-// 		pthread_barrier_init(&bar1, NULL, nthreads);
-// 		pthread_barrier_init(&bar2, NULL, nthreads);
 
 		for(i=0; i < nthreads; i++){
-
-// 			printf(" Sending port %d channels '%s' and '%s'\n", DataArgs[i]->portno, DataArgs[i]->name, DataArgs[i]->name1);
 
 			while ( ( pth_err = pthread_create(&PID[i], &attr, &ThreadTest,  DataArgs[i])) != 0 && errno == EAGAIN);
 				if(pth_err != 0)
@@ -136,10 +128,7 @@ int main(){
 			Error(" Joining thread failed");
 		}
 		
-		printf(" Threads joined\n");
-	/*	pthread_barrier_destroy(&bar);		
-		pthread_barrier_destroy(&bar1);		
-		pthread_barrier_destroy(&bar2);	*/			
+		printf(" Threads joined\n");		
 	}
 		
 		
@@ -219,33 +208,22 @@ void *ThreadTest(void *arg)
 Pthread_mutex_lock(&lock);
 	if( (sockfd = open_connection_to_server("localhost", c->portno, PInpPar, Popts_1)) < 1)
 		Error("client_sender: Error when opening socket");
-// 	printf(" OPENED port %d channels '%s' and '%s'\n", portno, c->name, c->name1);
 Pthread_mutex_unlock(&lock);
 	
 // 	pthread_barrier_wait(&bar);	
 
 	
-// Pthread_mutex_lock(&lock);	
 	if ( client_sender(Gnode, sockfd, PInpPar, (opts_t *)NULL, (opts_t *)NULL) !=1 )
 		Error("socket_issanastr2edge_disp: client_sender()");
-// Pthread_mutex_unlock(&lock);	
-// 	pthread_barrier_wait(&barS);	
 	
 	
-// Pthread_mutex_lock(&lock);
 	if( close(sockfd) == -1)
 		Perror("socket_edge2simulink: close");
-// Pthread_mutex_unlock(&lock);	
-// 	pthread_barrier_wait(&bar1);	
 /*
  * free borrowed memory
  */
 	if(m3l_Umount(&Gnode) != 1)
-		Perror("socket_issanastr2edge_disp: m3l_Umount");
-
-// Pthread_mutex_unlock(&lock);
-	
-// 	printf(" SENT port %d channels '%s' and '%s'\n", portno, c->name, c->name1);
+		Perror("socket_issanastr2edge_disp: m3l_Umount");	
 /*
  * receive data 
  */
@@ -267,32 +245,14 @@ Pthread_mutex_lock(&lock);
 		Error("socket_edge2stripe: Error when opening socket");
 Pthread_mutex_unlock(&lock);
 
-// 	pthread_barrier_wait(&bar2);	
-
 	
-// Pthread_mutex_lock(&lock);	
 	if ( (Gnode = client_receiver(sockfd, PInpPar, (opts_t *)NULL, (opts_t *)NULL)) == NULL)
-		Error("socket_edge2stripe: client_receiver()"); 
-// Pthread_mutex_unlock(&lock);	
-// 	pthread_barrier_wait(&barR);	
-	
+		Error("socket_edge2stripe: client_receiver()"); 	
 /*
  * close socket 
  */
-// 	printf(" data received from connection \n");
-
-// Pthread_mutex_lock(&lock);
 	if( close(sockfd) == -1)
 		Perror("socket_edge2stripe: close");
-// Pthread_mutex_unlock(&lock);
-// 	pthread_barrier_wait(&bar3);	
-	
-// 	Pthread_mutex_lock(&lock);
-// // 	printf(" Port number %d  '%s'\n\n", portno, c->name1);
-// 		
-// 	if(m3l_Cat(Gnode, "--detailed", "-P", "-L",  "*",   (char *)NULL) != 0)
-// 		Error("CatData");
-// 	Pthread_mutex_unlock(&lock);
 /*
  * find displacements DX, DY, DZ and copy the values to Edge allocated memory
  */
