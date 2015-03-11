@@ -55,6 +55,8 @@
 
 pthread_mutex_t   	lock;
 pthread_barrier_t bar, bar1;
+pthread_barrier_t bar2, bar3;
+pthread_barrier_t barS, barR;
 
 void *ThreadTest(void *);
 
@@ -73,7 +75,7 @@ int main(){
 	pthread_attr_init(&attr);
         pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
-	nthreads = 2;
+	nthreads = 3;
 	
 	if( (DataArgs = (test_struct_t **)malloc(sizeof(test_struct_t *) * 3)) == NULL)
 		perror("malloc");
@@ -112,22 +114,26 @@ int main(){
 	DataArgs[1]->name1[7] = '\0';
 	
 	
-	ncyc = 10;
+	ncyc = 10000;
 	for(j=0; j< ncyc; j++){
 		
 		pthread_barrier_init(&bar, NULL, nthreads);
 		pthread_barrier_init(&bar1, NULL, nthreads);
-	
+		pthread_barrier_init(&bar2, NULL, nthreads);
+// 		pthread_barrier_init(&bar3, NULL, nthreads);
+		pthread_barrier_init(&barS, NULL, nthreads);
+		pthread_barrier_init(&barR, NULL, nthreads);
+
 		for(i=0; i < nthreads; i++){
 
-			printf(" Sending port %d channels '%s' and '%s'\n", DataArgs[i]->portno, DataArgs[i]->name, DataArgs[i]->name1);
+// 			printf(" Sending port %d channels '%s' and '%s'\n", DataArgs[i]->portno, DataArgs[i]->name, DataArgs[i]->name1);
 
 			while ( ( pth_err = pthread_create(&PID[i], &attr, &ThreadTest,  DataArgs[i])) != 0 && errno == EAGAIN);
 				if(pth_err != 0)
 					Perror("pthread_create()");
 		}
 		
-		printf(" Joining threads\n");
+// 		printf(" Joining threads\n");
 		
 		for(i=0; i < nthreads; i++){	
 			if( pthread_join(PID[i], NULL) != 0)
@@ -137,6 +143,10 @@ int main(){
 		printf(" Threads joined\n");
 		pthread_barrier_destroy(&bar);		
 		pthread_barrier_destroy(&bar1);		
+		pthread_barrier_destroy(&bar2);		
+// 		pthread_barrier_destroy(&bar3);		
+		pthread_barrier_destroy(&barS);		
+		pthread_barrier_destroy(&barR);		
 	}
 		
 		
@@ -181,12 +191,6 @@ void *ThreadTest(void *arg)
 	find_t *SFounds;
 	
 	portno = c->portno;
-	
-	
-// 	printf(" port %d channels '%s' and '%s'\n", portno, c->name, c->name1);
-	
-// Pthread_mutex_lock(&lock);
-
 
 	PInpPar = &InpPar;
 	PInpPar->channel_name = c->name;
@@ -216,43 +220,30 @@ void *ThreadTest(void *arg)
 		Error("socket_issanastr2edge_disp: m3l_Mklist");
 	for(i=0; i<dim[0]; i++)
 		TmpNode->data.df[i] = i;
-	
-// 	Pthread_mutex_lock(&lock);
-// 		printf(" Port number %d\n\n", portno);
-		
-// 	if(m3l_Cat(Gnode, "--detailed", "-P", "-L",  "*",   (char *)NULL) != 0)
-// 		Error("CatData");
-// 	Pthread_mutex_unlock(&lock);
-	
-// 	printf(" OPENING port %d channels '%s' and '%s'\n", portno, c->name, c->name1);
-	
-// Pthread_mutex_lock(&lock);	
 /*
  * open socket
  */
 Pthread_mutex_lock(&lock);
 	if( (sockfd = open_connection_to_server("localhost", c->portno, PInpPar, Popts_1)) < 1)
 		Error("client_sender: Error when opening socket");
-	printf(" OPENED port %d channels '%s' and '%s'\n", portno, c->name, c->name1);
+// 	printf(" OPENED port %d channels '%s' and '%s'\n", portno, c->name, c->name1);
 Pthread_mutex_unlock(&lock);
+	
 	pthread_barrier_wait(&bar);	
 
 	
-	
-// Pthread_mutex_unlock(&lock);
-
-/*
- * send data 
- */
-// 	if(m3l_Cat(Gnode, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
-// 		Error("CatData");
-	
-	
+// Pthread_mutex_lock(&lock);	
 	if ( client_sender(Gnode, sockfd, PInpPar, (opts_t *)NULL, (opts_t *)NULL) !=1 )
 		Error("socket_issanastr2edge_disp: client_sender()");
+// Pthread_mutex_unlock(&lock);	
+// 	pthread_barrier_wait(&barS);	
 	
+	
+// Pthread_mutex_lock(&lock);
 	if( close(sockfd) == -1)
 		Perror("socket_edge2simulink: close");
+// Pthread_mutex_unlock(&lock);	
+// 	pthread_barrier_wait(&bar1);	
 /*
  * free borrowed memory
  */
@@ -281,23 +272,34 @@ Pthread_mutex_lock(&lock);
 	
 	if( (sockfd = open_connection_to_server("localhost", portno, PInpPar, Popts_1)) < 1)
 		Error("socket_edge2stripe: Error when opening socket");
-	
-// 	printf(" OPENED port %d channels '%s''\n", portno, c->name1);
 Pthread_mutex_unlock(&lock);
 
-	pthread_barrier_wait(&bar1);	
+	pthread_barrier_wait(&bar2);	
 
 	
-	
+// Pthread_mutex_lock(&lock);	
 	if ( (Gnode = client_receiver(sockfd, PInpPar, (opts_t *)NULL, (opts_t *)NULL)) == NULL)
 		Error("socket_edge2stripe: client_receiver()"); 
+// Pthread_mutex_unlock(&lock);	
+// 	pthread_barrier_wait(&barR);	
+	
 /*
  * close socket 
  */
 // 	printf(" data received from connection \n");
 
+// Pthread_mutex_lock(&lock);
 	if( close(sockfd) == -1)
 		Perror("socket_edge2stripe: close");
+// Pthread_mutex_unlock(&lock);
+// 	pthread_barrier_wait(&bar3);	
+	
+// 	Pthread_mutex_lock(&lock);
+// // 	printf(" Port number %d  '%s'\n\n", portno, c->name1);
+// 		
+// 	if(m3l_Cat(Gnode, "--detailed", "-P", "-L",  "*",   (char *)NULL) != 0)
+// 		Error("CatData");
+// 	Pthread_mutex_unlock(&lock);
 /*
  * find displacements DX, DY, DZ and copy the values to Edge allocated memory
  */
