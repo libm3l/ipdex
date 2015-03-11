@@ -120,15 +120,11 @@ int main(){
 				if(pth_err != 0)
 					Perror("pthread_create()");
 		}
-		
-// 		printf(" Joining threads\n");
-		
+				
 		for(i=0; i < nthreads; i++){	
 			if( pthread_join(PID[i], NULL) != 0)
 			Error(" Joining thread failed");
 		}
-		
-		printf(" Threads joined\n");		
 	}
 		
 		
@@ -326,11 +322,6 @@ Pthread_mutex_unlock(&lock);
  */
 	if(m3l_Umount(&Gnode) != 1)
 		Perror("socket_edge2stripe: m3l_Umount");
-	
-// 	printf(" RECEIVED port %d channels '%s' and '%s'\n", portno, c->name, c->name1);
-	
-// Pthread_mutex_unlock(&lock);
-
 
 	return NULL;
 }
