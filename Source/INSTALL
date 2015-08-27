@@ -5,4 +5,4 @@ of the libm3l, for example:
 
 ./configure  /urs/lib/libm3l/Sources
 
-then type makes
+then type make
