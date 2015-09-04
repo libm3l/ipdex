@@ -1,3 +1,6 @@
+INSTALLAION:
+
+install libm3l library (https://github.com/libm3l/libm3l)
 
 to install the lsipdx utility, unpack the source, go to Source directory and 
 execute ./configure with PATH parameter, where PATH is a path to installation
