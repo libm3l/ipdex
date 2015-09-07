@@ -93,11 +93,10 @@ int main(int argc, char *argv[])
 /*
  * open socket, IP address of server is in argv[1], port number is in portno
  */
-		Gnode = ChannelList("HEAT", 2,  'D', 'N');
 /*
  * open socket
  */
-		PInpPar->channel_name = name;
+		PInpPar->channel_name = argv[3];
 		PInpPar->SR_MODE = 'X';
 		if ( (PInpPar->mode = get_exchange_channel_mode('D', 'N')) == -1)
 			Error("wrong client mode");
@@ -118,9 +117,6 @@ int main(int argc, char *argv[])
 		else
 			if( close(sockfd) == -1)
 				Perror("close");
-		
-		if(m3l_Umount(&Gnode) != 1)
-			Perror("m3l_Umount");
 
      return 0; 
 }
