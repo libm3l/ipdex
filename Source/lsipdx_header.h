@@ -199,7 +199,10 @@ typedef struct client_fce_struct{
 	lmchar_t *channel_name;
 	lmchar_t SR_MODE;
 	lmint_t mode;
+	lmsize_t nRcli;
 }client_fce_struct_t;
 
-
+typedef struct client_fce_decode_struct{
+	lmchar_t  ATDTMode, KeepAlive_Mode;
+}client_fce_decode_struct_t;
 #endif

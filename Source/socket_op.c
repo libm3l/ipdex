@@ -51,6 +51,7 @@
 #include "lsipdx_header.h"
 #include "ACK.h"
 #include "socket_op.h"
+#include "Server_Functions_Prt.h"
 
 lmint_t open_connection_to_server(const lmchar_t *hostname, lmint_t portno, client_fce_struct_t *ClientInPar, opts_t *Popts){
 
@@ -148,7 +149,7 @@ again:
 
 
 
-lmint_t add_connection(const lmchar_t *hostname, lmint_t portno, const lmchar_t *name_of_newchannel, opts_t *Popts){
+lmint_t add_connection(const lmchar_t *hostname, lmint_t portno,  client_fce_struct_t *PinpPar, opts_t *Popts){
 
 	lmint_t sockfd, retval;
 	node_t *Gnode, *TmpNode;
@@ -162,12 +163,16 @@ lmint_t add_connection(const lmchar_t *hostname, lmint_t portno, const lmchar_t 
 	tim.tv_nsec = 10000000L;    /* 0.1 secs */
 	
 	conn_retry_counter = 0;
+	
+	client_fce_decode_struct_t Modes;
 
 	if(hostname != NULL){
 /*
  * create header which will identify name of data set and Sender (S) or Receiver (R)
  */
-		if( ( Gnode = ChannelList(name_of_newchannel, 2,  'D', 'N')) == NULL)
+		Modes = decode_exchange_channel_mode(PinpPar->mode);
+// 		if( ( Gnode = ChannelList(PinpPar->channel_name, PInpPar->nRcli,  'D', 'N')) == NULL)
+		if( ( Gnode = ChannelList(PinpPar->channel_name, PinpPar->nRcli,  Modes.ATDTMode, Modes.KeepAlive_Mode)) == NULL)
 			Error("add_connection: NULL Gnode");
 again: 
 		if ( (sockfd =  m3l_cli_open_socket(hostname, portno, (lmchar_t *)NULL)) < 0)
