@@ -69,6 +69,7 @@ extern lmint_t pt_sync_mod(pt_sync_t *, lmsize_t, lmsize_t);
 // extern void pt_sync_mod_sem(pt_sync_t *, lmsize_t, lmsize_t, sem_t *);
 
 extern lmint_t get_exchange_channel_mode(lmchar_t , lmchar_t);
+extern client_fce_decode_struct_t decode_exchange_channel_mode(lmint_t);
 extern lmlint_t Make_ID_Number(lmint_t );
 
 #endif

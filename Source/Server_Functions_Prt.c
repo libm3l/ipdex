@@ -491,6 +491,36 @@ lmint_t get_exchange_channel_mode(lmchar_t ATDTMode, lmchar_t KeepAlive_Mode){
 	return retval;
 }
 
+client_fce_decode_struct_t decode_exchange_channel_mode(lmint_t exchange_mode){
+/*
+ * function returns mode of the socket based on the values of ATDTMode and KeepAlive_Mode
+ */
+	client_fce_decode_struct_t retval;
+	
+	switch(exchange_mode){
+		case 1:
+			retval.ATDTMode = 'D';
+			retval.KeepAlive_Mode = 'N';
+			break;
+			
+		case 2:
+			retval.ATDTMode = 'A';
+			retval.KeepAlive_Mode = 'N';
+			break;
+			
+		case 5:
+			retval.ATDTMode = 'D';
+			retval.KeepAlive_Mode = 'Y';
+			break;
+			
+		case 6:
+			retval.ATDTMode = 'A';
+			retval.KeepAlive_Mode = 'Y';
+			break;
+	}
+	return retval;
+}
+
 lmlint_t Make_ID_Number(lmint_t sockfd){
 /* 
  * function creates unique ID for a client

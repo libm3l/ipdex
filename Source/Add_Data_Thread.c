@@ -185,6 +185,10 @@ lmsize_t Add_Data_Thread(node_t *Gnode, data_thread_str_t *Data_Thread, node_t *
  */
 	if( m3l_Mv(&List,  "./Channel", "./*", Buffer, "/Buffer", "/*", (lmchar_t *)NULL) == -1)
 		Error("Add_Data_Thread: Mv");
+	
+	
+// 	if(m3l_Cat(*Buffer, "--all", "-P", "-L",  "*",   (char *)NULL) != 0)
+// 						Error("Server_Body: CatData");
 
 	Pthread_mutex_unlock(&Data_Thread->lock);
 

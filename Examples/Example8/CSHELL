@@ -12,4 +12,21 @@ while ($i <= 10)
 	
 	@ i = $i + 1
 end
-	./Client1_Shutdown.out localhost 31000 
+
+set i=1
+while ($i <= 10)
+
+	echo $i
+	set NAME=`echo Pressure$i`
+	./Client1_AddKA_N_ATDT_YChannel.out localhost 31000 $NAME
+	#sleep 1
+	./Client1_DelChannel.out localhost 31000 $NAME
+	
+	@ i = $i + 1
+end
+
+	set NAME=`echo Pressure`
+	./Client1_AddKA_N_ATDT_YChannel.out localhost 31000 $NAME
+
+
+# 	./Client1_Shutdown.out localhost 31000 
