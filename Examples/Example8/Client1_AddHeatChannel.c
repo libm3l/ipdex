@@ -98,13 +98,14 @@ int main(int argc, char *argv[])
  */
 		PInpPar->channel_name = argv[3];
 		PInpPar->SR_MODE = 'X';
+		PInpPar->nRcli = 2;
 		if ( (PInpPar->mode = get_exchange_channel_mode('D', 'N')) == -1)
 			Error("wrong client mode");
 		Popts_1 = &opts;
 		m3l_set_Send_receive_tcpipsocket(&Popts_1);
 	
 // 		if( (sockfd = open_connection_to_server(argv[1], portno, PInpPar, Popts_1)) < 1)
-		sockfd = add_connection(argv[1], portno, argv[3], Popts_1);
+		sockfd = add_connection(argv[1], portno, PInpPar, Popts_1);
 		if( sockfd  == -1)
 			Error("client_sender: Error when opening socket");
 		else if(sockfd == 101)
