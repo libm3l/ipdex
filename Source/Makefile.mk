@@ -1,7 +1,7 @@
 #FILES = $(shell find ./ -name "*.c" | sed 's/.\///' )
 FILES = $(shell ls  *.c )
 PATHL  = $(shell pwd )
-HFILES = $(shell ls  *.h  |   sed '/lsipdx_header.h/d' | sed '/libm3l.h/d' | sort -df)
+HFILES = $(shell ls  *.h  |   sed '/lsipdx_header.h/d'  |   sed '/lsipdx.h/d' | sed '/libm3l.h/d' | sort -df)
 PATHLIBM3L = 
 EMPTYL = $(shell find $(PATHLIBM3L) \( -name libm3l.so -o -iname libm3l.h -o -iname libm3l.so.1.0 \) | wc -l )
 
@@ -39,7 +39,6 @@ ifeq ($(EMPTYL),3)
 	
 	@$(foreach file,$(HFILES),  echo "#include " \"$$PWD/$(file)\">>lsipdx.h;)
 	@echo "#endif" >> lsipdx.h
-	@sed -i '/lsipdx.h/d' lsipdx.h
 	
 	make prog
 else
