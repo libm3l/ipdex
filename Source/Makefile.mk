@@ -39,6 +39,7 @@ ifeq ($(EMPTYL),3)
 	
 	@$(foreach file,$(HFILES),  echo "#include " \"$$PWD/$(file)\">>lsipdx.h;)
 	@echo "#endif" >> lsipdx.h
+	@sed -i '/lsipdx.h/d' lsipdx.h
 	
 	make prog
 else
