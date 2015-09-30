@@ -49,7 +49,6 @@
 #define EOFCN "1"EOFbuff
 
 #define EOFClen 1+EOBlen
-
 /*
  * predefined answers
  */

@@ -41,35 +41,35 @@
 #ifndef __SERVER_FUNCTION_PRT_H__
 #define __SERVER_FUNCTION_PRT_H__
 
-extern void Pthread_barrier_init(pthread_barrier_t *, lmint_t);
-extern void Pthread_barrier_destroy(pthread_barrier_t *);
-extern void Pthread_barrier_wait(pthread_barrier_t *);
+extern CPP_C  void Pthread_barrier_init(pthread_barrier_t *, lmint_t);
+extern CPP_C  void Pthread_barrier_destroy(pthread_barrier_t *);
+extern CPP_C  void Pthread_barrier_wait(pthread_barrier_t *);
 
-extern void Pthread_mutex_init(pthread_mutex_t *);
-extern void Pthread_mutex_lock(pthread_mutex_t *);
-extern void Pthread_mutex_unlock(pthread_mutex_t *);
-extern void Pthread_mutex_destroy(pthread_mutex_t *);
+extern CPP_C  void Pthread_mutex_init(pthread_mutex_t *);
+extern CPP_C  void Pthread_mutex_lock(pthread_mutex_t *);
+extern CPP_C  void Pthread_mutex_unlock(pthread_mutex_t *);
+extern CPP_C  void Pthread_mutex_destroy(pthread_mutex_t *);
 
-extern void Pthread_cond_init(pthread_cond_t *);
-extern void Pthread_cond_destroy(pthread_cond_t *);
-extern void Pthread_cond_signal(pthread_cond_t *);
-extern void Pthread_cond_broadcast(pthread_cond_t *);
-extern void Pthread_cond_wait(pthread_cond_t *, pthread_mutex_t *);
+extern CPP_C  void Pthread_cond_init(pthread_cond_t *);
+extern CPP_C  void Pthread_cond_destroy(pthread_cond_t *);
+extern CPP_C  void Pthread_cond_signal(pthread_cond_t *);
+extern CPP_C  void Pthread_cond_broadcast(pthread_cond_t *);
+extern CPP_C  void Pthread_cond_wait(pthread_cond_t *, pthread_mutex_t *);
 
 
-extern void Sem_init(sem_t *, lmuint_t);
-extern void Sem_wait(sem_t *);
-extern void Sem_post(sem_t *);
-extern void Sem_destroy(sem_t *);
-extern lmint_t Sem_getvalue(sem_t *);
+extern CPP_C  void Sem_init(sem_t *, lmuint_t);
+extern CPP_C  void Sem_wait(sem_t *);
+extern CPP_C  void Sem_post(sem_t *);
+extern CPP_C  void Sem_destroy(sem_t *);
+extern CPP_C  lmint_t Sem_getvalue(sem_t *);
 
-extern node_t *sender_identification(lmchar_t *, lmchar_t );
-extern lmint_t pt_sync(pt_sync_t *sync);
-extern lmint_t pt_sync_mod(pt_sync_t *, lmsize_t, lmsize_t);
-// extern void pt_sync_mod_sem(pt_sync_t *, lmsize_t, lmsize_t, sem_t *);
+extern CPP_C  node_t *sender_identification(lmchar_t *, lmchar_t );
+extern CPP_C  lmint_t pt_sync(pt_sync_t *sync);
+extern CPP_C  lmint_t pt_sync_mod(pt_sync_t *, lmsize_t, lmsize_t);
+// extern CPP_C  void pt_sync_mod_sem(pt_sync_t *, lmsize_t, lmsize_t, sem_t *);
 
-extern lmint_t get_exchange_channel_mode(lmchar_t , lmchar_t);
-extern client_fce_decode_struct_t decode_exchange_channel_mode(lmint_t);
-extern lmlint_t Make_ID_Number(lmint_t );
+extern CPP_C  lmint_t get_exchange_channel_mode(lmchar_t , lmchar_t);
+extern CPP_C  client_fce_decode_struct_t decode_exchange_channel_mode(lmint_t);
+extern CPP_C  lmlint_t Make_ID_Number(lmint_t );
 
 #endif

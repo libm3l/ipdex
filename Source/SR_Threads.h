@@ -41,6 +41,6 @@
 #ifndef  __ST_DATA_THREADS_H__
 #define  __ST_DATA_THREADS_H__
 
-extern void *SR_Threads(void *);
+extern CPP_C  void *SR_Threads(void *);
 
 #endif

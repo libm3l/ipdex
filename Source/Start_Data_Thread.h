@@ -41,6 +41,6 @@
 #ifndef  __START_DATA_THREAD_H__
 #define  __START_DATA_THREAD_H__
 
-lmsize_t Start_Data_Thread(node_t *, data_thread_str_t *);
+extern CPP_C  lmsize_t Start_Data_Thread(node_t *, data_thread_str_t *);
 
 #endif

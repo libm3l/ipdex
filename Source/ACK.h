@@ -45,14 +45,14 @@
 #ifndef __ACK_H__
 #define __ACK_H__
 
-extern node_t *ackn(void);
-extern node_t *client_name(lmchar_t *);
-extern node_t *Header(lmchar_t *, lmchar_t);
-extern node_t *ret_receipt(lmint_t);
+extern CPP_C  node_t *ackn(void);
+extern CPP_C  node_t *client_name(lmchar_t *);
+extern CPP_C  node_t *Header(lmchar_t *, lmchar_t);
+extern CPP_C  node_t *ret_receipt(lmint_t);
 
-extern lsipdx_answer_t *MakePredefinedAnswers();
-extern void DestroyPredefinedAnswers(lsipdx_answer_t **);
+extern CPP_C  lsipdx_answer_t *MakePredefinedAnswers();
+extern CPP_C  void DestroyPredefinedAnswers(lsipdx_answer_t **);
 
-extern node_t * ChannelList(const lmchar_t *, lmsize_t, lmchar_t, lmchar_t);
+extern CPP_C  node_t * ChannelList(const lmchar_t *, lmsize_t, lmchar_t, lmchar_t);
 
 #endif
