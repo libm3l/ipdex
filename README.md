@@ -22,6 +22,26 @@ then
 
 gmake
 
+Linking
+-----------
+
+To link the shared library use aither
+
+-L/PATHTOLIBM3L/ -lm3l -Wl,-rpath=/PATHTOLIBM3L/ -L/PATHTOLSIPDX/ -llsipdx -Wl,-rpath=/PATHTOLSIPDX/ 
+
+where PATHTOLIBM3L is a path to location of libm3l.so file and PATHTOLSIPDX is a location to liblsipdx.so
+
+
+or 
+
+link libm3lsipdx.so library which contains all libm3l and lsipdx objects:
+
+-L/PATHTOLSIPDX/ -lm3lsipdx -Wl,-rpath=/PATHTOLSIPDX/ 
+
+This is preferred if you link to c++ compiled programs
+
+
+
 
 Portability
 -----------
