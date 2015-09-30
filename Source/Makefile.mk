@@ -5,6 +5,7 @@ HFILES = $(shell ls  *.h  |   sed '/lsipdx_header.h/d'  |   sed '/lsipdx.h/d' | 
 PATHLIBM3L = 
 EMPTYL = $(shell find $(PATHLIBM3L) \( -name libm3l.so -o -iname libm3l.h -o -iname libm3l.so.1.0 \) | wc -l )
 
+CC = gcc
 # OBJS=$(FILES:%.c=%.o)
 OBJS = $(shell ls *.c | sed 's/\.c/\.o/'  |   sed '/Server_Main.o/d' | sort -df)
 
@@ -53,17 +54,20 @@ endif
 
 
 prog: $(OBJS)
-	gcc -shared -Wl,-soname,liblsipdx.so.1.0 -o liblsipdx.so.1.0   $(OBJS)
+	$(CC) -shared -Wl,-soname,liblsipdx.so.1.0 -o liblsipdx.so.1.0   $(OBJS)
 	ln -sf liblsipdx.so.1.0 liblsipdx.so
 	
-	gcc -g -o Server_Main.out Server_Main.c $(OBJS) -L$(PATHL)  -lm3l -Wl,-rpath=$(PATHL) -lpthread -lm
-# 	gcc -g -o Server_Main.out  $(OBJS) libm3l.a   -lpthread
+	$(CC) -shared -Wl,-soname,libm3lsipdx.so.1.0 -o libm3lsipdx.so.1.0   $(OBJS) $(PATHLIBM3L)/*.o
+	ln -sf libm3lsipdx.so.1.0 libm3lsipdx.sos
+	
+	$(CC) -g -o Server_Main.out Server_Main.c $(OBJS) -L$(PATHL)  -lm3l -Wl,-rpath=$(PATHL) -lpthread -lm
+# 	$(CC) -g -o Server_Main.out  $(OBJS) libm3l.a   -lpthread
 
 -include $(OBJS:.o=.d)
 
 %.o: %.c
-	gcc -c -g -Wall -fPIC $*.c -o $*.o
-	gcc -MM -g -Wall -fPIC $*.c > $*.d
+	$(CC) -c -g -Wall -fPIC $*.c -o $*.o
+	$(CC) -MM -g -Wall -fPIC $*.c > $*.d
 	@mv -f $*.d $*.d.tmp
 	@sed -e 's|.*:|$*.o:|' < $*.d.tmp > $*.d
 	@sed -e 's/.*://' -e 's/\\$$//' < $*.d.tmp | fmt -1 | \
