@@ -75,4 +75,5 @@ prog: $(OBJS)
 	@rm -f $*.d.tmp
 
 clean:
-	rm -f Server_Main.out *.o *.d  libm3l.so libm3l.h libm3l.so.1.0
+	rm -f Server_Main.out *.o *.d  libm3l.so libm3l.h libm3l.so.1.0 libm3lsipdx.so.1.0 libm3lsipdx.so
+

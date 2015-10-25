@@ -53,5 +53,5 @@ Dependency
 
 `lsipdx` depends on the `libm3l` library
 
-[![Analytics](https://ga-beacon.appspot.com/UA-47978935-2/lsipdx/readme)](https://github.com/igrigorik/ga-beacon)
+[![Analytics](https://ga-beacon.appspot.com/UA-47978935-2/lsipdx/lsipdx)](https://github.com/igrigorik/ga-beacon)
 
