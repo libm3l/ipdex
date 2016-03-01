@@ -41,6 +41,15 @@
 #ifndef  __START_DATA_THREAD_H__
 #define  __START_DATA_THREAD_H__
 
+
+#ifndef CPP_C
+#ifdef __cplusplus 
+#define CPP_C "C"
+#else
+#define CPP_C
+#endif
+#endif
+
 extern CPP_C  lmsize_t Start_Data_Thread(node_t *, data_thread_str_t *);
 
 #endif

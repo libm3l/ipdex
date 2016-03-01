@@ -43,6 +43,15 @@
 #ifndef  __IDENT_SYS_COMM_CHANNEL_H__
 #define  __IDENT_SYS_COMM_CHANNEL_H__
 
+
+#ifndef CPP_C
+#ifdef __cplusplus 
+#define CPP_C "C"
+#else
+#define CPP_C
+#endif
+#endif
+
 extern CPP_C  lmint_t Ident_Sys_Comm_Channel(node_t *, node_t **, data_thread_str_t *, lmchar_t *, lmchar_t *);
 
 #endif

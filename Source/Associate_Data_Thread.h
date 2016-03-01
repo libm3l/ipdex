@@ -43,6 +43,14 @@
 #ifndef  __ASSOCIATE_DATA_THREAD__
 #define  __ASSOCIATE_DATA_THREAD__
 
+#ifndef CPP_C
+#ifdef __cplusplus 
+#define CPP_C "C"
+#else
+#define CPP_C
+#endif
+#endif
+
 extern CPP_C  data_thread_args_t *Associate_Data_Thread(node_t *, data_thread_str_t *, lmsize_t, lmint_t);
 
 #endif

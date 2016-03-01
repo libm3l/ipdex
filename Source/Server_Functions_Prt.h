@@ -41,6 +41,15 @@
 #ifndef __SERVER_FUNCTION_PRT_H__
 #define __SERVER_FUNCTION_PRT_H__
 
+#ifndef CPP_C
+#ifdef __cplusplus 
+#define CPP_C "C"
+#else
+#define CPP_C
+#endif
+#endif
+
+
 extern CPP_C  void Pthread_barrier_init(pthread_barrier_t *, lmint_t);
 extern CPP_C  void Pthread_barrier_destroy(pthread_barrier_t *);
 extern CPP_C  void Pthread_barrier_wait(pthread_barrier_t *);

@@ -41,6 +41,14 @@
 #ifndef  __SERVER_BODY_H__
 #define  __SERVER_BODY_H__
 
+#ifndef CPP_C
+#ifdef __cplusplus 
+#define CPP_C "C"
+#else
+#define CPP_C
+#endif
+#endif
+
 extern CPP_C  lmint_t Server_Body(node_t *, lmint_t, opts_t *);
 
 #endif

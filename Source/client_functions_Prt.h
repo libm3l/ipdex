@@ -43,10 +43,12 @@
 
 #include "lsipdx_header.h"
 
+#ifndef CPP_C
 #ifdef __cplusplus 
 #define CPP_C "C"
 #else
 #define CPP_C
+#endif
 #endif
 
 

@@ -41,6 +41,14 @@
 #ifndef  __CHECK_REQUEST__H
 #define  __CHECK_REQUEST__H
 
+#ifndef CPP_C
+#ifdef __cplusplus 
+#define CPP_C "C"
+#else
+#define CPP_C
+#endif
+#endif
+
 extern CPP_C  lmint_t Check_Request(node_t *, lmchar_t *, lmchar_t, opts_t *);
 extern CPP_C  find_t *find_Queued_Reqst(node_t *);
 

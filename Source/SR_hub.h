@@ -41,6 +41,15 @@
 #ifndef  __SR_HUB_H__
 #define  __SR_HUB_H__
 
+
+#ifndef CPP_C
+#ifdef __cplusplus 
+#define CPP_C "C"
+#else
+#define CPP_C
+#endif
+#endif
+
 extern CPP_C  void *SR_hub(void *);
 
 #endif

@@ -41,6 +41,14 @@
 #ifndef  __IO_FUNCTIONS_H__
 #define  __IO_FUNCTIONS_H__
 
+#ifndef CPP_C
+#ifdef __cplusplus 
+#define CPP_C "C"
+#else
+#define CPP_C
+#endif
+#endif
+
 extern CPP_C  lmint_t Send_Data(node_t *, const lmchar_t *hostname, lmint_t portnumber, lmchar_t *, ...);
 
 #endif

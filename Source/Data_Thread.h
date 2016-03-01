@@ -41,6 +41,14 @@
 #ifndef  __THREAD_PRT_H__
 #define  __THREAD_PRT_H__
 
+#ifndef CPP_C
+#ifdef __cplusplus 
+#define CPP_C "C"
+#else
+#define CPP_C
+#endif
+#endif
+
 extern CPP_C  void *Data_Threads(void *);
 
 #endif

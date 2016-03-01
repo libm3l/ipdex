@@ -41,6 +41,14 @@
 #ifndef  __SOCKET_OP_H__
 #define  __SOCKET_OP_H__
 
+#ifndef CPP_C
+#ifdef __cplusplus 
+#define CPP_C "C"
+#else
+#define CPP_C
+#endif
+#endif
+
 extern CPP_C  lmint_t open_connection_to_server(const lmchar_t *, lmint_t, client_fce_struct_t *, opts_t *);
 // extern CPP_C  lmint_t add_connection(const lmchar_t *, lmint_t , const lmchar_t *, opts_t *);
 extern CPP_C  lmint_t add_connection(const lmchar_t *, lmint_t ,  client_fce_struct_t *, opts_t *);

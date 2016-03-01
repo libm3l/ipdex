@@ -41,6 +41,14 @@
 #ifndef  __ALLOCATE_DATABUFFER_H__
 #define  __ALLOCATE_DATABUFFER_H__
 
+#ifndef CPP_C
+#ifdef __cplusplus 
+#define CPP_C "C"
+#else
+#define CPP_C
+#endif
+#endif
+
 extern CPP_C  node_t *Allocate_DataBuffer(node_t *);
 extern CPP_C  lmint_t Additional_Data2Buffer(node_t **);
 

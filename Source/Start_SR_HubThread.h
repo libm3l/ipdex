@@ -41,6 +41,14 @@
 #ifndef   __START_SR_HUB_THREADS_H__
 #define  __START_SR_HUB_THREADS_H__
 
+#ifndef CPP_C
+#ifdef __cplusplus 
+#define CPP_C "C"
+#else
+#define CPP_C
+#endif
+#endif
+
 extern CPP_C  SR_hub_thread_str_t *Start_SR_HubThread(SR_thread_str_t *, data_thread_args_t *, lmsize_t *, lmsize_t  *, lmint_t *, sem_t *, lmint_t *,lmsize_t *);
 
 #endif

@@ -41,6 +41,14 @@
 #ifndef  __SIGNALC_H__
 #define __SIGNALC_H__
 
+#ifndef CPP_C
+#ifdef __cplusplus 
+#define CPP_C "C"
+#else
+#define CPP_C
+#endif
+#endif
+
 extern CPP_C  void catch_int(lmint_t);
 extern CPP_C  void catch_usr(lmint_t);
 

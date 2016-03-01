@@ -45,6 +45,14 @@
 #ifndef __ACK_H__
 #define __ACK_H__
 
+#ifndef CPP_C
+#ifdef __cplusplus 
+#define CPP_C "C"
+#else
+#define CPP_C
+#endif
+#endif
+
 extern CPP_C  node_t *ackn(void);
 extern CPP_C  node_t *client_name(lmchar_t *);
 extern CPP_C  node_t *Header(lmchar_t *, lmchar_t);

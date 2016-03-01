@@ -41,6 +41,14 @@
 #ifndef  __BCLIENT_FUNCTIONS_PRT_H__
 #define  __BCLIENT_FUNCTIONS_PRT_H__
 
+#ifndef CPP_C
+#ifdef __cplusplus 
+#define CPP_C "C"
+#else
+#define CPP_C
+#endif
+#endif
+
 extern CPP_C  lmint_t Client_Sender(void *, const lmchar_t *, lmint_t , lmchar_t * , ...);
 
 #endif

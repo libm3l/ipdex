@@ -44,6 +44,14 @@
 #ifndef  __ALLOCATE_DATA_THREAD_DATASET__
 #define  __ALLOCATE_DATA_THREAD_DATASET__
 
+#ifndef CPP_C
+#ifdef __cplusplus 
+#define CPP_C "C"
+#else
+#define CPP_C
+#endif
+#endif
+
 extern CPP_C  data_thread_str_t *Allocate_Data_Thread_DataSet(void);
 
 #endif
