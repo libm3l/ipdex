@@ -181,7 +181,7 @@ node_t *sender_identification(lmchar_t *Sender_data_set, lmchar_t RWmode)
 /*
  * add data set name
  */
-	dim[0] = strlen(Sender_data_set)+1;
+	dim[0] = strlen(Sender_data_set); //+1;
 	if(  (TmpNode = m3l_Mklist("Channel", "C", 1, dim, &Gnode, "/Sender_Ident", "./", "--no_malloc", (char *)NULL)) == 0)
 		Error("m3l_Mklist");
 	TmpNode->data.c = Sender_data_set;
@@ -189,7 +189,7 @@ node_t *sender_identification(lmchar_t *Sender_data_set, lmchar_t RWmode)
 /*
  * add if reader or sender
  */
-	dim[0] = 2;
+	dim[0] = 1; // 2;
 	if(  (TmpNode = m3l_Mklist("Sender_Mode", "C", 1, dim, &Gnode, "/Sender_Ident", "./", "--no_malloc", (char *)NULL)) == 0)
 		Error("m3l_Mklist");
 	*TmpNode->data.c = RWmode;	
