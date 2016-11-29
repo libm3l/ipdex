@@ -160,7 +160,7 @@ lmint_t main (lmint_t argc, lmchar_t **argv){
  * open definition file
  */
 
-	if( (Gnode = m3l_Fread(Filename, (lmchar_t *)NULL))  == NULL){
+	if( (Gnode = m3l_Fread(Filename, "--format", "a", (lmchar_t *)NULL))  == NULL){
 		free(Filename);
 		Error("Server: m3l_Fread");
 	}
