@@ -271,16 +271,15 @@ node_t *ChannelList(const lmchar_t *name, lmsize_t Rproc, lmchar_t ATDT_mode, lm
 	if(  (RetNode = m3l_Mklist("Channel", "DIR", 0, 0, &Gnode, "/_sys_comm_", "./", (lmchar_t *)NULL)) == 0)
 		Error("m3l_Mklist");
 
-// 	if( (dim[0] = strlen(name)+1) < 1)
-	if( dim[0] = strlen(name) < 1)
+	if( (dim[0] = strlen(name))  < 1)
 		Error("ChannelList: wrong name of channel");
 	
 	if(  (TmpNode = m3l_Mklist("Name_of_Channel", "C", 1, dim, &RetNode, "./Channel", "./", (lmchar_t *)NULL)) == 0)
 		Error("Allocate_DataBuffer: m3l_Mklist");
 	tmplmchar_t = (lmchar_t *)m3l_get_data_pointer(TmpNode);
-	if( snprintf(tmplmchar_t, dim[0],"%s",name) < 0)
+	if( snprintf(tmplmchar_t, dim[0]+1,"%s",name) < 0)
 		Perror("snprintf");
-	tmplmchar_t[dim[0]] = '\0';
+	tmplmchar_t[dim[0]+1] = '\0';
 	
 	if(Rproc == 0)return Gnode;
 	
