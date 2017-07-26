@@ -2,7 +2,7 @@ PATHL  = $(shell pwd)
 
 all:
 
-	ln -sf ../../../libm3l/Source/libm3l.* .
+	ln -sf ../../../libm3l/Source/data_util/libm3l.* .
 	ln -sf ../../Source/liblsipdx.so* .
 	ln -sf ../../Source/lsipdx.h .
 
