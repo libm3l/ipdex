@@ -1,8 +1,10 @@
-lsipdx - Synchronization and Inter-Process Data eXchage Utility
+lsipdx - Synchronization and Inter-Process Data eXchage
+Co-Simulation Engine
 ===============================================================
 
 lsipdx is a utility which enables synchronization of data transfer between 
-different processes. Upon start, the server utility opens a specified number of connections
+different processes. It can work as a co-simulation engine. 
+Upon start, the server utility opens a specified number of connections
 which are each given its own identification name. Then it creates a specified number
 of hubs for each connection.
 The client processes connect to the server by using the hostname and port number 
