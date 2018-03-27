@@ -45,8 +45,8 @@
 #include <pthread.h>
 #include <semaphore.h>
 
-#define EOFCY "0"EOFbuff
-#define EOFCN "1"EOFbuff
+#define EOFCY    "0"   EOFbuff
+#define EOFCN    "1"   EOFbuff
 
 #define EOFClen 1+EOBlen
 /*
