@@ -61,6 +61,7 @@ prog: $(OBJS)
 	ln -sf libm3lsipdx.so.1.0 libm3lsipdx.sos
 	
 	$(CC) -g -o Server_Main.out Server_Main.c $(OBJS) -L$(PATHL)  -lm3l -Wl,-rpath=$(PATHL) -lpthread -lm
+	cp Server_Main.out lsipdx_server.out
 # 	$(CC) -g -o Server_Main.out  $(OBJS) libm3l.a   -lpthread
 
 -include $(OBJS:.o=.d)
@@ -75,5 +76,5 @@ prog: $(OBJS)
 	@rm -f $*.d.tmp
 
 clean:
-	rm -f Server_Main.out *.o *.d  libm3l.so libm3l.h libm3l.so.1.0 libm3lsipdx.so.1.0 libm3lsipdx.so
+	rm -f Server_Main.out lsipdx_server.out *.o *.d  libm3l.so libm3l.h libm3l.so.1.0 libm3lsipdx.so.1.0 libm3lsipdx.so
 
