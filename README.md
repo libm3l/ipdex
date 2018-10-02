@@ -12,6 +12,9 @@ and specify name of connection which they will use to transfer the data.
 Each client has to specify its role in the transfer chain - ie. either Sender
 or Receiver. Once all client processes arrive, lsipdx starts transferring the data. 
 
+The library uses libm3l TCP/IP protocol which needs to be installed prior installing lsipdx. 
+Libm3l is available at https://github.com/libm3l/libm3l
+
 Installation
 -----------
 
