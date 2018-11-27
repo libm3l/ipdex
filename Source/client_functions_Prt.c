@@ -56,6 +56,16 @@
 //      mode 4: ATDTMode == 'A' && KeepAlive_Mode == 'C'  /* Alternate transfer, close socket after client request it*/
 //      mode 5: ATDTMode == 'D' && KeepAlive_Mode == 'Y'  /* Direct transfer, do not close socket*/
 //      mode 6: ATDTMode == 'A' && KeepAlive_Mode == 'Y'  /* Alternate transfer, do not close socket*/
+/*
+ * opt_EOBseq and opt_REOBseq are used to specify that 
+ * the only thing which is sent/receive through channel 
+ * is EOB sequence
+ * It is used if multiple libm3l list are to be sequentially sent by one process and 
+ * received by another process. To notify the processes that one libm3l list was sent, the 
+ * receiving process, after receving sequence sends EOB EOB and sending process will receive it
+ * The only porpose is to interrupt the flow of bytes from one libm3l node
+ * before the next byte libm3l sequence is to be sent
+ */
 
 lmint_t client_sender(void *data, lmint_t sockfd, client_fce_struct_t *ClientInPar, opts_t *Popts, opts_t *Popst_lm3l){
 	
@@ -85,6 +95,8 @@ lmint_t client_sender(void *data, lmint_t sockfd, client_fce_struct_t *ClientInP
 		m3l_send_to_tcpipsocket((node_t *)data, (lmchar_t *)NULL, sockfd, Popts_1);
 /* 
  * if sender behaves a sender (ATDT = A mode), Receiver wait for client confirming all data were sent
+ * opt_REOBseq serves as a termination request when process is just sending data, when specifying this
+ * the sender will send EOB sequence and receiver will receive EOB sequency only
  */
 		if(ClientInPar->SR_MODE == 'R'){
 			opts.opt_REOBseq = 'G';  /* --REOB */
