@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
 /*
  * add pressure array, array has 5 pressure with some values
  */	
-		dim[0] = i+2;
+		dim[0] = i;
 		if(  (TmpNode = m3l_Mklist("text", "C", 1, dim, &Gnode, "/Client_Data", "./", (char *)NULL)) == 0)
 				Error("m3l_Mklist");
 		message = (lmchar_t *)m3l_get_data_pointer(TmpNode);
@@ -121,7 +121,7 @@ int main(int argc, char *argv[])
 			if(j % 9 == 0)tmpnum = 0;
 			tmpnum++;
 		}
-		message[dim[0]-1] = '\0';
+		message[dim[0]] = '\0';
 		
 		free(dim);
 		
