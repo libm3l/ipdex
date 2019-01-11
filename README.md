@@ -65,6 +65,8 @@ https://doi.org/10.2514/6.2015-0769, https://www.researchgate.net/publication/27
 
 Karlsson A. and Ringertz U.: Experimental and Analytical Investigation of Aircraft-Like Wind Tunnel Model with External Stores, XVII INTERNATIONAL FORUM OF AEROELASTICITY AND STRUCTURAL DYNAMICS 25-28 June, 2017, COMO, ITALY
 
-
+ Jirasek A., Ghoreyshi M. and Satchell M.. "Recent Developments in flowPsi CFD code", AIAA Scitech 2019 Forum, AIAA SciTech Forum, (AIAA 2019-0586), https://doi.org/10.2514/6.2019-0586
+ 
+ 
 [![Analytics](https://ga-beacon.appspot.com/UA-47978935-2/libm3l/lsipdx)](https://github.com/igrigorik/ga-beacon)
 
