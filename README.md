@@ -51,12 +51,13 @@ This is preferred if you link to c++ compiled programs
 Portability
 -----------
 
-lsipdx has been tested on Linux only.
+lsipdx has been tested on Linux only. Other systems will likely require modification to the library.
+
 
 Dependency
 ----------
 
-`lsipdx` depends on the `libm3l` library
+`lsipdx` depends on the `libm3l` library which can be found at https://github.com/libm3l/libm3l
 
 
 References
