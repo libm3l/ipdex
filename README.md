@@ -73,7 +73,7 @@ Karlsson A. and Ringertz U.: Experimental and Analytical Investigation of Aircra
 
 Jirasek A., Ghoreyshi M. and Satchell M.. "Recent Developments in flowPsi CFD code", AIAA Scitech 2019 Forum, AIAA SciTech Forum, (AIAA 2019-0586), https://doi.org/10.2514/6.2019-0586
  
-Jirasek A. and Saidel J.: Recent Developments in Fun3D and LoCi/CHEM CFD Codes Towards Multiphysics Modeling, AIAA 2020-1033, Orlando, Florida, 2020 Published Online: 5 Jan 2020, https://doi.org/10.2514/6.2020-1033
+Jirasek A. and Seidel J.: Recent Developments in Fun3D and LoCi/CHEM CFD Codes Towards Multiphysics Modeling, AIAA 2020-1033, Orlando, Florida, 2020 Published Online: 5 Jan 2020, https://doi.org/10.2514/6.2020-1033
  
 [![Analytics](https://ga-beacon.appspot.com/UA-47978935-2/libm3l/lsipdx)](https://github.com/igrigorik/ga-beacon)
 
